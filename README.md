@@ -39,11 +39,17 @@ scheduling, affected detection, `run-many`, task output caching, isolation, and
 distributed execution are not implemented. `dependencies` and `tags` are metadata;
 use underlying tools or package-manager scripts for dependency build ordering.
 
+The [goal and active roadmap](ROADMAP.md) tracks implemented behavior,
+validation results, and ordered TODOs from dependency scheduling through caching
+and optional isolation. Keep its checklist updated as capabilities land.
+
 ---
 
 ## 🤝 Contributing
 
-We are actively building out the core engine. Check out the [Issues](https://github.com/isox-sh/isox/issues) page to see the roadmap, or submit a PR!
+We are actively building out the core engine. Start with the
+[active roadmap](ROADMAP.md), then use [Issues](https://github.com/isox-sh/isox/issues)
+for individual work items or submit a PR.
 
 Use Node.js 20.19+, 22.13+, or 24+ for the CLI and development tools.
 The repository uses pnpm workspaces, with packages under `packages/`. Install

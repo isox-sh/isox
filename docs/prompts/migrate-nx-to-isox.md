@@ -16,6 +16,9 @@ the migration to native Isox commands and underlying tools, including replacing
 Nx executors and config helpers. Retaining the adapter is an intermediate step,
 not a completed migration.
 
+Use the [active roadmap](../../ROADMAP.md) to distinguish implemented Isox behavior
+from planned scheduling, affected detection, caching, and isolation features.
+
 ## 1. Inspect the existing behavior
 
 Identify the package manager, lockfile, runtime versions, workspace layout,
@@ -238,10 +241,15 @@ They receive `(options, context)` with this native context:
 | `workspaceRoot`, `projectRoot` | Absolute paths |
 | `projectName`, `commandName` | Selected names |
 | `configurationName` | Selected configuration, or `undefined` |
-| `project`, `command` | Selected configurations |
+| `project`, `command` | Resolved project record and base command definition |
 | `workspace` | Native graph with `projects` |
 | `logger` | Invocation logger with debug/info/success/warn/error methods |
 | `verbose` | Debug logging enabled |
+
+Read merged configuration values from the executor's `options` argument.
+`context.command` retains the base command definition, including its unmerged
+`options` and named `configurations`; the project and workspace records also
+remain unchanged by configuration selection.
 
 Replace Nx context accesses explicitly. Native context has no `targetName`,
 `targets`, `projectsConfigurations`, or `isVerbose`. Use the native project and
