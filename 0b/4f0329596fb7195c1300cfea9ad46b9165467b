@@ -1,0 +1,40 @@
+README.md
+  s_ddb08af8d61ae5::t_431e5407c6d872 111
+  s_ddb08af8d61ae5::t_4725abcb32075c 106-110
+.editorconfig
+  s_ddb08af8d61ae5::t_431e5407c6d872 1-12
+package.json
+  s_ddb08af8d61ae5::t_431e5407c6d872 1-4,6-14,16
+  h_b13471b77746e9 5
+  s_ddb08af8d61ae5::t_4725abcb32075c 15
+pnpm-workspace.yaml
+  s_ddb08af8d61ae5::t_4725abcb32075c 1-2
+.gitattributes
+  s_ddb08af8d61ae5::t_431e5407c6d872 1
+.gitignore
+  s_ddb08af8d61ae5::t_4725abcb32075c 3
+  s_ddb08af8d61ae5::t_431e5407c6d872 1-2,4-25
+pnpm-lock.yaml
+  s_ddb08af8d61ae5::t_9b35366a4013da 1-167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0b4f0329596fb7195c1300cfea9ad46b9165467b",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_ddb08af8d61ae5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e7e-2f96-71a0-b4c2-52174ae016ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
