@@ -1,0 +1,93 @@
+packages/core/tests/command-configuration.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-56
+packages/core/tests/run-command.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-62
+packages/core/tests/project-configuration.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-144
+ROADMAP.md
+  s_51871bdcdb3b4c::t_137519c9b07ffd 54
+  s_51871bdcdb3b4c::t_341db732a2f240 53
+packages/vitest/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_23c10d28028061 1-93
+packages/core/tests/logger.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-172
+packages/core/tests/nx-runner.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-293
+package.json
+  s_51871bdcdb3b4c::t_1431355b536e2a 30,38-39
+  s_51871bdcdb3b4c::t_154143d56d0d5e 17,23
+packages/core/tests/nx-workspace-graph.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-135
+packages/vitest/tsconfig.json
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-6,8
+  s_51871bdcdb3b4c::t_54aa4dbf0d6104 7
+packages/vitest/src/index.ts
+  s_51871bdcdb3b4c::t_de4fb4ab94d561 1-33
+packages/js/vitest.config.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-6
+packages/cli/tests/cli.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-222
+packages/cli/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-77
+packages/cli/tests/init.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-89
+packages/vitest/commands.json
+  s_51871bdcdb3b4c::t_de4fb4ab94d561 1-9
+.github/workflows/ci.yml
+  s_51871bdcdb3b4c::t_1431355b536e2a 39-41
+README.md
+  s_51871bdcdb3b4c::t_54aa4dbf0d6104 103
+  s_51871bdcdb3b4c::t_137519c9b07ffd 74,95-97,100,112,119,125,135-136,139,320-323
+  s_51871bdcdb3b4c::t_5b93b87a709f72 73
+packages/vitest/README.md
+  s_51871bdcdb3b4c::t_23c10d28028061 1-38
+packages/js/tests/tsc.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-6,18
+packages/vitest/project.json
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-25
+packages/vitest/schemas/test.json
+  s_51871bdcdb3b4c::t_de4fb4ab94d561 1-14
+packages/vitest/package.json
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-31,33-34
+  s_51871bdcdb3b4c::t_137519c9b07ffd 32
+packages/core/tests/bootstrap.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-5,14
+packages/cli/vitest.config.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-6
+packages/core/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-159
+packages/cli/tests/configurations.test.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-118
+packages/core/vitest.config.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-6
+packages/vitest/vitest.config.mjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 1-6
+packages/cli/project.json
+  s_51871bdcdb3b4c::t_eacbf9672bf929 15
+packages/core/README.md
+  s_51871bdcdb3b4c::t_a8a174d8737ee1 85
+packages/core/project.json
+  s_51871bdcdb3b4c::t_62cc2b5d1e3233 13
+packages/js/project.json
+  s_51871bdcdb3b4c::t_9d6f59ea61a151 15
+pnpm-lock.yaml
+  s_51871bdcdb3b4c::t_065eb3268cc198 178-180,205-207,236-244,312-321,343-444,451-456,652-665,682-685,705-708,725-731,787-789,794-797,843-847,913-986,991-993,1009-1013,1017-1020,1041-1043,1052-1055,1079-1083,1100-1114,1156-1239,1245-1249,1322-1330,1351-1399,1410-1416,1582-1592,1613-1614,1635-1636,1649-1652,1729-1732,1735-1736,1782-1784,1834-1882,1887-1890,1904-1905,1908-1909,1931-1932,1937-1942,1957-1977,1990-1997,2057-2088,2093-2094
+scripts/bootstrap.cjs
+  s_51871bdcdb3b4c::t_021c6818d15848 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5100f0530e0b5ff8e589afb1111916426de4ee46",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
