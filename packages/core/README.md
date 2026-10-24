@@ -70,6 +70,10 @@ caching.
 
 ## Custom executors
 
+Place each implementation in `src/commands/<name>/<name>.command.ts` and point
+its manifest entry to `dist/commands/<name>/<name>.command.js`. Command-only
+plugins do not need a `src/index.ts` entry point.
+
 ```typescript
 import type { Executor } from '@isox-sh/core'
 

@@ -265,12 +265,13 @@ package manifest. The command manifest has this shape:
 ```json
 {
   "commands": {
-    "build": { "implementation": "./dist/build.js" }
+    "build": { "implementation": "./dist/commands/build/build.command.js" }
   }
 }
 ```
 
-Implementation paths are relative to the executor manifest. Native executors
+Implementation paths are relative to the executor manifest. Place native command
+implementations in `src/commands/<name>/<name>.command.ts`. Native executors
 use `commands` manifests; `executors` and `builders` are reserved for the Nx adapter. Ensure the executor package's `package.json`
 can be resolved from the workspace root, including under pnpm's dependency
 isolation. Build local executor packages before invoking their compiled files.

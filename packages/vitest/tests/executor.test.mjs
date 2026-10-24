@@ -8,7 +8,7 @@ import { dirname, join, resolve } from 'node:path'
 import { test } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { default: runVitest } = require('../dist')
+const { default: runVitest } = require('../dist/commands/test/test.command')
 const { createLogger, LogLevels } = require('@isox-sh/core')
 const cli = resolve(import.meta.dirname, '../../cli/dist/index.js')
 

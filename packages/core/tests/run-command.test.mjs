@@ -8,7 +8,7 @@ const { mkdtemp, mkdir, readFile, realpath, rm, writeFile } = require('node:fs/p
 const { tmpdir } = require('node:os')
 const { join } = require('node:path')
 const { Ajv } = require('ajv')
-const { default: runCommand } = require('../dist/executor/run-command')
+const { default: runCommand } = require('../dist/commands/run-command/run-command.command')
 const commandSchema = require('../schemas/run-command.json')
 
 test('command schema rejects blank commands consistently with the executor', async () => {

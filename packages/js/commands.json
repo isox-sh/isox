@@ -1,7 +1,7 @@
 {
   "commands": {
     "tsc": {
-      "implementation": "./dist/index.js",
+      "implementation": "./dist/commands/tsc/tsc.command.js",
       "schema": "./schemas/tsc.json",
       "description": "Compile a TypeScript project using TypeScript 7."
     }

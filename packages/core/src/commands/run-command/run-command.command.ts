@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { resolve } from 'node:path'
 
-import type { ExecutorContext, ExecutorResult } from './types'
+import type { ExecutorContext, ExecutorResult } from '../../executor/types'
 
 export interface RunCommandOptions {
   command: string

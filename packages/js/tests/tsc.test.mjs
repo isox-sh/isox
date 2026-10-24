@@ -11,7 +11,7 @@ const { tmpdir } = require('node:os')
 const { dirname, join, resolve } = require('node:path')
 
 const { createLogger, LogLevels } = require('@isox-sh/core')
-const { default: tsc } = require('../dist')
+const { default: tsc } = require('../dist/commands/tsc/tsc.command')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox typescript '))

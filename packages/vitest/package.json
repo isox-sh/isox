@@ -3,8 +3,6 @@
   "version": "0.0.1",
   "license": "MIT",
   "description": "Native Vitest test executor for Isox.",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "commands": "./commands.json",
   "files": [
     "dist",

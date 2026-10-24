@@ -278,6 +278,11 @@ executor receives the merged options (or `{}`) and this context:
 | `logger` | Logger for this invocation |
 | `verbose` | Whether debug logging is enabled |
 
+Place plugin command implementations in `src/commands/<name>/<name>.command.ts`
+(for example, `src/commands/tsc/tsc.command.ts`). Point each `commands.json`
+entry directly to the compiled command file. Command-only plugins do not need
+`src/index.ts` or package `main`/`types` entries.
+
 ```typescript
 import type { Executor } from '@isox-sh/core'
 
@@ -297,7 +302,7 @@ manifest file, for example:
 ```json
 {
   "commands": {
-    "build": { "implementation": "./dist/build.js" }
+    "build": { "implementation": "./dist/commands/build/build.command.js" }
   }
 }
 ```

@@ -1,7 +1,7 @@
 {
   "commands": {
     "run-command": {
-      "implementation": "./dist/executor/run-command",
+      "implementation": "./dist/commands/run-command/run-command.command.js",
       "schema": "./schemas/run-command.json",
       "description": "Run a shell command from the workspace root or a configured directory."
     }
