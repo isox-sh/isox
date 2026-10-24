@@ -1,0 +1,29 @@
+website/index.html
+  s_0b99684ff7d1a9::t_73915886a67ee7 49-50
+  s_0b99684ff7d1a9::t_0aa1d17a9e9f5d 1-48,51-131
+website/logo.svg
+  s_0b99684ff7d1a9::t_0aa1d17a9e9f5d 1-8
+website/styles.css
+  s_0b99684ff7d1a9::t_0aa1d17a9e9f5d 1-158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "32ff4a3182daeff47d6e93c5c9a7adf02ea8ed46",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_0b99684ff7d1a9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16ec3-2d29-7d43-b643-20fae70db5bb",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
