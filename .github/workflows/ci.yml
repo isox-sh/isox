@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   cli:
-    name: Build CLI
+    name: Build, lint, and test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -24,3 +24,12 @@ jobs:
 
       - name: Set up Isox
         uses: ./.github/actions/setup-isox
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test core through Isox
+        run: pnpm isox test core
+
+      - name: Test CLI through Isox
+        run: pnpm isox test cli

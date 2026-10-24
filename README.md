@@ -73,6 +73,7 @@ Pull requests run the `CI` workflow using `.github/actions/setup-isox` to set up
 Node.js and pnpm, install dependencies, and build the CLI and core. Call this action
 once after checkout in each job that needs Isox; subsequent steps in that job can
 use `pnpm isox`. It defaults to Node.js 24, configurable through `node-version`.
+The CI workflow then runs lint and both package test suites through Isox.
 
 ```yaml
 steps:
