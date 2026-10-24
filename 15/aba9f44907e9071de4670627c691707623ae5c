@@ -1,0 +1,44 @@
+packages/core/tests/project-configuration.test.cjs
+  s_51871bdcdb3b4c::t_3cda53a28c1d4c 16
+packages/core/README.md
+  s_51871bdcdb3b4c::t_5058250b5b7a22 13,16-19
+  s_51871bdcdb3b4c::t_2f865086e9f502 1-12,14-15,20-119
+README.md
+  s_51871bdcdb3b4c::t_3cda53a28c1d4c 7,95,148
+  s_51871bdcdb3b4c::t_5058250b5b7a22 50,53,63-65
+  s_51871bdcdb3b4c::t_b5d51e3eedb729 48-49,51-52,54-62,66
+packages/cli/project.json
+  s_51871bdcdb3b4c::t_3cda53a28c1d4c 11,17
+.github/actions/setup-isox/action.yml
+  s_51871bdcdb3b4c::t_3cda53a28c1d4c 28
+packages/core/package.json
+  s_51871bdcdb3b4c::t_2f865086e9f502 20-42
+package.json
+  s_51871bdcdb3b4c::t_3cda53a28c1d4c 2
+website/index.html
+  s_51871bdcdb3b4c::t_5058250b5b7a22 101
+packages/cli/README.md
+  s_51871bdcdb3b4c::t_2f865086e9f502 1-16,18-19,21-23,25-36,41-71,75-155
+  s_51871bdcdb3b4c::t_5058250b5b7a22 17,20,24,37-40,72-74
+packages/cli/package.json
+  s_51871bdcdb3b4c::t_2f865086e9f502 21-41
+  s_51871bdcdb3b4c::t_3cda53a28c1d4c 2
+docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_5058250b5b7a22 280-284
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "15aba9f44907e9071de4670627c691707623ae5c",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
