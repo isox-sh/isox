@@ -103,6 +103,12 @@ jobs:
 
 We are actively building out the core engine. Check out the [Issues](https://github.com/isox-sh/isox/issues) page to see the roadmap, or submit a PR! 
 
+The repository uses pnpm workspaces, with packages under `packages/`. Install
+[pnpm](https://pnpm.io/installation) using the version pinned in `package.json`,
+then run `pnpm install` from the repository root. Commit changes to
+`pnpm-lock.yaml` alongside dependency updates; use `pnpm install --frozen-lockfile`
+in CI. Build and test scripts will be added alongside the implementation.
+
 1. Fork the repo
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)

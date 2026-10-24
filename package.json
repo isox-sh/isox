@@ -1,0 +1,16 @@
+{
+  "name": "isox",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A lean, hermetic monorepo task orchestrator executor runner.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "packageManager": "pnpm@12.15.0"
+}
