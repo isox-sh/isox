@@ -62,7 +62,8 @@ their source files. For the final explicit Isox format, follow the steps below.
 
 Keep the filename `project.json`. Run `isox init` at the workspace root to create
 `isox.json` containing the installed CLI's version from its `package.json`, for
-example `{ "version": "0.0.1", "nx": { "executors": ["@nx"] } }`. Init refuses to overwrite an existing file;
+example `{ "version": "0.0.1" }`. When the root contains an `nx.json` file, init
+also adds `"nx": { "executors": ["@nx"] }`. Init refuses to overwrite an existing file;
 preserve and inspect any existing marker. Isox finds the nearest marker by walking
 upward from the current directory. For existing markers, configure `nx.executors`
 explicitly for any retained Nx executor scopes or packages.
@@ -157,7 +158,8 @@ the same Isox build command again.
 ### Temporarily retained Nx 23 executors
 
 Executor packages matching a scope or package name in `isox.json`'s `nx.executors`
-array use the Nx adapter. Init includes `@nx` in that array, enabling references
+array use the Nx adapter. Init includes `@nx` in that array when the root contains
+`nx.json`, enabling references
 such as:
 
 ```json

@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict')
 const { spawnSync } = require('node:child_process')
-const { mkdtemp, readFile, readdir, rm, writeFile } = require('node:fs/promises')
+const { mkdir, mkdtemp, readFile, readdir, rm, writeFile } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { join, resolve } = require('node:path')
 const { test } = require('node:test')
@@ -24,11 +24,39 @@ test('init uses the CLI package version and creates a marker that other actions 
   const result = run(root, 'init')
   assert.equal(result.status, 0, result.stderr)
   assert.match(result.stdout, /Created .*isox.json/)
-  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), { version, nx: { executors: ['@nx'] } })
+  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), { version })
   assert.deepEqual((await readdir(root)).sort(), ['isox.json', 'package.json'])
 
   const reset = run(root, 'reset')
   assert.equal(reset.status, 0, reset.stderr)
+})
+
+test('init includes Nx settings when nx.json exists in the root', async (t) => {
+  const root = await fixture(t)
+  await writeFile(join(root, 'nx.json'), '{}\n')
+  const result = run(root, 'init')
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), { version, nx: { executors: ['@nx'] } })
+  assert.equal(await readFile(join(root, 'nx.json'), 'utf8'), '{}\n')
+})
+
+test('init ignores nx.json in parent or nested directories', async (t) => {
+  const root = await fixture(t)
+  const nested = join(root, 'nested')
+  await mkdir(join(nested, 'child'), { recursive: true })
+  await writeFile(join(root, 'nx.json'), '{}')
+  await writeFile(join(nested, 'child', 'nx.json'), '{}')
+  const result = run(nested, 'init')
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(await readFile(join(nested, 'isox.json'), 'utf8')), { version })
+})
+
+test('init ignores a directory named nx.json', async (t) => {
+  const root = await fixture(t)
+  await mkdir(join(root, 'nx.json'))
+  const result = run(root, 'init')
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), { version })
 })
 
 test('init preserves existing files, including malformed configuration', async (t) => {

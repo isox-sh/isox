@@ -7,7 +7,7 @@
       "type": "object",
       "properties": {
         "executors": {
-          "description": "Npm scopes or package names whose executors always use the Nx adapter. Init includes @nx by default.",
+          "description": "Npm scopes or package names whose executors always use the Nx adapter. Init includes @nx when the workspace root contains nx.json.",
           "type": "array",
           "items": {
             "type": "string",

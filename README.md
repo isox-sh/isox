@@ -147,8 +147,9 @@ processing. The resolved `name` and file-derived `root`
 remain authoritative in the workspace graph.
 
 Run `isox init` at the root of a new workspace to create `isox.json` containing
-`{ "version": "0.0.1", "nx": { "executors": ["@nx"] } }` with the version read from the installed CLI's
-`package.json`. Init writes to the current directory and refuses to
+`{ "version": "0.0.1" }` with the version read from the installed CLI's
+`package.json`. If that directory contains an `nx.json` file, init also adds
+`"nx": { "executors": ["@nx"] }`. Init writes to the current directory and refuses to
 overwrite an existing file. Existing unversioned markers still work. The CLI
 searches the current directory and its parents for the nearest `isox.json` file.
 It discovers projects, resolves plugins, and runs executors from that directory,
@@ -281,8 +282,8 @@ adopt Isox, replace retained Nx executors with native Isox executors or
 helpers and defaults as well, then remove unused Nx packages and configuration
 and clear `nx.executors`. Retaining the adapter is an incomplete migration.
 
-`isox init` includes `@nx` in `nx.executors`, so executors such as `@nx/js:tsc`
-use the separate Nx adapter in newly initialized workspaces.
+When the workspace root contains `nx.json`, `isox init` includes `@nx` in
+`nx.executors`, so executors such as `@nx/js:tsc` use the separate Nx adapter.
 Project files still use Isox's `commands` and `dependencies`. To always use the Nx
 adapter for additional scopes or packages, configure `nx.executors` in `isox.json`:
 
