@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Isox project",
+  "description": "Configuration for an Isox project. Its root is the directory containing this file.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path or URL to this JSON Schema."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[^\\s:]+$",
+      "description": "Unique project name. Defaults to the containing directory name."
+    },
+    "dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[^\\s:]+$" },
+      "description": "Names of projects this project depends on. Dependency scheduling is not yet implemented."
+    },
+    "commands": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[^\\s:]+$" },
+      "additionalProperties": { "$ref": "#/definitions/command" },
+      "description": "Commands available through isox <command> <target>, where target is the project name."
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Labels for organizing projects."
+    }
+  },
+  "definitions": {
+    "command": {
+      "type": "object",
+      "required": ["executor"],
+      "properties": {
+        "executor": {
+          "type": "string",
+          "pattern": "^[^\\s:]+:[^\\s:]+$",
+          "description": "Executor reference in package:executor format."
+        },
+        "options": {
+          "type": "object",
+          "description": "Options passed to the executor."
+        },
+        "configurations": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[^\\s:,]+$" },
+          "additionalProperties": { "type": "object" },
+          "description": "Named overrides merged over options. Nested objects and arrays are replaced."
+        },
+        "defaultConfiguration": {
+          "type": "string",
+          "pattern": "^[^\\s:,]+$",
+          "description": "Configuration selected when no configuration is specified on the command line."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@isox-sh/core",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "commands": "./commands.json",
+  "files": [
+    "dist",
+    "commands.json",
+    "schemas"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "fast-glob": "^3.3.3"
+  }
+}

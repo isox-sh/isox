@@ -1,0 +1,22 @@
+{
+  "name": "@isox-sh/cli",
+  "version": "0.0.1",
+  "license": "MIT",
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+  },
+  "bin": {
+    "isox": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "dependencies": {
+    "@isox-sh/core": "workspace:*",
+    "cac": "^7.1.0"
+  }
+}

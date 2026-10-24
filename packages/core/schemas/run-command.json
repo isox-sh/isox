@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Run command",
+  "type": "object",
+  "properties": {
+    "command": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The shell command to execute."
+    },
+    "cwd": {
+      "type": "string",
+      "description": "Working directory, resolved relative to the workspace root."
+    }
+  },
+  "required": ["command"],
+  "additionalProperties": false
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "./schemas/project.schema.json",
+  "name": "core",
+  "dependencies": [],
+  "commands": {
+    "build": {
+      "executor": "@isox-sh/core:run-command",
+      "options": {
+        "command": "pnpm --filter @isox-sh/core build"
+      }
+    },
+    "test": {
+      "executor": "@isox-sh/core:run-command",
+      "options": {
+        "command": "pnpm --filter @isox-sh/core test"
+      }
+    },
+    "lint": {
+      "executor": "@isox-sh/core:run-command",
+      "options": {
+        "command": "pnpm exec eslint packages/core --max-warnings 0"
+      }
+    }
+  },
+  "tags": []
+}

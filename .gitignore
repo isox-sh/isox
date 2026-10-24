@@ -7,6 +7,7 @@ dist/
 build/
 coverage/
 .cache/
+.isox/
 *.tsbuildinfo
 
 # Local environment files

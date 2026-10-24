@@ -1,0 +1,28 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "cli",
+  "dependencies": [
+    "core"
+  ],
+  "commands": {
+    "build": {
+      "executor": "@isox-sh/core:run-command",
+      "options": {
+        "command": "pnpm --filter @isox-sh/cli... build"
+      }
+    },
+    "test": {
+      "executor": "@isox-sh/core:run-command",
+      "options": {
+        "command": "pnpm --filter @isox-sh/cli test"
+      }
+    },
+    "lint": {
+      "executor": "@isox-sh/core:run-command",
+      "options": {
+        "command": "pnpm exec eslint packages/cli --max-warnings 0"
+      }
+    }
+  },
+  "tags": []
+}

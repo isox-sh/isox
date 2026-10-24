@@ -1,0 +1,56 @@
+const assert = require('node:assert/strict')
+const { spawnSync } = require('node:child_process')
+const { mkdtemp, readFile, readdir, rm, writeFile } = require('node:fs/promises')
+const { tmpdir } = require('node:os')
+const { join, resolve } = require('node:path')
+const { test } = require('node:test')
+const { version } = require('../package.json')
+
+const cliPath = resolve(__dirname, '../dist/index.js')
+
+async function fixture(t) {
+  const root = await mkdtemp(join(tmpdir(), 'isox-init-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  return root
+}
+
+function run(root, ...args) {
+  return spawnSync(process.execPath, [cliPath, ...args], { cwd: root, encoding: 'utf8' })
+}
+
+test('init uses the CLI package version and creates a marker that other actions recognize', async (t) => {
+  const root = await fixture(t)
+  await writeFile(join(root, 'package.json'), JSON.stringify({ name: 'other-project', version: '99.0.0' }))
+  const result = run(root, 'init')
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(result.stdout, /Created .*isox.json/)
+  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), { version, nx: { executors: ['@nx'] } })
+  assert.deepEqual((await readdir(root)).sort(), ['isox.json', 'package.json'])
+
+  const reset = run(root, 'reset')
+  assert.equal(reset.status, 0, reset.stderr)
+})
+
+test('init preserves existing files, including malformed configuration', async (t) => {
+  const root = await fixture(t)
+  for (const content of ['{ "version": 42, "custom": true }\n', '{broken']) {
+    await writeFile(join(root, 'isox.json'), content)
+    const result = run(root, 'init')
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /isox.json already exists/)
+    assert.equal(await readFile(join(root, 'isox.json'), 'utf8'), content)
+  }
+})
+
+test('init help and invalid arguments do not create a workspace', async (t) => {
+  const root = await fixture(t)
+  const help = run(root, 'init', '--help')
+  assert.equal(help.status, 0, help.stderr)
+  assert.match(help.stdout, /init/)
+  for (const args of [['init', 'extra'], ['init', '--unknown']]) {
+    const result = run(root, ...args)
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /Unused args|Unknown option/)
+  }
+  assert.deepEqual(await readdir(root), [])
+})
