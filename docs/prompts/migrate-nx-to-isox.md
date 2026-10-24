@@ -277,8 +277,11 @@ isolation. Build local executor packages before invoking their compiled files.
 
 ## 4. Update entry points and dependencies
 
-Install the compatible Isox CLI/core packages through the repository's package
-manager and update its existing lockfile. Do not invent an unpublished version
+Install `isox` through the repository's package manager and update its existing
+lockfile. Core is a CLI dependency; built-in commands use the CLI's copy when
+core cannot be resolved from the workspace. Install `@isox-sh/core` directly only
+for API/type imports, editor schema paths, or an intentional workspace override.
+Do not invent an unpublished version
 or mix package managers. For a local Isox checkout, bootstrap its compiled CLI
 using its root build script first. Add executor packages where resolution from
 the workspace root works.

@@ -13,7 +13,7 @@ test('accepts the Isox project definition and preserves executor options', () =>
     commands: {
       build: {
         executor: '@isox-sh/core:run-command',
-        options: { command: 'pnpm --filter @isox-sh/cli... build' },
+        options: { command: 'pnpm --filter isox... build' },
       },
     },
     tags: [],

@@ -25,4 +25,4 @@ runs:
 
     - name: Build CLI and core
       shell: bash
-      run: pnpm --filter @isox-sh/cli... build
+      run: pnpm --filter isox... build

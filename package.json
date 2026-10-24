@@ -1,5 +1,5 @@
 {
-  "name": "isox",
+  "name": "isox-monorepo",
   "version": "0.0.0",
   "private": true,
   "description": "A lightweight monorepo command runner with explicit project configuration.",

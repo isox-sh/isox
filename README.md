@@ -4,7 +4,7 @@
   <br />
   <p><b>A lightweight monorepo command runner with explicit project configuration.</b></p>
 
-  [![npm version](https://img.shields.io/npm/v/@isox-sh/cli.svg?style=flat-square&color=3b82f6)](https://npmjs.com/package/@isox-sh/cli)
+  [![npm version](https://img.shields.io/npm/v/isox.svg?style=flat-square&color=3b82f6)](https://npmjs.com/package/isox)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
   [![Website](https://img.shields.io/badge/Website-isox.sh-blue.svg?style=flat-square)](https://isox.sh)
   [![CI](https://img.shields.io/github/actions/workflow/status/isox-sh/isox/ci.yml?style=flat-square&logo=github)](https://github.com/isox-sh/isox/actions)
@@ -45,6 +45,25 @@ and optional isolation. Keep its checklist updated as capabilities land.
 
 ---
 
+## Install and run
+
+Install the CLI in your workspace; its built-in executor is included as a dependency:
+
+```sh
+npm install --save-dev isox
+npx isox init
+```
+
+Add a `project.json` with your project's commands, then run
+`npx isox build <project>`. See the [CLI quickstart](packages/cli/README.md)
+for a complete example, configurations, and global installation instructions.
+The [core package README](packages/core/README.md) covers programmatic use and
+custom executors.
+
+The CLI package is named `isox` and depends on `@isox-sh/core`. A separate core
+installation is only needed for direct API/type imports or editor schema paths.
+Both packages require Node.js 20.19+, 22.13+, or 24+.
+
 ## 🤝 Contributing
 
 We are actively building out the core engine. Start with the
@@ -73,7 +92,7 @@ pnpm test  # Builds and runs the integration tests
 
 Tests live in their owning package's `tests/` directory. `pnpm test` builds the
 workspace and runs both package suites; after building, use
-`pnpm --filter @isox-sh/core test` or `pnpm --filter @isox-sh/cli test` for one suite.
+`pnpm --filter @isox-sh/core test` or `pnpm --filter isox test` for one suite.
 
 Pull requests run the `CI` workflow using `.github/actions/setup-isox` to set up
 Node.js and pnpm, install dependencies, and build the CLI and core. Call this action
@@ -126,7 +145,7 @@ directory's name. Dependencies and tags are optional. For example:
     "build": {
       "executor": "@isox-sh/core:run-command",
       "options": {
-        "command": "pnpm --filter @isox-sh/cli... build"
+        "command": "pnpm --filter isox... build"
       }
     }
   },

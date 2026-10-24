@@ -8,13 +8,13 @@
     "build": {
       "executor": "@isox-sh/core:run-command",
       "options": {
-        "command": "pnpm --filter @isox-sh/cli... build"
+        "command": "pnpm --filter isox... build"
       }
     },
     "test": {
       "executor": "@isox-sh/core:run-command",
       "options": {
-        "command": "pnpm --filter @isox-sh/cli test"
+        "command": "pnpm --filter isox test"
       }
     },
     "lint": {

@@ -1,5 +1,5 @@
 {
-  "name": "@isox-sh/cli",
+  "name": "isox",
   "version": "0.0.1",
   "license": "MIT",
   "engines": {
@@ -18,5 +18,26 @@
   "dependencies": {
     "@isox-sh/core": "workspace:*",
     "cac": "^7.1.0"
+  },
+  "description": "A lightweight monorepo command runner with explicit project configuration.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "keywords": [
+    "monorepo",
+    "cli",
+    "build",
+    "workspace",
+    "isox"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }
