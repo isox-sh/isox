@@ -1,0 +1,25 @@
+.github/workflows/ci.yml
+  s_c25b14edc33466::t_3a0b82a1554924 1-24
+  s_c25b14edc33466::t_281456fc02429b 25-26
+README.md
+  s_c25b14edc33466::t_281456fc02429b 72-82
+  s_c25b14edc33466::t_3a0b82a1554924 83
+.github/actions/setup-isox/action.yml
+  s_c25b14edc33466::t_281456fc02429b 1-28
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9e008d5245a01f02150a7617e2b3312696f5985f",
+  "prompts": {},
+  "sessions": {
+    "s_c25b14edc33466": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16ed7-deee-78a3-8581-175cef154399",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
