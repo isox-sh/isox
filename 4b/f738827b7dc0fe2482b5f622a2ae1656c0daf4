@@ -1,0 +1,35 @@
+docs/prompts/migrate-nx-to-isox.md
+  s_c25b14edc33466::t_b4b83430ee3e30 244,249-252
+  s_51871bdcdb3b4c::t_3bd89eb1e7ec39 20-21
+  s_51871bdcdb3b4c::t_d3e12217ce68a6 19
+  s_c25b14edc33466::t_8ec6ef4d1ace8e 253
+README.md
+  s_51871bdcdb3b4c::t_d3e12217ce68a6 42,51
+  s_51871bdcdb3b4c::t_3bd89eb1e7ec39 43-45,50,52
+ROADMAP.md
+  s_51871bdcdb3b4c::t_d3e12217ce68a6 1-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4bf738827b7dc0fe2482b5f622a2ae1656c0daf4",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_c25b14edc33466": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16ed7-deee-78a3-8581-175cef154399",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
