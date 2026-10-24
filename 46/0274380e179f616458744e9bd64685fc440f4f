@@ -1,0 +1,181 @@
+packages/cli/src/actions/init/index.ts
+  s_c25b14edc33466::t_88dce6dea5a0ba 1-24
+packages/core/src/executor/types.ts
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-26
+packages/core/src/workspace/configuration.ts
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-41
+packages/core/src/executor/runner.ts
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-3,5-34,39-82,84-98
+  s_c25b14edc33466::t_d8bc0f43768ef3 4,35,37-38
+  s_c25b14edc33466::t_88dce6dea5a0ba 36
+  s_51871bdcdb3b4c::t_564c80710b488d 83
+packages/core/src/executor/nx.ts
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-4,6-9,12-30,37-47,49-61,63-64,66
+  s_51871bdcdb3b4c::t_564c80710b488d 5,10-11,31-36,48,62,65
+packages/cli/tests/configurations.test.cjs
+  s_c25b14edc33466::t_88dce6dea5a0ba 36
+  s_51871bdcdb3b4c::t_1e3538395222b1 1-35,37-100,102-113
+  s_51871bdcdb3b4c::t_9cd6debe475023 101
+.gitignore
+  h_b13471b77746e9 10
+packages/core/src/logger.ts
+  s_1337afa55dde9e::t_fadcaf66a491cc 1-113
+packages/core/schemas/isox.schema.json
+  s_c25b14edc33466::t_d8bc0f43768ef3 1-9,11-20
+  s_c25b14edc33466::t_88dce6dea5a0ba 10
+packages/core/tests/nx-runner.test.cjs
+  s_c25b14edc33466::t_88dce6dea5a0ba 8,119,126-129,132,135
+  s_c25b14edc33466::t_bd42b05a6abf9e 1-7,9-118,120-125,130-131,133-134,136-289
+packages/core/src/executor/nx-graph-worker.ts
+  s_51871bdcdb3b4c::t_564c80710b488d 1-24
+packages/core/tests/project-configuration.test.cjs
+  s_51871bdcdb3b4c::t_1e3538395222b1 1-139
+packages/core/tests/command-configuration.test.cjs
+  s_51871bdcdb3b4c::t_1e3538395222b1 1-52
+docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_abaaeb2eca642a 13-18,24-27,130-132,157,223-226,289-291,309-310
+  s_51871bdcdb3b4c::t_9cd6debe475023 1-12,19-23,28-64,66,69-129,133-156,158,162-187,199-202,205-216,220-222,227-288,292-308,311
+  s_c25b14edc33466::t_1bdfc54a9ecbae 217-219
+  s_51871bdcdb3b4c::t_fbd5f8f3dcdf82 188-198,203-204
+  s_c25b14edc33466::t_190c8810569823 65,67-68,159-161
+README.md
+  s_51871bdcdb3b4c::t_fbd5f8f3dcdf82 313-314,317-329,338-341
+  s_51871bdcdb3b4c::t_9cd6debe475023 96-97,145-146,174-192,195,197-202,204-215,219,226,264-268,306,331-332,337
+  s_51871bdcdb3b4c::t_abaaeb2eca642a 23-27,277-283,316
+  s_c25b14edc33466::t_d8bc0f43768ef3 116,156-157,239,286-291,293-295,297-298,302-304
+  s_1337afa55dde9e::t_605c60062b4831 351-356,359-361
+  h_b13471b77746e9 5-6,17-20,29-35,37-40,44,46,48,53,55-58,61-65,68-70,72-73,76-81,84-95,98-115,118-144,147-149,151-155,158-167,169-172,216,218,221-225,227-230,233,235-238,241,244-253,256-263,269-276,305,307-312,315,330,333-336,342-350,357-358,362,364-365,367-370
+  s_c25b14edc33466::t_88dce6dea5a0ba 22,150,284-285,292,299-301
+  s_51871bdcdb3b4c::t_7d104b2223e604 15,45,47,49-52,71,74,217,220,232
+packages/cli/src/shared/run-project-command.ts
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-27
+packages/core/src/workspace/settings.ts
+  s_c25b14edc33466::t_d8bc0f43768ef3 1-37
+packages/core/src/executor/nx-workspace-graph.ts
+  s_51871bdcdb3b4c::t_564c80710b488d 1-53
+packages/cli/src/actions/command/index.ts
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-12
+packages/cli/tests/init.test.cjs
+  s_c25b14edc33466::t_88dce6dea5a0ba 1-56
+packages/core/tests/logger.test.cjs
+  s_1337afa55dde9e::t_49d983272b1c14 1-168
+packages/core/src/executor/nx-graph.ts
+  s_51871bdcdb3b4c::t_564c80710b488d 13-22,25-26,28-31,34-37,39
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-12,23-24,32-33,38,40-67
+  s_51871bdcdb3b4c::t_971e286c0dc8c8 27
+packages/cli/src/actions/run/index.ts
+  s_51871bdcdb3b4c::t_9cd6debe475023 4
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-3,5-18
+packages/core/tests/nx-workspace-graph.test.cjs
+  s_51871bdcdb3b4c::t_fbd5f8f3dcdf82 59
+  s_51871bdcdb3b4c::t_3e1eb3a68772b9 1-58,60-107
+packages/core/schemas/project.schema.json
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-65
+packages/core/src/executor/configuration.ts
+  s_51871bdcdb3b4c::t_c02e716e086ccb 1-28
+package.json
+  h_b13471b77746e9 5,15-37
+packages/cli/package.json
+  s_51871bdcdb3b4c::t_5a7159f7bb80c5 1-22
+packages/cli/project.json
+  s_51871bdcdb3b4c::t_4dd103e37463e6 1-28
+packages/cli/src/actions/reset/index.ts
+  s_ddb08af8d61ae5::t_cd55cf1a27bf2b 1-12
+packages/cli/tests/cli.test.cjs
+  s_51871bdcdb3b4c::t_7ec1856c4d52a8 1-177
+packages/cli/tests/workspace-cache.test.cjs
+  s_51871bdcdb3b4c::t_351651dff3a449 1-72
+packages/core/project.json
+  s_51871bdcdb3b4c::t_26f40dbbc595cd 1-26
+packages/core/src/executor/run-command.ts
+  s_ddb08af8d61ae5::t_489d659431850f 1-31
+packages/core/src/workspace/parser.ts
+  s_ddb08af8d61ae5::t_b5f9f0be54dc4c 1-52
+packages/core/tests/bootstrap.test.cjs
+  s_51871bdcdb3b4c::t_92bf2c42038ec8 1-172
+packages/core/tests/run-command.test.cjs
+  s_51871bdcdb3b4c::t_09924b4b21dc3b 1-45
+eslint.config.mjs
+  s_ddb08af8d61ae5::t_6dff5ad130c241 1-50
+isox.json
+  s_51871bdcdb3b4c::t_000faf862ed88e 1-3
+packages/cli/src/index.ts
+  s_51871bdcdb3b4c::t_b8c2a534b6dba6 1-35
+packages/cli/tsconfig.json
+  s_51871bdcdb3b4c::t_42182045c323e1 1-8
+packages/core/commands.json
+  s_51871bdcdb3b4c::t_33d84eb11927c2 1-9
+packages/core/package.json
+  s_51871bdcdb3b4c::t_d524522e16eeb2 1-21
+packages/core/schemas/run-command.json
+  s_51871bdcdb3b4c::t_5bbbb68789b948 1-18
+packages/core/src/index.ts
+  s_51871bdcdb3b4c::t_0a42dc59a2a8f1 1-6
+packages/core/src/workspace/cache.ts
+  s_51871bdcdb3b4c::t_447b789a3f5ed5 1-81
+packages/core/src/workspace/nx.ts
+  s_51871bdcdb3b4c::t_7412e2d19856df 1-39
+packages/core/src/workspace/root.ts
+  s_51871bdcdb3b4c::t_6cb2ec58951ba6 1-26
+packages/core/tests/workspace-cache.test.cjs
+  s_51871bdcdb3b4c::t_bbaeb28e921542 1-137
+packages/core/tsconfig.json
+  s_51871bdcdb3b4c::t_cd5dc234483083 1-8
+tsconfig.base.json
+  s_12d2fbea84e5a9::t_421f6202a75e99 1-13
+pnpm-lock.yaml
+  h_b13471b77746e9 167-1488
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "460274380e179f616458744e9bd64685fc440f4f",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_12d2fbea84e5a9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8f-4d5a-7fb2-a673-610530b101fa",
+        "model": "unknown"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_1337afa55dde9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16ed5-655a-7d23-90f6-3c09a14e13eb",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_c25b14edc33466": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16ed7-deee-78a3-8581-175cef154399",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_ddb08af8d61ae5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e7e-2f96-71a0-b4c2-52174ae016ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
