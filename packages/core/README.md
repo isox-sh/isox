@@ -82,7 +82,7 @@ export default check
 ```
 
 First-party executor names may omit the scope, such as `core:run-command` or
-`js:tsc`. Isox prefers the package under `@isox-sh/`, then
+`js:tsc`, or `vitest:test`. Isox prefers the package under `@isox-sh/`, then
 tries the unscoped package if the first-party package is absent.
 
 Native executor packages declare a `commands` manifest path in `package.json`.

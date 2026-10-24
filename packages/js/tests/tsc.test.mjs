@@ -1,4 +1,9 @@
-const { test } = require('node:test')
+import { createRequire } from 'node:module'
+
+import { test } from 'vitest'
+
+const require = createRequire(import.meta.url)
+const __dirname = import.meta.dirname
 const assert = require('node:assert/strict')
 const { spawnSync } = require('node:child_process')
 const { mkdtemp, mkdir, writeFile, readFile, rm, symlink } = require('node:fs/promises')
@@ -10,7 +15,7 @@ const { default: tsc } = require('../dist')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox typescript '))
-  t.after(() => rm(root, { recursive: true, force: true }))
+  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
   const projectRoot = join(root, 'apps', 'demo app')
   await mkdir(projectRoot, { recursive: true })
   const write = (file, value) => writeFile(join(projectRoot, file), typeof value === 'string' ? value : JSON.stringify(value))

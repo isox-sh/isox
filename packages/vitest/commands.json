@@ -1,0 +1,9 @@
+{
+  "commands": {
+    "test": {
+      "implementation": "./dist/index.js",
+      "schema": "./schemas/test.json",
+      "description": "Run a project's Vitest suite once."
+    }
+  }
+}

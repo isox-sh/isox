@@ -50,7 +50,8 @@ executors only and do not implement the native roadmap.
 - [x] Bootstrap a pnpm workspace with TypeScript 7 builds and separate core/CLI packages.
 - [x] Compile repository packages through `@isox-sh/js:tsc` project commands, with a clean-checkout bootstrap and no package build scripts.
 - [x] Resolve first-party shorthand executor names such as `js:tsc` and `core:run-command`, preferring first-party packages before unscoped fallbacks.
-- [x] Require Node.js 24+ for the runtime and development tools.
+- [x] Run package suites through `vitest:test`, with package-local Vitest tests and configuration.
+- [x] Require Node.js 24+ for the runtime and Node.js 24 or 26+ for Vitest tooling.
 - [x] Enforce ESLint rules, sorted imports, and code without semicolons.
 - [x] Keep tests inside their owning packages and give all packages native Isox project commands.
 - [x] Discover the nearest `isox.json`; initialize it with the CLI package version without overwriting existing files.

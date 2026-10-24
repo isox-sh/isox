@@ -70,7 +70,8 @@ We are actively building out the core engine. Start with the
 [active roadmap](ROADMAP.md), then use [Issues](https://github.com/isox-sh/isox/issues)
 for individual work items or submit a PR.
 
-Use Node.js 24+ for the CLI and development tools.
+Use Node.js 24 or 26+ for repository development. Vitest 5 excludes Node.js 25;
+the CLI, core, and JS executor support Node.js 24+.
 The repository uses pnpm workspaces, with packages under `packages/`. Install
 [pnpm](https://pnpm.io/installation) using the version pinned in `package.json`,
 then run `pnpm install` from the repository root. Commit changes to
@@ -91,14 +92,15 @@ pnpm test  # Builds and runs the integration tests
 ```
 
 Tests live in their owning package's `tests/` directory. `pnpm test` builds the
-workspace and runs all three package suites; after building, use
-`pnpm isox test core`, `pnpm isox test js`, or `pnpm isox test cli` for one suite.
+workspace and runs all four package suites; after building, use
+`pnpm isox test core`, `pnpm isox test js`, `pnpm isox test cli`, or
+`pnpm isox test vitest` for one suite. Tests use Vitest and remain inside packages.
 
 Pull requests run the `CI` workflow using `.github/actions/setup-isox` to set up
-Node.js and pnpm, install dependencies, and build core, the JS executor, and the
+Node.js and pnpm, install dependencies, and build core, both executors, and the
 CLI. Call this action once after checkout in each job that needs Isox; subsequent steps in that job can
 use `pnpm isox`. It defaults to Node.js 24, configurable through `node-version`.
-The CI workflow then runs lint and all three package test suites through Isox.
+The CI workflow then runs lint and all four package test suites through Isox.
 
 ```yaml
 steps:
@@ -107,18 +109,20 @@ steps:
   - run: pnpm isox lint core
 ```
 
-All three packages have Isox `project.json` files with `build`, `lint`, and `test` commands.
+All four packages have Isox `project.json` files with `build`, `lint`, and `test` commands.
 Run `pnpm bootstrap` once to bootstrap the local CLI, then use Isox itself:
 
 ```bash
 pnpm isox build core
 pnpm isox build js
 pnpm isox build cli
+pnpm isox build vitest
 pnpm isox lint core
 pnpm isox lint cli
 pnpm isox test core
 pnpm isox test cli
 pnpm isox test js
+pnpm isox test vitest
 ```
 
 The syntax is `isox <command> <target>`, where target is the project's name.
@@ -128,10 +132,11 @@ use `isox run <project>:<command>` for project commands with those names.
 
 Package builds use [`@isox-sh/js:tsc`](packages/js/README.md), written as `js:tsc`
 in our project files. Compiler settings stay in each package's `tsconfig.json`;
-there are no `scripts.build` entries. Lint and test commands use `core:run-command`.
+there are no `scripts.build` entries. Lint commands use `core:run-command`; test commands use
+[`vitest:test`](packages/vitest/README.md).
 Isox records `dependencies` but does not schedule them yet: build core before JS
 and the other packages when rebuilding manually. `pnpm bootstrap` seeds core and the JS executor
-with TypeScript, then runs all three project build commands through Isox. It also
+with TypeScript, then runs all four project build commands through Isox. It also
 refreshes discovery. After editing a `project.json`, use `pnpm isox reset` to
 refresh discovery on the next run.
 
@@ -312,9 +317,10 @@ workspace graph retain the unmerged command definition; the executor's first
 argument contains the merged options.
 
 First-party executor packages may omit the `@isox-sh/` prefix: `js:tsc` and
-`core:run-command` are supported alongside their fully scoped names. Resolution
-first tries `@isox-sh/<name>`, then the unscoped name if the first-party package
-cannot be found. Invalid manifests or missing
+`core:run-command` are supported alongside their fully scoped names, as is
+`vitest:test`. Resolution first tries `@isox-sh/<name>`, then the unscoped name
+if the first-party package cannot be found. This selects the Isox executor even
+when the workspace also installs Vitest itself. Invalid manifests or missing
 commands in the resolved package report errors without falling back.
 
 The bundled `@isox-sh/core:run-command` executor accepts `command` (a shell string)

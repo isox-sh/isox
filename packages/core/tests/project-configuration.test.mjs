@@ -1,4 +1,9 @@
-const { test } = require('node:test')
+import { createRequire } from 'node:module'
+
+import { test } from 'vitest'
+
+const require = createRequire(import.meta.url)
+const __dirname = import.meta.dirname
 const assert = require('node:assert/strict')
 const { resolve } = require('node:path')
 const { pathToFileURL } = require('node:url')

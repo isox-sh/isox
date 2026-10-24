@@ -1,4 +1,8 @@
-const { test } = require('node:test')
+import { createRequire } from 'node:module'
+
+import { test } from 'vitest'
+
+const require = createRequire(import.meta.url)
 const assert = require('node:assert/strict')
 const { mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
@@ -7,7 +11,7 @@ const { createLogger, findWorkspaceRoot, LogLevels, parseWorkspace, runExecutor 
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-test-'))
-  t.after(() => rm(root, { recursive: true, force: true }))
+  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
   const write = async (file, content) => {
     const path = join(root, file)
     await mkdir(dirname(path), { recursive: true })

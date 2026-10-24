@@ -1,6 +1,10 @@
+import { createRequire } from 'node:module'
+
+import { test } from 'vitest'
+
+const require = createRequire(import.meta.url)
 const assert = require('node:assert/strict')
 const { PassThrough } = require('node:stream')
-const { test } = require('node:test')
 const { createLogger, logger, LogLevels } = require('../dist')
 
 test('logger defaults to info and tags messages without buffering repeated events', () => {

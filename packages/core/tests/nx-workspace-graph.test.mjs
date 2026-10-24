@@ -1,13 +1,17 @@
+import { createRequire } from 'node:module'
+
+import { test } from 'vitest'
+
+const require = createRequire(import.meta.url)
 const assert = require('node:assert/strict')
 const { mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { dirname, join } = require('node:path')
-const { test } = require('node:test')
 const { parseWorkspace, runExecutor } = require('../dist')
 
 async function fixture(t, executor) {
   const root = await mkdtemp(join(tmpdir(), 'isox-nx-graph-'))
-  t.after(() => rm(root, { recursive: true, force: true }))
+  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
   const write = async (file, content) => {
     const path = join(root, file)
     await mkdir(dirname(path), { recursive: true })

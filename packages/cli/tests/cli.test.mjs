@@ -1,4 +1,9 @@
-const { test } = require('node:test')
+import { createRequire } from 'node:module'
+
+import { test } from 'vitest'
+
+const require = createRequire(import.meta.url)
+const __dirname = import.meta.dirname
 const assert = require('node:assert/strict')
 const { spawnSync } = require('node:child_process')
 const { mkdtemp, mkdir, readFile, writeFile, rm } = require('node:fs/promises')
@@ -9,7 +14,7 @@ const cliPath = resolve(__dirname, '../dist/index.js')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-test-'))
-  t.after(() => rm(root, { recursive: true, force: true }))
+  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
   const write = async (file, content) => {
     const path = join(root, file)
     await mkdir(dirname(path), { recursive: true })

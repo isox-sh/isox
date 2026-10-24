@@ -35,8 +35,5 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
-  },
-  "scripts": {
-    "test": "node --test tests/*.test.cjs"
   }
 }

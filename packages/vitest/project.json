@@ -1,0 +1,25 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "vitest",
+  "dependencies": [
+    "core"
+  ],
+  "commands": {
+    "build": {
+      "executor": "js:tsc",
+      "options": {
+        "tsConfig": "packages/vitest/tsconfig.json"
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    },
+    "lint": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "pnpm exec eslint packages/vitest --max-warnings 0"
+      }
+    }
+  },
+  "tags": []
+}

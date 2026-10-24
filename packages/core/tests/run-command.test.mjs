@@ -1,8 +1,12 @@
+import { createRequire } from 'node:module'
+
+import { test } from 'vitest'
+
+const require = createRequire(import.meta.url)
 const assert = require('node:assert/strict')
 const { mkdtemp, mkdir, readFile, realpath, rm, writeFile } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { join } = require('node:path')
-const { test } = require('node:test')
 const { Ajv } = require('ajv')
 const { default: runCommand } = require('../dist/executor/run-command')
 const commandSchema = require('../schemas/run-command.json')
@@ -20,7 +24,7 @@ test('command schema rejects blank commands consistently with the executor', asy
 
 test('command executor uses the workspace root and supports relative working directories', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'isox command-'))
-  t.after(() => rm(root, { recursive: true, force: true }))
+  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
   await mkdir(join(root, 'nested'))
   for (const cwd of [undefined, 'nested']) {
     const directory = cwd ? join(root, cwd) : root
@@ -40,7 +44,7 @@ test('command executor returns failure for nonzero exits', async () => {
 
 test('command executor rejects spawn failures', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'isox-command-'))
-  t.after(() => rm(root, { recursive: true, force: true }))
+  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
   await assert.rejects(
     runCommand({ command: 'node --version', cwd: 'missing' }, { workspaceRoot: root }),
     { code: 'ENOENT' },

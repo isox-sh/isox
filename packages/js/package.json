@@ -30,8 +30,5 @@
   },
   "engines": {
     "node": ">=24.0.0"
-  },
-  "scripts": {
-    "test": "node --test tests/*.test.cjs"
   }
 }

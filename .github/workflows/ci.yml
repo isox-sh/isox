@@ -36,3 +36,6 @@ jobs:
 
       - name: Test TypeScript executor through Isox
         run: pnpm isox test js
+
+      - name: Test Vitest executor through Isox
+        run: pnpm isox test vitest

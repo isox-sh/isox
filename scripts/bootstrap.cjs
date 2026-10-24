@@ -27,7 +27,7 @@ async function bootstrap() {
   const { parseWorkspace, resetWorkspace, runExecutor } = require('../packages/core/dist')
   await resetWorkspace(root)
   const workspace = await parseWorkspace(root)
-  for (const name of ['core', 'js', 'cli']) {
+  for (const name of ['core', 'js', 'cli', 'vitest']) {
     await runExecutor(workspace, name, 'build', root)
   }
 }
