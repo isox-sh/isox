@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict')
 const { spawnSync } = require('node:child_process')
-const { mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises')
+const { mkdtemp, mkdir, readFile, writeFile, rm } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { dirname, join, resolve } = require('node:path')
 const { test } = require('node:test')
@@ -45,6 +45,44 @@ test('reports a missing workspace marker in the CLI', async (t) => {
   const result = spawnSync(process.execPath, [cliPath, 'run', 'demo:build'], { cwd: root, encoding: 'utf8' })
   assert.equal(result.status, 1)
   assert.match(result.stderr, /No Isox workspace found.*Add isox.json/)
+})
+
+test('CLI runs built-in commands without core installed in the workspace', async (t) => {
+  const { root, write } = await fixture(t)
+  await write('isox.json', {})
+  await write('apps/demo/project.json', {
+    name: 'demo',
+    commands: { build: { executor: '@isox-sh/core:run-command', options: { command: 'node build.cjs' } } },
+  })
+  await write('build.cjs', "require('node:fs').writeFileSync('result.txt', 'built')")
+  assert.throws(() => require.resolve('@isox-sh/core/package.json', { paths: [root] }), { code: 'MODULE_NOT_FOUND' })
+  const result = spawnSync(process.execPath, [cliPath, 'build', 'demo'], {
+    cwd: join(root, 'apps/demo'), encoding: 'utf8',
+  })
+  assert.equal(result.status, 0, result.stderr)
+  assert.equal(await readFile(join(root, 'result.txt'), 'utf8'), 'built')
+})
+
+test('CLI prefers workspace core and reports invalid manifests without falling back', async (t) => {
+  const { root, write } = await fixture(t)
+  await write('isox.json', {})
+  await write('project.json', {
+    name: 'demo', commands: { build: { executor: '@isox-sh/core:run-command' } },
+  })
+  await write('node_modules/@isox-sh/core/package.json', { name: '@isox-sh/core', commands: './commands.json' })
+  await write('node_modules/@isox-sh/core/commands.json', { commands: { 'run-command': { implementation: './run.cjs' } } })
+  await write('node_modules/@isox-sh/core/run.cjs', `module.exports = () => {
+    console.log('workspace core selected')
+    return { success: true }
+  }`)
+  const result = spawnSync(process.execPath, [cliPath, 'build', 'demo'], { cwd: root, encoding: 'utf8' })
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(result.stdout, /workspace core selected/)
+
+  await write('node_modules/@isox-sh/core/package.json', { name: '@isox-sh/core' })
+  const invalid = spawnSync(process.execPath, [cliPath, 'build', 'demo'], { cwd: root, encoding: 'utf8' })
+  assert.equal(invalid.status, 1)
+  assert.match(invalid.stderr, /Package @isox-sh\/core does not define a commands manifest/)
 })
 
 test('CLI verbose mode enables diagnostics and error stacks', async (t) => {

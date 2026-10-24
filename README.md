@@ -291,6 +291,10 @@ The bundled `@isox-sh/core:run-command` executor accepts `command` (a shell stri
 and optional `cwd` (relative to the workspace root, or absolute). It inherits the
 parent environment and standard streams. A nonzero exit or termination by a
 signal fails the command. It does not substitute Nx tokens or schedule dependencies.
+If the workspace has no directly resolvable core package, built-in commands use
+the CLI's core dependency. This works with pnpm and global CLI installations.
+A workspace-installed copy takes precedence; invalid workspace packages still
+report errors. Other executor packages must resolve from the workspace root.
 
 ### Nx executor adapter
 

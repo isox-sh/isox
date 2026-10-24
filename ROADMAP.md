@@ -58,6 +58,7 @@ executors only and do not implement the native roadmap.
 - [x] Merge named/default configurations, including `--prod`, `--config`, `--configuration`, and `-c`.
 - [x] Load native command manifests and handle synchronous, promised, and streamed executor results and failures.
 - [x] Provide a native shell-command executor and a small logger with levels, reporters, and verbose diagnostics.
+- [x] Resolve built-in commands from the CLI's core dependency when core is not directly installed in the workspace, while preserving workspace overrides.
 - [x] Migrate recognized Nx project schemas in memory and cache the converted definitions without rewriting source files.
 - [x] Select temporary Nx adapters through `nx.executors`, supply dependency metadata, and reject installed Nx runtimes outside version 23.
 - [x] Add regression coverage for graph metadata, external npm nodes, cache reuse, unsupported Nx versions, and configuration errors.

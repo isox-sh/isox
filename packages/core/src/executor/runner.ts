@@ -36,7 +36,17 @@ export async function runExecutor(
   const isNxExecutor = (settings.nx?.executors ?? []).some(entry =>
     entry === pkg || (entry.startsWith('@') && !entry.includes('/') && pkg.startsWith(`${entry}/`)),
   )
-  const pkgJsonPath = require.resolve(`${pkg}/package.json`, { paths: [root] })
+  let pkgJsonPath: string
+  try {
+    pkgJsonPath = require.resolve(`${pkg}/package.json`, { paths: [root] })
+  } catch (error) {
+    if (pkg !== '@isox-sh/core' || (error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') {
+      throw error
+    }
+    // The CLI installs core transitively. Use this copy for built-in commands
+    // when the workspace has no directly resolvable core installation.
+    pkgJsonPath = resolve(__dirname, '../../package.json')
+  }
   const pkgJson = require(pkgJsonPath)
   const manifest = isNxExecutor ? pkgJson.executors ?? pkgJson.builders : pkgJson.commands
   if (typeof manifest !== 'string') {
