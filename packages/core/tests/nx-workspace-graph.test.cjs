@@ -23,7 +23,7 @@ async function fixture(t, executor) {
   await write('node_modules/@nx/fixture/executors.json', { executors: { build: { implementation: './build.cjs' } } })
   await write('node_modules/@nx/fixture/build.cjs', executor)
   await write('node_modules/nx/package.json', {
-    name: 'nx', exports: { './package.json': './package.json', './src/project-graph/project-graph': './graph.cjs' },
+    name: 'nx', version: '23.3.0', exports: { './package.json': './package.json', './src/project-graph/project-graph': './graph.cjs' },
   })
   return { root, write, workspace: await parseWorkspace(root) }
 }
@@ -45,6 +45,7 @@ test('Nx graph supplies external packages, inferred projects and file dependenci
     assert.equal(context.projectsConfigurations.projects.inferred, graph.nodes.inferred.data)
     assert.equal(context.projectsConfigurations.projects.demo, graph.nodes.demo.data)
     assert.equal(graph.nodes.demo.data.sourceRoot, 'apps/demo/src')
+    assert.equal(graph.nodes.demo.type, 'app')
     assert.equal(graph.nodes.demo.data.targets.build, context.target)
     assert.deepEqual(options, { answer: 42 })
     const map = JSON.parse(fs.readFileSync(path.join(context.root, '.nx/workspace-data/file-map.json'), 'utf8'))
@@ -93,6 +94,29 @@ test('Nx graph supplies external packages, inferred projects and file dependenci
   assert.equal(process.cwd(), originalCwd)
   assert.deepEqual({ ...process.env }, originalEnv)
 })
+
+test('explicit project types override inferred node types without mutating the Nx graph', () => {
+  const { createNxProjectGraph } = require('../dist/executor/nx-graph')
+  const project = { name: 'demo', root: 'apps/demo', projectType: 'library', targets: {}, implicitDependencies: [], tags: [] }
+  const inferred = {
+    nodes: { demo: { name: 'demo', type: 'app', data: { ...project, projectType: 'application' } } },
+    dependencies: { demo: [] },
+  }
+  const graph = createNxProjectGraph({ demo: project }, inferred)
+  assert.equal(graph.nodes.demo.type, 'lib')
+  assert.equal(graph.nodes.demo.data.projectType, 'library')
+  assert.equal(inferred.nodes.demo.type, 'app')
+  assert.equal(inferred.nodes.demo.data.projectType, 'application')
+})
+
+for (const version of ['22.6.0', '24.0.0', 'invalid', undefined]) {
+  test(`Nx adapter rejects unsupported runtime version ${version ?? '(missing)'}`, async t => {
+    const { root, write, workspace } = await fixture(t, 'module.exports = () => { throw new Error("executor must not run") }')
+    await write('node_modules/nx/package.json', { name: 'nx', version })
+    await write('node_modules/nx/graph.cjs', 'throw new Error("graph must not load")')
+    await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Unsupported Nx version .*supports Nx 23 only/)
+  })
+}
 
 for (const [label, source, expected] of [
   ['graph construction fails', 'exports.createProjectGraphAsync = async () => { throw new Error("invalid lockfile") }', /Cannot build Nx project graph:.*invalid lockfile/s],

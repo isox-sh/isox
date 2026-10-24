@@ -19,11 +19,19 @@ export interface NxProjectGraph {
 
 /** Keep Nx's inferred dependencies, with Isox's explicit configuration authoritative. */
 export function createNxProjectGraph(projects: Record<string, NxProjectConfiguration>, inferred?: NxProjectGraph): NxProjectGraph {
-  const nodes = { ...inferred?.nodes, ...Object.fromEntries(Object.entries(projects).map(([name, project]) => [name, {
-    name,
-    type: project.projectType === 'application' ? 'app' as const : 'lib' as const,
-    data: { ...inferred?.nodes[name]?.data, ...project },
-  }])) }
+  const nodes: NxProjectGraph['nodes'] = Object.assign(Object.create(null), inferred?.nodes)
+  for (const [name, project] of Object.entries(projects)) {
+    const inferredNode = nodes[name]
+    const data = { ...inferredNode?.data, ...project }
+    nodes[name] = {
+      name,
+      type: data.projectType === 'application' ? 'app'
+        : data.projectType === 'library' ? 'lib'
+          : inferredNode?.type ?? 'lib',
+      data,
+    }
+  }
+
   const dependencies: NxProjectGraph['dependencies'] = Object.assign(Object.create(null), inferred?.dependencies)
   for (const [source, project] of Object.entries(projects)) {
     const edges = [...(dependencies[source] ?? [])]

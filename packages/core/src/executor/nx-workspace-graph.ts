@@ -1,4 +1,5 @@
 import { fork } from 'node:child_process'
+import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 
@@ -18,6 +19,12 @@ export async function loadNxWorkspaceGraph(context: ExecutorContext, pluginPacka
     context.logger.debug('Nx is not installed beside the executor. Using explicit Isox project dependencies.')
     return undefined
   }
+
+  const { version } = JSON.parse(await readFile(nxPackagePath, 'utf8')) as { version?: unknown }
+  if (typeof version !== 'string' || !/^23\.\d+\.\d+(?:[-+].+)?$/.test(version)) {
+    throw new Error(`Unsupported Nx version ${String(version ?? 'unknown')}. Isox's migration adapter supports Nx 23 only. Migrate this command to a native Isox executor or the underlying tool.`)
+  }
+
   const graphModule = createRequire(nxPackagePath).resolve('nx/src/project-graph/project-graph')
   context.logger.debug('Refreshing Nx project graph and file dependency map...')
 

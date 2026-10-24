@@ -187,8 +187,9 @@ maps Isox commands/dependencies to Nx targets/implicitDependencies and supplies
 basic root, project, target, verbosity, and project-configuration context. It
 passes an optional JSON `nx.json` through as `nxJsonConfiguration` without
 applying defaults. `projectGraph` supplies all discovered project nodes and
-declared dependency edges. Applications map to `app` nodes; other projects default
-to `lib`. Dependencies must name projects explicitly; missing names cause an error.
+declared dependency edges. Applications map to `app` nodes and libraries to `lib`.
+When no project type is explicit, the adapter uses inferred metadata and falls
+back to `lib`. Dependencies must name projects explicitly; missing names cause an error.
 When Nx is installed alongside the executor, its graph builder runs in an isolated
 process with the daemon disabled, supplying inferred project/import dependencies,
 npm `externalNodes`, and a refreshed Nx file dependency map. This is required for

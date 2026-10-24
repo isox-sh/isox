@@ -321,8 +321,9 @@ supplies `root`, `cwd`, `projectName`, `targetName`, `configurationName`, `targe
 dependencies become `targets` and `implicitDependencies` in that context.
 
 `projectGraph.nodes` contains every discovered project and its complete adapted
-configuration. Applications use node type `app`; libraries and projects without
-`projectType` use `lib`. Declared project dependencies become `implicit` graph
+configuration. Applications use node type `app`; libraries use `lib`. Without an
+explicit `projectType`, inferred metadata determines the type, defaulting to
+`lib` when unavailable. Declared project dependencies become `implicit` graph
 edges unless Nx already supplies an edge to the same project. Missing dependency
 names produce a descriptive error.
 
@@ -337,7 +338,8 @@ even when `.isox/workspace.json` is cached, so source and lockfile changes are
 checked. `isox reset` still removes only `.isox`.
 
 Without an installed Nx runtime, only explicit Isox nodes and dependencies are
-available. If Nx is installed but graph construction fails, Isox reports the
+available. An installed Nx runtime outside version 23 is rejected before graph
+construction. If graph construction fails, Isox reports the
 failure before running the executor rather than supplying an incomplete graph.
 
 `taskGraph` describes the single command being executed, including its target,
