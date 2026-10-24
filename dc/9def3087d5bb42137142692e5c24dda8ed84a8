@@ -1,0 +1,28 @@
+packages/cli/src/actions/init/index.ts
+  s_c25b14edc33466::t_29b66263469b45 1,14,16-22
+README.md
+  s_c25b14edc33466::t_29b66263469b45 150-152,285-286
+packages/cli/tests/init.test.cjs
+  s_c25b14edc33466::t_29b66263469b45 3,27,34-60
+  s_c25b14edc33466::t_cf83ee59f85494 61
+packages/core/schemas/isox.schema.json
+  s_c25b14edc33466::t_29b66263469b45 10
+docs/prompts/migrate-nx-to-isox.md
+  s_c25b14edc33466::t_29b66263469b45 65-66,161-162
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc9def3087d5bb42137142692e5c24dda8ed84a8",
+  "prompts": {},
+  "sessions": {
+    "s_c25b14edc33466": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16ed7-deee-78a3-8581-175cef154399",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
