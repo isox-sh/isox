@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/isox-banner.svg" alt="Isox Banner" width="100%" />
+  <img src="./.github/assets/banner.svg" alt="Isox Banner" width="100%" />
 
   <br />
   <p><b>A lean, hermetic monorepo task orchestrator and drop-in Nx executor runner.</b></p>
