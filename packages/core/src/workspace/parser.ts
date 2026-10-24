@@ -33,11 +33,18 @@ export async function parseWorkspace(cwd: string): Promise<WorkspaceGraph> {
   const projects: Record<string, ProjectConfiguration> = Object.create(null)
 
   for (const file of files.sort()) {
-    const content = parseProjectDefinition(JSON.parse(await readFile(join(cwd, file), 'utf8')), file)
+    const source = await readFile(join(cwd, file), 'utf8')
+    let parsed: unknown
+    try {
+      parsed = JSON.parse(source)
+    } catch (error) {
+      throw new SyntaxError(`Invalid project configuration in ${file}: invalid JSON.`, { cause: error })
+    }
+    const content = parseProjectDefinition(parsed, file)
 
     const root = dirname(file)
     const name = content.name ?? basename(resolve(cwd, root))
-    if (typeof name !== 'string') {
+    if (typeof name !== 'string' || !/^[^\s:]+$/.test(name)) {
       throw new Error(`Invalid project name in ${file}.`)
     }
     if (Object.hasOwn(projects, name)) {

@@ -18,6 +18,24 @@ async function fixture(t) {
   return { root, write, cacheFile: join(root, '.isox/workspace.json') }
 }
 
+for (const [directory, asWorkspaceRoot] of [['apps/my app', false], ['apps/app:build', false], ['my workspace', true]]) {
+  test(`rejects invalid derived names before caching (${directory}, workspace root: ${asWorkspaceRoot})`, async (t) => {
+    const { root, write } = await fixture(t)
+    const workspaceRoot = asWorkspaceRoot ? join(root, directory) : root
+    const file = `${directory}/project.json`
+    const cacheFile = join(workspaceRoot, '.isox/workspace.json')
+    await write(file, {})
+    await assert.rejects(parseWorkspace(workspaceRoot), /Invalid project name in .*project\.json/)
+    await assert.rejects(stat(cacheFile), { code: 'ENOENT' })
+
+    // An explicit valid name makes projects in these directories addressable.
+    await write(file, { name: 'valid-name' })
+    const workspace = await parseWorkspace(workspaceRoot)
+    assert.equal(workspace.projects['valid-name'].root, asWorkspaceRoot ? '.' : directory)
+    assert.deepEqual(await parseWorkspace(workspaceRoot), workspace)
+  })
+}
+
 test('caches the complete workspace and reuses it without reading project files', async (t) => {
   const { root, write, cacheFile } = await fixture(t)
   const project = {

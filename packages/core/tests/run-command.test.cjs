@@ -3,7 +3,20 @@ const { mkdtemp, mkdir, readFile, realpath, rm, writeFile } = require('node:fs/p
 const { tmpdir } = require('node:os')
 const { join } = require('node:path')
 const { test } = require('node:test')
+const { Ajv } = require('ajv')
 const { default: runCommand } = require('../dist/executor/run-command')
+const commandSchema = require('../schemas/run-command.json')
+
+test('command schema rejects blank commands consistently with the executor', async () => {
+  const validate = new Ajv().compile(commandSchema)
+  for (const command of ['', '   ', '\t\r\n', '\u00a0\u2003\ufeff']) {
+    assert.equal(validate({ command }), false, `Accepted blank command: ${JSON.stringify(command)}`)
+    await assert.rejects(runCommand({ command }, { workspaceRoot: process.cwd() }), /non-empty command/)
+  }
+  for (const command of ['node --version', '  node --version  ', '\nnode --version\n']) {
+    assert.equal(validate({ command }), true, `Rejected command: ${JSON.stringify(command)}`)
+  }
+})
 
 test('command executor uses the workspace root and supports relative working directories', async (t) => {
   const root = await mkdtemp(join(tmpdir(), 'isox command-'))

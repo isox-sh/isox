@@ -90,8 +90,19 @@ test('rejects invalid project configurations', async (t) => {
   const { root, write } = await fixture(t)
   for (const content of ['{broken', 'null', '[]', '{"name":42}']) {
     await write('project.json', content)
-    await assert.rejects(parseWorkspace(root))
+    await assert.rejects(parseWorkspace(root), /Invalid project configuration in project\.json/)
   }
+})
+
+test('malformed project JSON identifies its file and preserves the parse error', async (t) => {
+  const { root, write } = await fixture(t)
+  await write('apps/broken/project.json', '{broken')
+  await assert.rejects(parseWorkspace(root), error => {
+    assert.ok(error instanceof SyntaxError)
+    assert.match(error.message, /Invalid project configuration in apps\/broken\/project\.json: invalid JSON/)
+    assert.ok(error.cause instanceof SyntaxError)
+    return true
+  })
 })
 
 for (const [label, source, key] of [
