@@ -1,0 +1,37 @@
+{
+  "name": "@isox-sh/js",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Native TypeScript compiler executor for Isox.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "commands": "./commands.json",
+  "files": [
+    "dist",
+    "commands.json",
+    "schemas"
+  ],
+  "dependencies": {
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "@isox-sh/core": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git",
+    "directory": "packages/js"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs"
+  }
+}

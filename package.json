@@ -14,18 +14,19 @@
   },
   "packageManager": "pnpm@12.15.0",
   "engines": {
-    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "isox": "node packages/cli/dist/index.js",
-    "build": "pnpm -r build",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix --max-warnings 0",
-    "test": "pnpm run build && pnpm -r test"
+    "test": "pnpm bootstrap && pnpm -r test",
+    "bootstrap": "node scripts/bootstrap.cjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@isox-sh/core": "workspace:*",
+    "@isox-sh/js": "workspace:*",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^26.6.5",
     "@typescript/native": "npm:typescript@^7.0.2",

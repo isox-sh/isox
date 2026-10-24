@@ -5,7 +5,7 @@ for [Isox](https://isox.sh). This package also supplies the built-in `run-comman
 executor and JSON schemas.
 
 For the command-line interface, install [`isox`](https://www.npmjs.com/package/isox).
-Requires Node.js 20.19+, 22.13+, or 24+.
+Requires Node.js 24+.
 
 ## Install
 
@@ -80,6 +80,10 @@ const check: Executor<{ message: string }> = (options, context) => {
 
 export default check
 ```
+
+First-party executor names may omit the scope, such as `core:run-command` or
+`js:tsc`. Isox prefers the package under `@isox-sh/`, then
+tries the unscoped package if the first-party package is absent.
 
 Native executor packages declare a `commands` manifest path in `package.json`.
 The manifest contains a `commands` map whose entries specify an `implementation`

@@ -62,7 +62,7 @@ custom executors.
 
 The CLI package is named `isox` and depends on `@isox-sh/core`. A separate core
 installation is only needed for direct API/type imports or editor schema paths.
-Both packages require Node.js 20.19+, 22.13+, or 24+.
+The CLI and core require Node.js 24+.
 
 ## 🤝 Contributing
 
@@ -70,7 +70,7 @@ We are actively building out the core engine. Start with the
 [active roadmap](ROADMAP.md), then use [Issues](https://github.com/isox-sh/isox/issues)
 for individual work items or submit a PR.
 
-Use Node.js 20.19+, 22.13+, or 24+ for the CLI and development tools.
+Use Node.js 24+ for the CLI and development tools.
 The repository uses pnpm workspaces, with packages under `packages/`. Install
 [pnpm](https://pnpm.io/installation) using the version pinned in `package.json`,
 then run `pnpm install` from the repository root. Commit changes to
@@ -84,21 +84,21 @@ for ESLint's compiler API requirements. This follows the
 
 ```bash
 pnpm install
-pnpm build # Compiles core before CLI
+pnpm bootstrap # Builds core, the executors, and CLI from a clean checkout
 pnpm lint # Checks JavaScript and TypeScript, including import sorting and no semicolons
 pnpm lint:fix # Automatically fixes supported lint issues
 pnpm test  # Builds and runs the integration tests
 ```
 
 Tests live in their owning package's `tests/` directory. `pnpm test` builds the
-workspace and runs both package suites; after building, use
-`pnpm --filter @isox-sh/core test` or `pnpm --filter isox test` for one suite.
+workspace and runs all three package suites; after building, use
+`pnpm isox test core`, `pnpm isox test js`, or `pnpm isox test cli` for one suite.
 
 Pull requests run the `CI` workflow using `.github/actions/setup-isox` to set up
-Node.js and pnpm, install dependencies, and build the CLI and core. Call this action
-once after checkout in each job that needs Isox; subsequent steps in that job can
+Node.js and pnpm, install dependencies, and build core, the JS executor, and the
+CLI. Call this action once after checkout in each job that needs Isox; subsequent steps in that job can
 use `pnpm isox`. It defaults to Node.js 24, configurable through `node-version`.
-The CI workflow then runs lint and both package test suites through Isox.
+The CI workflow then runs lint and all three package test suites through Isox.
 
 ```yaml
 steps:
@@ -107,16 +107,18 @@ steps:
   - run: pnpm isox lint core
 ```
 
-Both packages have Isox `project.json` files with `build`, `lint`, and `test` commands.
-Run `pnpm build` once to bootstrap the local CLI, then use Isox itself:
+All three packages have Isox `project.json` files with `build`, `lint`, and `test` commands.
+Run `pnpm bootstrap` once to bootstrap the local CLI, then use Isox itself:
 
 ```bash
 pnpm isox build core
+pnpm isox build js
 pnpm isox build cli
 pnpm isox lint core
 pnpm isox lint cli
 pnpm isox test core
 pnpm isox test cli
+pnpm isox test js
 ```
 
 The syntax is `isox <command> <target>`, where target is the project's name.
@@ -124,11 +126,14 @@ Any command defined in that project's `commands` object can be used.
 `isox run cli:build` also works. `init`, `run`, and `reset` are reserved CLI commands;
 use `isox run <project>:<command>` for project commands with those names.
 
-These commands use the bundled `@isox-sh/core:run-command` executor. The CLI build
-command uses pnpm's dependency filter to build core first; Isox records
-`dependencies` but does not schedule them yet. The root `build` script
-remains available to bootstrap from a clean checkout. After editing a
-`project.json`, use `pnpm isox reset` to refresh discovery on the next run.
+Package builds use [`@isox-sh/js:tsc`](packages/js/README.md), written as `js:tsc`
+in our project files. Compiler settings stay in each package's `tsconfig.json`;
+there are no `scripts.build` entries. Lint and test commands use `core:run-command`.
+Isox records `dependencies` but does not schedule them yet: build core before JS
+and the other packages when rebuilding manually. `pnpm bootstrap` seeds core and the JS executor
+with TypeScript, then runs all three project build commands through Isox. It also
+refreshes discovery. After editing a `project.json`, use `pnpm isox reset` to
+refresh discovery on the next run.
 
 The project definition uses `name`, `dependencies` (project names), `commands`,
 and `tags`. Each command specifies an `executor`, optional `options`, and optional
@@ -143,9 +148,9 @@ directory's name. Dependencies and tags are optional. For example:
   "dependencies": ["core"],
   "commands": {
     "build": {
-      "executor": "@isox-sh/core:run-command",
+      "executor": "js:tsc",
       "options": {
-        "command": "pnpm --filter isox... build"
+        "tsConfig": "packages/cli/tsconfig.json"
       }
     }
   },
@@ -305,6 +310,12 @@ The runner selects and merges options from the workspace configuration. Omit the
 configuration name to use the command's default. `context.command` and the
 workspace graph retain the unmerged command definition; the executor's first
 argument contains the merged options.
+
+First-party executor packages may omit the `@isox-sh/` prefix: `js:tsc` and
+`core:run-command` are supported alongside their fully scoped names. Resolution
+first tries `@isox-sh/<name>`, then the unscoped name if the first-party package
+cannot be found. Invalid manifests or missing
+commands in the resolved package report errors without falling back.
 
 The bundled `@isox-sh/core:run-command` executor accepts `command` (a shell string)
 and optional `cwd` (relative to the workspace root, or absolute). It inherits the

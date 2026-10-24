@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "TypeScript compiler",
+  "type": "object",
+  "properties": {
+    "tsConfig": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Path relative to the workspace root, or absolute. Defaults to tsconfig.json in the project root."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "js",
+  "dependencies": [
+    "core"
+  ],
+  "commands": {
+    "build": {
+      "executor": "js:tsc",
+      "options": {
+        "tsConfig": "packages/js/tsconfig.json"
+      }
+    },
+    "test": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "pnpm --filter @isox-sh/js test"
+      }
+    },
+    "lint": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "pnpm exec eslint packages/js --max-warnings 0"
+      }
+    }
+  },
+  "tags": []
+}

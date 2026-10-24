@@ -4,19 +4,19 @@
   "dependencies": [],
   "commands": {
     "build": {
-      "executor": "@isox-sh/core:run-command",
+      "executor": "js:tsc",
       "options": {
-        "command": "pnpm --filter @isox-sh/core build"
+        "tsConfig": "packages/core/tsconfig.json"
       }
     },
     "test": {
-      "executor": "@isox-sh/core:run-command",
+      "executor": "core:run-command",
       "options": {
         "command": "pnpm --filter @isox-sh/core test"
       }
     },
     "lint": {
-      "executor": "@isox-sh/core:run-command",
+      "executor": "core:run-command",
       "options": {
         "command": "pnpm exec eslint packages/core --max-warnings 0"
       }

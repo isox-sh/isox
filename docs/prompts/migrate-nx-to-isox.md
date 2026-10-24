@@ -283,7 +283,7 @@ core cannot be resolved from the workspace. Install `@isox-sh/core` directly onl
 for API/type imports, editor schema paths, or an intentional workspace override.
 Do not invent an unpublished version
 or mix package managers. For a local Isox checkout, bootstrap its compiled CLI
-using its root build script first. Add executor packages where resolution from
+using `pnpm bootstrap` first. Add executor packages where resolution from
 the workspace root works.
 
 Change scripts, documentation, editor tasks, and CI from `nx run project:build`

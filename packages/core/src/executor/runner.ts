@@ -30,23 +30,13 @@ export async function runExecutor(
   if (typeof executorName !== 'string' || !/^[^\s:]+:[^\s:]+$/.test(executorName)) {
     throw new Error('Invalid executor format. Use package:executor.')
   }
-  const [pkg, executorConfigName] = executorName.split(':')
+  const [packageName, executorConfigName] = executorName.split(':')
   const root = resolve(workspaceRoot)
   const settings = await readWorkspaceSettings(root)
+  const { pkg, pkgJsonPath } = resolveExecutorPackage(packageName, root)
   const isNxExecutor = (settings.nx?.executors ?? []).some(entry =>
     entry === pkg || (entry.startsWith('@') && !entry.includes('/') && pkg.startsWith(`${entry}/`)),
   )
-  let pkgJsonPath: string
-  try {
-    pkgJsonPath = require.resolve(`${pkg}/package.json`, { paths: [root] })
-  } catch (error) {
-    if (pkg !== '@isox-sh/core' || (error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') {
-      throw error
-    }
-    // The CLI installs core transitively. Use this copy for built-in commands
-    // when the workspace has no directly resolvable core installation.
-    pkgJsonPath = resolve(__dirname, '../../package.json')
-  }
   const pkgJson = require(pkgJsonPath)
   const manifest = isNxExecutor ? pkgJson.executors ?? pkgJson.builders : pkgJson.commands
   if (typeof manifest !== 'string') {
@@ -105,4 +95,24 @@ export async function runExecutor(
     assertSuccess(result)
   }
   taskLogger.success(`Successfully completed ${executorName} for ${projectName}.`)
+}
+
+function resolveExecutorPackage(packageName: string, root: string): { pkg: string, pkgJsonPath: string } {
+  const candidates = !packageName.startsWith('@') && !packageName.includes('/')
+    ? [`@isox-sh/${packageName}`, packageName]
+    : [packageName]
+  let resolutionError: unknown
+  for (const pkg of candidates) {
+    try {
+      return { pkg, pkgJsonPath: require.resolve(`${pkg}/package.json`, { paths: [root] }) }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') throw error
+      // The CLI installs core transitively, so built-ins can use this copy.
+      if (pkg === '@isox-sh/core') {
+        return { pkg, pkgJsonPath: resolve(__dirname, '../../package.json') }
+      }
+      resolutionError = error
+    }
+  }
+  throw resolutionError
 }

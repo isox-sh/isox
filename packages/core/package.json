@@ -10,10 +10,6 @@
     "commands.json",
     "schemas"
   ],
-  "scripts": {
-    "build": "tsc",
-    "test": "node --test tests/*.test.cjs"
-  },
   "dependencies": {
     "ajv": "^8.20.0",
     "fast-glob": "^3.3.3"
@@ -39,6 +35,9 @@
     "registry": "https://registry.npmjs.org/"
   },
   "engines": {
-    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs"
   }
 }

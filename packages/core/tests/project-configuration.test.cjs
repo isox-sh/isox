@@ -1,6 +1,6 @@
+const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const { resolve } = require('node:path')
-const { test } = require('node:test')
 const { pathToFileURL } = require('node:url')
 const { parseProjectDefinition } = require('../dist/workspace/configuration')
 const isoxSchema = pathToFileURL(resolve(__dirname, '../schemas/project.schema.json')).href
@@ -12,8 +12,8 @@ test('accepts the Isox project definition and preserves executor options', () =>
     dependencies: ['core'],
     commands: {
       build: {
-        executor: '@isox-sh/core:run-command',
-        options: { command: 'pnpm --filter isox... build' },
+        executor: 'js:tsc',
+        options: { tsConfig: 'packages/cli/tsconfig.json' },
       },
     },
     tags: [],

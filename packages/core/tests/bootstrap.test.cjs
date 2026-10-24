@@ -1,8 +1,8 @@
+const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const { mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { basename, dirname, join } = require('node:path')
-const { test } = require('node:test')
 const { createLogger, findWorkspaceRoot, LogLevels, parseWorkspace, runExecutor } = require('../dist')
 
 async function fixture(t) {
@@ -34,6 +34,34 @@ async function executorFixture(t, source, manifestKey = 'commands') {
   await write('node_modules/@fixture/plugin/executor.cjs', source)
   return { ...fixtureData, workspace: await parseWorkspace(root) }
 }
+
+test('prefers first-party shorthand, falls back to third-party packages, and preserves manifest errors', async (t) => {
+  const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+  workspace.projects.demo.commands.build.executor = 'js:build'
+  await write('node_modules/@isox-sh/js/package.json', { commands: './commands.json' })
+  await write('node_modules/@isox-sh/js/commands.json', { commands: { build: { implementation: './build.cjs' } } })
+  await write('node_modules/@isox-sh/js/build.cjs', 'module.exports = () => ({ success: true })')
+  await runExecutor(workspace, 'demo', 'build', root)
+
+  await write('node_modules/js/package.json', { commands: './commands.json' })
+  await write('node_modules/js/commands.json', { commands: { build: { implementation: './build.cjs' } } })
+  await write('node_modules/js/build.cjs', 'module.exports = () => ({ success: false })')
+  await runExecutor(workspace, 'demo', 'build', root)
+  workspace.projects.demo.commands.build.executor = 'js:missing'
+  await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Executor missing not found in @isox-sh\/js/)
+
+  workspace.projects.demo.commands.build.executor = '@isox-sh/js:build'
+  await runExecutor(workspace, 'demo', 'build', root)
+
+  await write('node_modules/third-party/package.json', { commands: '../@isox-sh/js/commands.json' })
+  workspace.projects.demo.commands.build.executor = 'third-party:build'
+  await runExecutor(workspace, 'demo', 'build', root)
+
+  await write('node_modules/broken/package.json', { commands: '../@isox-sh/js/commands.json' })
+  await write('node_modules/@isox-sh/broken/package.json', { name: '@isox-sh/broken' })
+  workspace.projects.demo.commands.build.executor = 'broken:build'
+  await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Package @isox-sh\/broken does not define a commands manifest/)
+})
 
 test('finds the workspace marker from the root and nested directories', async (t) => {
   const { root, write } = await fixture(t)

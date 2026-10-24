@@ -33,3 +33,6 @@ jobs:
 
       - name: Test CLI through Isox
         run: pnpm isox test cli
+
+      - name: Test TypeScript executor through Isox
+        run: pnpm isox test js

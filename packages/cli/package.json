@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "engines": {
-    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+    "node": ">=24.0.0"
   },
   "bin": {
     "isox": "./dist/index.js"
@@ -11,10 +11,6 @@
   "files": [
     "dist"
   ],
-  "scripts": {
-    "build": "tsc",
-    "test": "node --test tests/*.test.cjs"
-  },
   "dependencies": {
     "@isox-sh/core": "workspace:*",
     "cac": "^7.1.0"
@@ -39,5 +35,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs"
   }
 }

@@ -172,6 +172,9 @@ importers:
       '@isox-sh/core':
         specifier: workspace:*
         version: link:packages/core
+      '@isox-sh/js':
+        specifier: workspace:*
+        version: link:packages/js
       '@stylistic/eslint-plugin':
         specifier: ^5.10.0
         version: 5.10.0(eslint@10.13.0)
@@ -214,6 +217,15 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
+
+  packages/js:
+    dependencies:
+      '@isox-sh/core':
+        specifier: workspace:*
+        version: link:../core
+      '@typescript/native':
+        specifier: npm:typescript@^7.0.2
+        version: typescript@7.0.2
 
 packages:
 

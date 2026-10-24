@@ -23,6 +23,6 @@ runs:
       shell: bash
       run: pnpm install --frozen-lockfile
 
-    - name: Build CLI and core
+    - name: Bootstrap Isox packages
       shell: bash
-      run: pnpm --filter isox... build
+      run: pnpm bootstrap

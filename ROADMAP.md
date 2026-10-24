@@ -48,8 +48,11 @@ executors only and do not implement the native roadmap.
 ## 0. Foundation and current implementation
 
 - [x] Bootstrap a pnpm workspace with TypeScript 7 builds and separate core/CLI packages.
+- [x] Compile repository packages through `@isox-sh/js:tsc` project commands, with a clean-checkout bootstrap and no package build scripts.
+- [x] Resolve first-party shorthand executor names such as `js:tsc` and `core:run-command`, preferring first-party packages before unscoped fallbacks.
+- [x] Require Node.js 24+ for the runtime and development tools.
 - [x] Enforce ESLint rules, sorted imports, and code without semicolons.
-- [x] Keep tests inside their owning packages and give both packages native Isox project commands.
+- [x] Keep tests inside their owning packages and give all packages native Isox project commands.
 - [x] Discover the nearest `isox.json`; initialize it with the CLI package version without overwriting existing files.
 - [x] Discover and validate `project.json`, derive project roots/names, reject duplicate or invalid names, and preserve custom properties.
 - [x] Publish the project schema and typed project/command/executor contracts.
@@ -62,7 +65,7 @@ executors only and do not implement the native roadmap.
 - [x] Migrate recognized Nx project schemas in memory and cache the converted definitions without rewriting source files.
 - [x] Select temporary Nx adapters through `nx.executors`, supply dependency metadata, and reject installed Nx runtimes outside version 23.
 - [x] Add regression coverage for graph metadata, external npm nodes, cache reuse, unsupported Nx versions, and configuration errors.
-- [x] Configure CI to build, lint, and run both package test suites through the bootstrapped CLI.
+- [x] Configure CI to build, lint, and run all package test suites through the bootstrapped CLI.
 - [ ] Define automatic discovery-cache invalidation for added, changed, renamed, and removed project files, with a cache format/version strategy.
 - [ ] Define discovery boundaries for nested workspaces, generated output directories, ignored projects, and symlinks.
 - [ ] Test cancellation and signal propagation through shell children, executor streams, and the Nx graph worker; avoid leaving running children behind.

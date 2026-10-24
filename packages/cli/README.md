@@ -9,7 +9,7 @@ Define commands in `project.json`, mark your workspace with `isox.json`, and run
 
 ## Requirements
 
-Node.js 20.19+, 22.13+, or 24+. Use your existing npm, pnpm, or Yarn workspace.
+Node.js 24+. Use your existing npm, pnpm, or Yarn workspace.
 Isox runs one project command at a time and does not require a background daemon.
 
 ## Install
