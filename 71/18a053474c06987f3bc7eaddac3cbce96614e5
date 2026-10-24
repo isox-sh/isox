@@ -1,0 +1,38 @@
+packages/core/tests/nx-workspace-graph.test.cjs
+  s_51871bdcdb3b4c::t_39dfe95b821328 26,48,111-119
+  s_51871bdcdb3b4c::t_c0b6ba77dfad0b 98-109
+  s_51871bdcdb3b4c::t_86938ba0c32264 110,120
+packages/core/src/executor/nx-graph.ts
+  s_51871bdcdb3b4c::t_39dfe95b821328 22-33
+  h_b13471b77746e9 34
+packages/core/src/executor/nx-workspace-graph.ts
+  s_51871bdcdb3b4c::t_39dfe95b821328 2,23-25
+  h_b13471b77746e9 22,27
+  h_b13471b77746e9 26
+docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_3bd89eb1e7ec39 190-192
+README.md
+  s_51871bdcdb3b4c::t_3bd89eb1e7ec39 324-326,341
+  s_51871bdcdb3b4c::t_97fb58fc37f979 342
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7118a053474c06987f3bc7eaddac3cbce96614e5",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
