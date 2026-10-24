@@ -1,0 +1,40 @@
+packages/js/tests/tsc.test.mjs
+  s_51871bdcdb3b4c::t_f0afdf66e29ae0 14
+README.md
+  s_51871bdcdb3b4c::t_0d84a418274101 281,285,305
+  s_51871bdcdb3b4c::t_f0afdf66e29ae0 282-284
+packages/vitest/commands.json
+  s_51871bdcdb3b4c::t_0d84a418274101 4
+docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_0d84a418274101 268
+  s_51871bdcdb3b4c::t_e483d220684cd9 273-274
+packages/js/commands.json
+  s_51871bdcdb3b4c::t_0d84a418274101 4
+packages/core/README.md
+  s_51871bdcdb3b4c::t_f0afdf66e29ae0 74-75
+  s_51871bdcdb3b4c::t_e483d220684cd9 73,76
+packages/core/src/commands/run-command/run-command.command.ts
+  s_51871bdcdb3b4c::t_0d84a418274101 1-31
+packages/core/commands.json
+  s_51871bdcdb3b4c::t_0d84a418274101 4
+packages/core/tests/run-command.test.mjs
+  s_51871bdcdb3b4c::t_0d84a418274101 11
+packages/vitest/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_f0afdf66e29ae0 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ad04ddb3d833f25a8389eb175668d4c70746134a",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
