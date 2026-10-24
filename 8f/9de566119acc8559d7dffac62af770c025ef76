@@ -1,0 +1,94 @@
+README.md
+  s_51871bdcdb3b4c::t_137519c9b07ffd 65,73,87,94,130
+  s_51871bdcdb3b4c::t_48aa67ee3471bf 111,115,121,129,131-132
+  s_51871bdcdb3b4c::t_1dbb3244924b8a 95,98-99,101,110,133-136,151,153,314-319
+packages/js/project.json
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 1-14,16-25
+  s_51871bdcdb3b4c::t_1431355b536e2a 15
+  s_51871bdcdb3b4c::t_bd6d5a5e0fe300 26-28
+.github/actions/setup-isox/action.yml
+  s_51871bdcdb3b4c::t_f33bc62c472409 26,28
+packages/js/schemas/tsc.json
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 1-14
+packages/core/src/executor/runner.ts
+  s_51871bdcdb3b4c::t_4ddf6d466a4e2a 36,99-101,103-117
+  s_51871bdcdb3b4c::t_c333c47d96eccd 33
+  s_51871bdcdb3b4c::t_1431355b536e2a 102
+  s_51871bdcdb3b4c::t_b5819aac20fd83 118
+package.json
+  s_51871bdcdb3b4c::t_137519c9b07ffd 17
+  s_51871bdcdb3b4c::t_f33bc62c472409 24
+  s_51871bdcdb3b4c::t_55fd2c29dc7ca5 29
+  s_51871bdcdb3b4c::t_1431355b536e2a 23
+packages/core/tests/project-configuration.test.cjs
+  s_51871bdcdb3b4c::t_55fd2c29dc7ca5 15-16
+packages/js/tests/tsc.test.cjs
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 1-78
+packages/cli/package.json
+  s_51871bdcdb3b4c::t_137519c9b07ffd 6
+  s_51871bdcdb3b4c::t_dfc3a1bba23130 38-40
+packages/js/src/index.ts
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 1-35
+packages/js/package.json
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 1-31,36-37
+  s_51871bdcdb3b4c::t_137519c9b07ffd 32
+  s_51871bdcdb3b4c::t_ee8d8b57236275 33-35
+packages/js/commands.json
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 1-9
+packages/core/README.md
+  s_51871bdcdb3b4c::t_48aa67ee3471bf 84,87
+  s_51871bdcdb3b4c::t_137519c9b07ffd 8,85-86
+packages/cli/README.md
+  s_51871bdcdb3b4c::t_137519c9b07ffd 12
+packages/core/project.json
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 7
+  s_51871bdcdb3b4c::t_f33bc62c472409 9
+  s_51871bdcdb3b4c::t_1431355b536e2a 13
+  s_51871bdcdb3b4c::t_500447a25b839c 19
+docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_48aa67ee3471bf 286
+packages/core/package.json
+  s_51871bdcdb3b4c::t_137519c9b07ffd 38
+  s_51871bdcdb3b4c::t_f7909c64fe559a 39-41
+packages/cli/project.json
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 9
+  s_51871bdcdb3b4c::t_f33bc62c472409 11
+  s_51871bdcdb3b4c::t_1431355b536e2a 15
+  s_51871bdcdb3b4c::t_8eabf82818e273 21
+packages/js/tsconfig.json
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 1-8
+.github/workflows/ci.yml
+  s_51871bdcdb3b4c::t_f33bc62c472409 36-37
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 38
+packages/cli/tests/cli.test.cjs
+  s_51871bdcdb3b4c::t_48aa67ee3471bf 50-64,66
+scripts/bootstrap.cjs
+  s_51871bdcdb3b4c::t_1431355b536e2a 30
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 13,17
+  s_51871bdcdb3b4c::t_c0cda5e0e0792f 1-12,14-16,18-29,31-38
+ROADMAP.md
+  s_51871bdcdb3b4c::t_137519c9b07ffd 52-53
+  s_51871bdcdb3b4c::t_48aa67ee3471bf 51,55,68
+packages/js/README.md
+  s_51871bdcdb3b4c::t_137519c9b07ffd 3,23-24
+  s_51871bdcdb3b4c::t_ff9b09a0ef8338 1-2,4-22,26-42
+  s_51871bdcdb3b4c::t_48aa67ee3471bf 25
+pnpm-lock.yaml
+  s_51871bdcdb3b4c::t_0aac2a1fc5effb 175-177,221-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8f9de566119acc8559d7dffac62af770c025ef76",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
