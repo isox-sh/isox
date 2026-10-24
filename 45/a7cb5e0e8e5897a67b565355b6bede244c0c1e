@@ -1,0 +1,14 @@
+.github/assets/banner.svg
+  h_b13471b77746e9 1-49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "45a7cb5e0e8e5897a67b565355b6bede244c0c1e",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
