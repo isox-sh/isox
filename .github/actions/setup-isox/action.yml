@@ -1,0 +1,28 @@
+name: Set up Isox
+description: Install workspace dependencies and build the CLI for subsequent CI steps.
+
+inputs:
+  node-version:
+    description: Node.js version to use.
+    default: '24'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Set up pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        cache: true
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Build CLI and core
+      shell: bash
+      run: pnpm --filter @isox-sh/cli... build

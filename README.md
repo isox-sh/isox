@@ -69,6 +69,18 @@ Tests live in their owning package's `tests/` directory. `pnpm test` builds the
 workspace and runs both package suites; after building, use
 `pnpm --filter @isox-sh/core test` or `pnpm --filter @isox-sh/cli test` for one suite.
 
+Pull requests run the `CI` workflow using `.github/actions/setup-isox` to set up
+Node.js and pnpm, install dependencies, and build the CLI and core. Call this action
+once after checkout in each job that needs Isox; subsequent steps in that job can
+use `pnpm isox`. It defaults to Node.js 24, configurable through `node-version`.
+
+```yaml
+steps:
+  - uses: actions/checkout@v7
+  - uses: ./.github/actions/setup-isox
+  - run: pnpm isox lint core
+```
+
 Both packages have Isox `project.json` files with `build`, `lint`, and `test` commands.
 Run `pnpm build` once to bootstrap the local CLI, then use Isox itself:
 
