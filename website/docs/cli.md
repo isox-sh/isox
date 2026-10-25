@@ -11,6 +11,7 @@ icon: "terminal"
 | --- | --- |
 | `isox init` | Create `isox.json` in the current directory |
 | `isox init <package> <path> [--importPath=<name>]` | Scaffold a project using an installed package inside an existing workspace |
+| `isox add <package> <project>` | Run an installed plugin’s add generator on an existing project |
 | `isox <command> <project>` | Run a project's configured command |
 | `isox run <project>:<command>` | Alternative syntax, including commands whose names are reserved by the CLI |
 | `isox affected --target=<command>` | Run changed projects and their dependents; add `--print-matrix` for a JSON project array |
@@ -33,7 +34,7 @@ Hyphenated names become camelCase (`--max-warnings` becomes `maxWarnings`). Bare
 flags are `true`, `--no-<name>` is `false`, numeric values become numbers, and
 repeated flags become arrays. Executors validate the options they support.
 Isox's own flags, such as `--verbose`, `--config`, and `--parallel`, stay with the CLI.
-`init`, `reset`, and `plan` reject unknown flags.
+`init`, `add`, `reset`, and `plan` reject unknown flags.
 
 Use `--options` for a JSON object when values need explicit types, nested objects,
 or names that overlap with CLI flags:

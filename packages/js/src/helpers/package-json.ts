@@ -267,7 +267,7 @@ export async function generatePackageJson(
     delete publishConfig.exports
   }
 
-  for (const field of ['main', 'module', 'types', 'typings', 'bin', 'exports', 'typesVersions', 'init']) {
+  for (const field of ['main', 'module', 'types', 'typings', 'bin', 'exports', 'typesVersions', 'init', 'add']) {
     if (manifest[field] !== undefined && !(field === 'exports' && publishedExports !== undefined)) {
       manifest[field] = rewrite(manifest[field])
     }

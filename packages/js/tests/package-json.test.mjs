@@ -80,11 +80,13 @@ test('generates package metadata, workspace versions, exports, and additional en
 test('packages executor-only plugins with executor implementations and schemas, without root exports', async t => {
   const { write, read, context } = await fixture(t)
 
+  await write('src/generators/add.ts', 'export default async () => {}')
   await write('src/commands/example/example.command.ts', 'export default () => ({ success: true })')
   await write('package.json', {
     name: '@fixture/plugin',
     version: '0.1.0',
-    executors: './executors.json'
+    executors: './executors.json',
+    add: './dist/generators/add.js'
   })
   await write('executors.json', {
     executors: {
@@ -107,6 +109,7 @@ test('packages executor-only plugins with executor implementations and schemas, 
   assert.equal(generated.types, undefined)
   assert.equal(generated.exports, undefined)
   assert.equal(generated.executors, './executors.json')
+  assert.equal(generated.add, './generators/add.js')
   const executors = JSON.parse(await read('dist/executors.json'))
 
   assert.equal(executors.executors.example.implementation, './commands/example/example.command.js')

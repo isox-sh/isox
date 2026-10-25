@@ -2,6 +2,7 @@
 import { logger, LogLevels } from '@isox-sh/core'
 import { cac } from 'cac'
 
+import { registerAddAction } from './actions/add'
 import { registerAffectedAction } from './actions/affected'
 import { registerCommandAction } from './actions/command'
 import { registerInitAction } from './actions/init'
@@ -17,6 +18,7 @@ cli.option('--verbose', 'Show debug logs and error stack traces')
 
 registerCommandAction(cli)
 registerInitAction(cli)
+registerAddAction(cli)
 registerRunAction(cli)
 registerResetAction(cli)
 registerAffectedAction(cli)

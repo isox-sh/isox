@@ -46,7 +46,7 @@ Each executor lives in `src/executors/<name>/`. Name its implementation
 `lint.schema.json`; TypeScript uses `tsc.executor.ts` and `tsc.schema.json`.
 Keep executor-specific helpers in the same folder. Shared plugin helpers belong
 in `src/helpers`; export them through package entry points when other plugins
-need to reuse them. Project initializers belong in `src/generators`, and tests
+need to reuse them. Project initializers and add generators belong in `src/generators`, and tests
 stay inside the owning package's `tests` directory.
 
 Executor-only plugins do not need `src/index.ts` or package `main`/`types`
@@ -197,6 +197,37 @@ such as `importPath` and a context containing `workspaceRoot`, `projectRoot`,
 `projectName`, and `logger`. The CLI resolves the package from the existing
 workspace, validates the destination and project name, and refreshes discovery.
 The initializer creates the project files and updates any shared configuration.
+
+## Adding plugins to existing projects
+
+Declare `"add": "./dist/generators/add.js"` in a plugin's `package.json` to support
+`isox add <package> <project>`. Keep its implementation in `src/generators/add.ts`.
+The exported function implements core's `ProjectAdder` type:
+
+```typescript
+import type { ProjectAdder } from '@isox-sh/core'
+
+const add: ProjectAdder = async (_options, context) => {
+  // Read the existing configuration and add the plugin's targets.
+  context.logger.info(`Configuring ${context.projectName}`)
+}
+
+export default add
+```
+
+It receives an empty options object and the same context fields as an initializer:
+`workspaceRoot`, `projectRoot`, `projectName`, and `logger`. The CLI looks up
+the project by name in fresh workspace discovery and resolves its directory.
+Root projects use their project name as well. The command works from any directory
+inside the workspace. The CLI resolves the installed package and invalidates only workspace
+discovery after invocation, including on generator failure. Other cache files
+remain intact.
+
+Generators own their edits and should preserve existing configuration, handle
+repeat calls, and reject conflicting targets. The release plugin supplies an
+example: `isox add @isox-sh/semver my-package` adds its `version` target.
+The TypeScript package builder rewrites `add` paths into the published output,
+just as it does for `init`.
 
 ## Testing plugins
 

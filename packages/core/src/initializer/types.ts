@@ -13,3 +13,6 @@ export interface InitializerContext {
 
 /** A package's `init` entry creates a project within an existing workspace. */
 export type ProjectInitializer = (options: InitializerOptions, context: InitializerContext) => Promise<void>
+
+/** A package's `add` entry configures an existing project without scaffolding a new one. */
+export type ProjectAdder = (options: Record<string, unknown>, context: InitializerContext) => Promise<void>
