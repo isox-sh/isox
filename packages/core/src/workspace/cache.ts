@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { lstat, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { logger } from '../logger'
@@ -37,7 +37,7 @@ export async function readWorkspaceCache(root: string, taskLogger: Logger = logg
   try {
     content = await readFile(file, 'utf8')
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if (['ENOENT', 'EISDIR'].includes((error as NodeJS.ErrnoException).code ?? '')) {
       return undefined
     }
     throw error
@@ -68,6 +68,17 @@ export async function writeWorkspaceCache(root: string, workspace: WorkspaceGrap
   await mkdir(directory, { recursive: true })
   try {
     await writeFile(temporaryFile, `${JSON.stringify({ version: cacheVersion, ...workspace }, null, 2)}\n`, { flag: 'wx' })
+    try {
+      if ((await lstat(file)).isDirectory()) {
+        const backup = `${file}.${randomUUID()}.invalid`
+        await rename(file, backup)
+        taskLogger.warn(`Moved invalid workspace cache directory to ${backup}.`)
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error
+      }
+    }
     // Publish complete JSON even when multiple processes discover the workspace.
     await rename(temporaryFile, file)
   } finally {

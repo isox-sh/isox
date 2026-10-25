@@ -178,3 +178,13 @@ for (const [field, version] of [['commands', 4], ['executors', 7]]) {
     assert.deepEqual(await parseWorkspace(root), workspace)
   })
 }
+
+test('rebuilds a directory-shaped cache while preserving its contents in a backup', async t => {
+  const { root, write, cacheFile } = await fixture(t)
+  await write('.isox/workspace.json/keep.txt', 'keep')
+  await write('apps/demo/project.json', { name: 'demo' })
+  assert.equal((await parseWorkspace(root)).projects.demo.name, 'demo')
+  assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).projects.demo.name, 'demo')
+  const backup = (await readdir(join(root, '.isox'))).find(file => file.endsWith('.invalid'))
+  assert.equal(await readFile(join(root, '.isox', backup, 'keep.txt'), 'utf8'), 'keep')
+})
