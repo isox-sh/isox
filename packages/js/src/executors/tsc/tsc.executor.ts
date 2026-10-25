@@ -31,6 +31,7 @@ export type { AssetPattern, TscOptions } from './options'
 
 async function build(options: TscOptions, context: ExecutorContext, tsConfig: string, signal?: AbortSignal): Promise<ExecutorResult> {
   const parsed = await readConfig(tsConfig, context.workspaceRoot, signal)
+
   if (!parsed.config) {
     if (!signal?.aborted) {
       context.logger.error(parsed.output.trim())
@@ -46,35 +47,53 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
   const config = parsed.config
   const roots = config.compilerOptions.noEmit ? [] : await outputRoots(config, tsConfig, context)
   const stateFile = statePath(context)
+
   if (await canonical(dirname(stateFile)) !== dirname(stateFile)) {
     throw new Error('Symlink in TypeScript output-state directory.')
   }
 
   await mkdir(dirname(stateFile), { recursive: true })
   let lock
+
   try {
     lock = await open(`${stateFile}.lock`, 'wx')
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
       throw new Error('Another TypeScript build is using this project. Stop it before building again.', { cause: error })
     }
+
     throw error
   }
 
   try {
     // Publish before checking peers so concurrent first builds cannot both claim an output.
-    const claim: OutputState = { version: 1, project: context.projectRoot, config: tsConfig, roots, files: {} }
+    const claim: OutputState = {
+      version: 1,
+      project: context.projectRoot,
+      config: tsConfig,
+      roots,
+      files: {}
+    }
+
     await atomicWrite(`${stateFile}.claim`, JSON.stringify(claim))
     await checkOwners(stateFile, roots, context)
     const previous = await loadState(stateFile)
+
     for (const file of Object.keys(previous?.files ?? {})) {
       if (roots.some(root => inside(root, file))) {
         await safeDestination(file, roots)
       }
     }
+
     // Validate existing output paths before the compiler can follow a symlink.
     for (const root of roots) {
-      for (const file of await fg('**/*', { cwd: root, absolute: true, dot: true, followSymbolicLinks: false, onlyFiles: false })) {
+      for (const file of await fg('**/*', {
+        cwd: root,
+        absolute: true,
+        dot: true,
+        followSymbolicLinks: false,
+        onlyFiles: false
+      })) {
         await safeDestination(file, roots)
       }
     }
@@ -88,6 +107,7 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
     const compilation = await withBuildConfig(tsConfig, context, stateFile, buildConfig =>
       compile(buildConfig, context.workspaceRoot, stateFile, config, signal),
     )
+
     if (!compilation.success || signal?.aborted) {
       return { success: false }
     }
@@ -97,6 +117,7 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
     }
 
     const emitted = new Set(compilation.emitted.filter(file => roots.some(root => inside(root, file))))
+
     for (const file of emitted) {
       await safeDestination(file, roots)
     }
@@ -104,9 +125,11 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
     // The compiler has already published these files. Record them before packaging
     // so a failed metadata build cannot strand output that later builds cannot clean.
     const pendingFiles = { ...previous?.files }
+
     for (const file of emitted) {
       pendingFiles[file] = hash(await readFile(file))
     }
+
     await atomicWrite(stateFile, JSON.stringify({
       ...claim,
       roots: [...new Set([...(previous?.roots ?? []), ...roots])],
@@ -118,19 +141,24 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
       : undefined
     const generated = options.generatePackageJson && outDir
       ? await generatePackageJson({
-        ...options, tsConfig, sourceFiles: config.files?.map(file => resolve(dirname(tsConfig), file)),
+        ...options,
+        tsConfig,
+        sourceFiles: config.files?.map(file => resolve(dirname(tsConfig), file)),
       }, context, outDir, emitted, assets, declarationDir)
       : new Map<string, Buffer>()
     const additions = new Map(assets)
+
     for (const [file, content] of generated) {
       if (additions.has(file)) {
         throw new Error(`Generated package file collides with an asset: ${file}`)
       }
+
       additions.set(file, content)
     }
 
     for (const [file, content] of additions) {
       await safeDestination(file, roots)
+
       if (emitted.has(file)) {
         throw new Error(`Asset or package file collides with compiler output: ${file}`)
       }
@@ -141,11 +169,14 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
     }
 
     const keep = new Set([...emitted, ...additions.keys()])
+
     if (options.clean !== false) {
       await removeOwned(previous, keep, roots)
     }
+
     // Publish metadata last, after all referenced generated files are ready.
     const manifestPath = outDir ? resolve(outDir, 'package.json') : undefined
+
     for (const [file, content] of additions) {
       if (file !== manifestPath) {
         await atomicWrite(file, content)
@@ -155,13 +186,17 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
     if (manifestPath && additions.has(manifestPath)) {
       await atomicWrite(manifestPath, additions.get(manifestPath)!)
     }
+
     // A shebang survives compilation, but the compiler does not set executable permissions.
     const files: Record<string, string> = {}
+
     for (const file of keep) {
       const content = await readFile(file)
+
       if (/\.(?:c|m)?js$/.test(file) && content.subarray(0, 2).toString() === '#!') {
         await chmod(file, (await stat(file)).mode | 0o111)
       }
+
       files[file] = hash(content)
     }
 
@@ -173,8 +208,16 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
       }
     }
 
-    const state: OutputState = { version: 1, project: context.projectRoot, config: tsConfig, roots, files }
+    const state: OutputState = {
+      version: 1,
+      project: context.projectRoot,
+      config: tsConfig,
+      roots,
+      files
+    }
+
     await atomicWrite(stateFile, `${JSON.stringify(state, null, 2)}\n`)
+
     return { success: true }
   } finally {
     try {
@@ -197,6 +240,7 @@ export default async function tsc(options: TscOptions, originalContext: Executor
   const tsConfig = await canonical(options.tsConfig === undefined
     ? resolve(context.projectRoot, 'tsconfig.json')
     : resolve(context.workspaceRoot, options.tsConfig))
+
   if (options.watch) {
     return watchBuilds(tsConfig, options, context, signal => build(options, context, tsConfig, signal))
   }

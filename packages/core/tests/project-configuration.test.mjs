@@ -23,6 +23,7 @@ test('accepts the Isox project definition and preserves executor options', () =>
     },
     tags: [],
   }
+
   assert.deepEqual(parseProjectDefinition(project, 'packages/cli/project.json'), project)
 })
 
@@ -36,12 +37,54 @@ test('validates project fields against the published schema with file-specific e
     { targets: [] },
     { targets: { build: {} } },
     { targets: { build: { executor: 'invalid' } } },
-    { targets: { build: { executor: 'pkg:build', options: [] } } },
-    { targets: { build: { executor: 'pkg:build', configurations: [] } } },
-    { targets: { build: { executor: 'pkg:build', configurations: { production: null } } } },
-    { targets: { build: { executor: 'pkg:build', configurations: { production: [] } } } },
-    { targets: { build: { executor: 'pkg:build', defaultConfiguration: 42 } } },
-    { targets: { build: { executor: 'pkg:build', defaultConfiguration: '' } } },
+    {
+      targets: {
+        build: {
+          executor: 'pkg:build',
+          options: []
+        }
+      }
+    },
+    {
+      targets: {
+        build: {
+          executor: 'pkg:build',
+          configurations: []
+        }
+      }
+    },
+    {
+      targets: {
+        build: {
+          executor: 'pkg:build',
+          configurations: { production: null }
+        }
+      }
+    },
+    {
+      targets: {
+        build: {
+          executor: 'pkg:build',
+          configurations: { production: [] }
+        }
+      }
+    },
+    {
+      targets: {
+        build: {
+          executor: 'pkg:build',
+          defaultConfiguration: 42
+        }
+      }
+    },
+    {
+      targets: {
+        build: {
+          executor: 'pkg:build',
+          defaultConfiguration: ''
+        }
+      }
+    },
     { targets: { 'bad:name': { executor: 'pkg:build' } } },
     { tags: [42] },
   ]) {
@@ -57,7 +100,11 @@ test('preserves additional project and command properties for consumers', () => 
     name: 'dashboard',
     sourceRoot: 'apis/dashboard/src',
     projectType: 'application',
-    custom: { owner: 'dashboard-team', enabled: true, values: [1, null] },
+    custom: {
+      owner: 'dashboard-team',
+      enabled: true,
+      values: [1, null]
+    },
     targets: {
       build: {
         executor: '@nx/js:tsc',
@@ -67,8 +114,12 @@ test('preserves additional project and command properties for consumers', () => 
       },
     },
   }
+
   assert.deepEqual(parseProjectDefinition(project, 'project.json'), project)
-  assert.throws(() => parseProjectDefinition({ ...project, dependencies: 'invalid' }, 'project.json'), /must be array/)
+  assert.throws(() => parseProjectDefinition({
+    ...project,
+    dependencies: 'invalid'
+  }, 'project.json'), /must be array/)
 })
 
 test('migrates recognized Nx schemas in memory and preserves options and metadata', () => {
@@ -105,6 +156,7 @@ test('migrates recognized Nx schemas in memory and preserves options and metadat
     const original = structuredClone(project)
     const migrated = parseProjectDefinition(project, 'apis/dashboard/project.json')
     const { targets, implicitDependencies, ...metadata } = project
+
     assert.deepEqual(migrated, {
       ...metadata,
       $schema: isoxSchema,
@@ -119,7 +171,10 @@ test('skips Nx targets without executors without changing the source definition'
   const project = {
     $schema: '../../node_modules/nx/schemas/project-schema.json',
     targets: {
-      build: { executor: '@nx/js:tsc', options: { tsConfig: 'tsconfig.json' } },
+      build: {
+        executor: '@nx/js:tsc',
+        options: { tsConfig: 'tsconfig.json' }
+      },
       'extract-translations': { options: { outputPath: 'locales' } },
       prepare: { dependsOn: ['build'] },
       inferred: {},
@@ -127,9 +182,13 @@ test('skips Nx targets without executors without changing the source definition'
     },
   }
   const original = structuredClone(project)
+
   assert.deepEqual(parseProjectDefinition(project, 'libs/emails/project.json').targets, { build: project.targets.build })
   assert.deepEqual(project, original)
-  assert.deepEqual(parseProjectDefinition({ $schema: project.$schema, targets: { inferred: {} } }, 'project.json').targets, {})
+  assert.deepEqual(parseProjectDefinition({
+    $schema: project.$schema,
+    targets: { inferred: {} }
+  }, 'project.json').targets, {})
 })
 
 test('uses the schema rather than field names to select Nx migration', () => {
@@ -141,14 +200,23 @@ test('uses the schema rather than field names to select Nx migration', () => {
     '../../node_modules/not-nx/schemas/project-schema.json',
     'https://[',
   ]) {
-    const project = { ...($schema ? { $schema } : {}), targets: { custom: { executor: 'core:run-command' } }, implicitDependencies: ['metadata'] }
+    const project = {
+      ...($schema ? { $schema } : {}),
+      targets: { custom: { executor: 'core:run-command' } },
+      implicitDependencies: ['metadata']
+    }
+
     assert.deepEqual(parseProjectDefinition(project, 'project.json'), project)
-    assert.throws(() => parseProjectDefinition({ ...project, targets: { inferred: {} } }, 'project.json'), /required property 'executor'/)
+    assert.throws(() => parseProjectDefinition({
+      ...project,
+      targets: { inferred: {} }
+    }, 'project.json'), /required property 'executor'/)
   }
 })
 
 test('validates migrated fields and rejects ambiguous mappings with file-specific errors', () => {
   const $schema = '../../node_modules/nx/schemas/project-schema.json'
+
   for (const fields of [
     { targets: [] },
     { targets: null },
@@ -159,10 +227,23 @@ test('validates migrated fields and rejects ambiguous mappings with file-specifi
     { targets: { build: { executor: '' } } },
     { targets: { build: { executor: 'invalid' } } },
     { implicitDependencies: 'shared' },
-    { implicitDependencies: [], dependencies: [] },
+    {
+      implicitDependencies: [],
+      dependencies: []
+    },
   ]) {
-    assert.throws(() => parseProjectDefinition({ $schema, ...fields }, 'apis/dashboard/project.json'),
-      /Invalid project configuration in apis\/dashboard\/project.json/)
+    assert.throws(() => parseProjectDefinition({
+      $schema,
+      ...fields
+    }, 'apis/dashboard/project.json'),
+    /Invalid project configuration in apis\/dashboard\/project.json/)
   }
-  assert.deepEqual(parseProjectDefinition({ $schema, custom: 42 }, 'project.json'), { $schema: isoxSchema, custom: 42 })
+
+  assert.deepEqual(parseProjectDefinition({
+    $schema,
+    custom: 42
+  }, 'project.json'), {
+    $schema: isoxSchema,
+    custom: 42
+  })
 })

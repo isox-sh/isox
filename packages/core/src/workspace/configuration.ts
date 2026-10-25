@@ -6,6 +6,12 @@ import { Ajv } from 'ajv'
 import { isNxProjectSchema, migrateNxProject } from './nx'
 import { workspaceSchemaPath } from './schema'
 
+interface ProjectPlan {
+  [key: string]: unknown
+  /** Relative CI cost. Defaults to 1 and must be positive. */
+  weight?: number
+}
+
 export interface ExecutorConfiguration {
   [key: string]: unknown
   executor: string
@@ -23,16 +29,13 @@ export interface ProjectDefinition {
   dependencies?: string[]
   targets?: Record<string, ExecutorConfiguration>
   tags?: string[]
-  plan?: {
-    [key: string]: unknown
-    /** Relative CI cost. Defaults to 1 and must be positive. */
-    weight?: number
-  }
+  plan?: ProjectPlan
 }
 
 const ajv = new Ajv({ allErrors: true })
 const schemaPath = workspaceSchemaPath('project.schema.json')
 const schema = JSON.parse(readFileSync(schemaPath, 'utf8'))
+
 export const isProjectDefinition = ajv.compile<ProjectDefinition>(schema)
 
 export function parseProjectDefinition(content: unknown, file: string): ProjectDefinition {

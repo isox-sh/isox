@@ -15,11 +15,17 @@ for (const code of ['ENOTSUP', 'EPERM', 'EXDEV']) {
     const { root, context } = await fixture(t)
     const projectRoot = join(root, 'packages/created')
     const spy = vi.spyOn(fs, 'link').mockRejectedValue(Object.assign(new Error('links unavailable'), { code }))
+
     t.onTestFinished(() => spy.mockRestore())
-    await init({}, { ...context, projectRoot, projectName: 'created' })
+    await init({}, {
+      ...context,
+      projectRoot,
+      projectName: 'created'
+    })
     for (const file of ['project.json', 'tsconfig.json', 'tsconfig.build.json']) {
       assert.ok(JSON.parse(await fs.readFile(join(projectRoot, file), 'utf8')))
     }
+
     assert.ok(JSON.parse(await fs.readFile(join(root, 'tsconfig.base.json'), 'utf8')).compilerOptions)
   })
 }
@@ -32,10 +38,16 @@ test('exclusive fallback preserves a base config created by another writer', asy
     if (destination === base) {
       await fs.writeFile(base, '{"raced":true}')
     }
+
     throw Object.assign(new Error('links unavailable'), { code: 'ENOTSUP' })
   })
+
   t.onTestFinished(() => spy.mockRestore())
-  await assert.rejects(init({}, { ...context, projectRoot, projectName: 'created' }), { code: 'EEXIST' })
+  await assert.rejects(init({}, {
+    ...context,
+    projectRoot,
+    projectName: 'created'
+  }), { code: 'EEXIST' })
   assert.equal(await fs.readFile(base, 'utf8'), '{"raced":true}')
   await assert.rejects(fs.stat(projectRoot), { code: 'ENOENT' })
 })

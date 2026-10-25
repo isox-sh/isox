@@ -8,6 +8,10 @@ import { initializeProject } from './project'
 import type { InitializerOptions } from '@isox-sh/core'
 import type { CAC } from 'cac'
 
+interface CliPackageManifest {
+  version: string
+}
+
 export function registerInitAction(cli: CAC): void {
   cli
     .command('init [package] [path]', 'Create a workspace, or initialize a project in an existing workspace')
@@ -19,6 +23,7 @@ export function registerInitAction(cli: CAC): void {
         }
 
         await initializeProject(packageName, projectPath, options)
+
         return
       }
 
@@ -26,31 +31,41 @@ export function registerInitAction(cli: CAC): void {
         throw new Error('--importPath requires a package and a project path.')
       }
 
-      const { version } = JSON.parse(await readFile(join(__dirname, '../../package.json'), 'utf8')) as { version: string }
+      const { version } = JSON.parse(await readFile(join(__dirname, '../../package.json'), 'utf8')) as CliPackageManifest
       const file = join(process.cwd(), 'isox.json')
       let hasNx = false
+
       try {
         hasNx = (await stat(join(process.cwd(), 'nx.json'))).isFile()
+
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
           throw error
         }
       }
 
-      const settings = { version, ...(hasNx ? { nx: { executors: ['@nx'] } } : {}) }
+      const settings = {
+        version,
+        ...(hasNx ? { nx: { executors: ['@nx'] } } : {})
+      }
+
       try {
         await writeFile(file, `${JSON.stringify(settings, null, 2)}\n`, { flag: 'wx' })
+
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code === 'EEXIST') {
           throw new Error(`Cannot initialize: ${file} already exists.`, { cause: error })
         }
+
         throw error
       }
 
       if (hasNx) {
         try {
           await addDepsToPackageJson({ devDependencies: { '@isox-sh/nx': version } }, {
-            projectRoot: process.cwd(), workspaceRoot: process.cwd(), logger,
+            projectRoot: process.cwd(),
+            workspaceRoot: process.cwd(),
+            logger,
           })
         } catch (error) {
           // Leave initialization retryable if package.json cannot be updated.
@@ -58,6 +73,7 @@ export function registerInitAction(cli: CAC): void {
           throw error
         }
       }
+
       logger.success(`Created ${file}`)
     })
 }

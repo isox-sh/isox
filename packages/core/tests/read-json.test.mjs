@@ -11,17 +11,32 @@ const { createLogger, readJson, writeJson } = require('../../../dist/core')
 
 async function fixture(t) {
   const workspaceRoot = await mkdtemp(join(tmpdir(), 'isox-read-json-'))
-  t.onTestFinished(() => rm(workspaceRoot, { recursive: true, force: true }))
+
+  t.onTestFinished(() => rm(workspaceRoot, {
+    recursive: true,
+    force: true
+  }))
   const projectRoot = join(workspaceRoot, 'project')
+
   await mkdir(projectRoot)
   const entries = []
   const logger = createLogger({ reporters: [{ log: entry => entries.push(entry) }] })
-  return { workspaceRoot, projectRoot, logger, entries }
+
+  return {
+    workspaceRoot,
+    projectRoot,
+    logger,
+    entries
+  }
 }
 
 test('reads nested JSON written by writeJson using relative and absolute paths without logging', async t => {
   const context = await fixture(t)
-  const value = { enabled: true, values: [1, null, 'hello'] }
+  const value = {
+    enabled: true,
+    values: [1, null, 'hello']
+  }
+
   await writeJson('config/settings.json', value, context)
   context.entries.length = 0
   assert.deepEqual(await readJson('config/settings.json', context), value)
@@ -31,6 +46,7 @@ test('reads nested JSON written by writeJson using relative and absolute paths w
 
 test('accepts all JSON values and UTF-8 byte order marks', async t => {
   const context = await fixture(t)
+
   for (const value of [null, false, 0, 'hello', [], {}]) {
     await writeFile(join(context.projectRoot, 'value.json'), `\uFEFF${JSON.stringify(value)}\n`)
     assert.deepEqual(await readJson('value.json', context), value)
@@ -39,12 +55,14 @@ test('accepts all JSON values and UTF-8 byte order marks', async t => {
 
 test('reports malformed JSON with its filename and original parse error', async t => {
   const context = await fixture(t)
+
   for (const source of ['', '{broken', '{"enabled":true,}', '// comment\n{}']) {
     await writeFile(join(context.projectRoot, 'broken.json'), source)
     await assert.rejects(readJson('broken.json', context), error => {
       assert.ok(error instanceof SyntaxError)
       assert.match(error.message, /Invalid JSON in broken\.json/)
       assert.ok(error.cause instanceof SyntaxError)
+
       return true
     })
   }
@@ -52,12 +70,14 @@ test('reports malformed JSON with its filename and original parse error', async 
 
 test('preserves missing-file errors without creating directories', async t => {
   const context = await fixture(t)
+
   await assert.rejects(readJson('nested/missing.json', context), { code: 'ENOENT' })
   assert.deepEqual(await readdir(context.projectRoot), [])
 })
 
 test('rejects traversal, absolute outside paths, sibling prefixes, and the project root', async t => {
   const context = await fixture(t)
+
   for (const file of ['../outside.json', '../project-other/file.json', join(context.workspaceRoot, 'outside.json'), '.', '']) {
     await assert.rejects(readJson(file, context), /must be inside the project/)
   }
@@ -66,6 +86,7 @@ test('rejects traversal, absolute outside paths, sibling prefixes, and the proje
 test('rejects file and directory symlinks, including dangling links', async t => {
   const context = await fixture(t)
   const outside = join(context.workspaceRoot, 'outside')
+
   await mkdir(outside)
   await writeFile(join(outside, 'value.json'), '{}')
   await symlink(outside, join(context.projectRoot, 'linked'), 'junction')
@@ -78,8 +99,10 @@ test('rejects file and directory symlinks, including dangling links', async t =>
 
 test('supports a project root reached through a symlink', async t => {
   const context = await fixture(t)
+
   await writeFile(join(context.projectRoot, 'value.json'), '{"enabled":true}')
   const projectRoot = join(context.workspaceRoot, 'project-alias')
+
   await symlink(context.projectRoot, projectRoot, 'junction')
   assert.deepEqual(await readJson('value.json', { projectRoot }), { enabled: true })
 })
@@ -89,14 +112,17 @@ test('reads cannot follow a file swapped to a symlink between validation and ope
   const fs = require('node:fs/promises')
   const target = join(context.projectRoot, 'value.json')
   const outside = join(context.workspaceRoot, 'secret.json')
+
   await writeFile(target, '{}')
   await writeFile(outside, '{"secret":true}')
   const open = fs.open
   const spy = vi.spyOn(fs, 'open').mockImplementationOnce(async (...args) => {
     await rm(target)
     await symlink(outside, target)
+
     return open(...args)
   })
+
   t.onTestFinished(() => spy.mockRestore())
   await assert.rejects(readJson('value.json', context), /ELOOP|changed while opening/)
 })
@@ -106,6 +132,7 @@ test('reads reject a parent directory swapped to a symlink before opening', asyn
   const fs = require('node:fs/promises')
   const directory = join(context.projectRoot, 'config')
   const outside = join(context.workspaceRoot, 'outside')
+
   await mkdir(directory)
   await mkdir(outside)
   await writeFile(join(directory, 'value.json'), '{}')
@@ -114,8 +141,10 @@ test('reads reject a parent directory swapped to a symlink before opening', asyn
   const spy = vi.spyOn(fs, 'open').mockImplementationOnce(async (...args) => {
     await fs.rename(directory, `${directory}-original`)
     await symlink(outside, directory, 'junction')
+
     return open(...args)
   })
+
   t.onTestFinished(() => spy.mockRestore())
   await assert.rejects(readJson('config/value.json', context), /changed while opening/)
 })

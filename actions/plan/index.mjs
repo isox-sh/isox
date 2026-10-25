@@ -11,17 +11,24 @@ export function planTargets(targets, settings = {}) {
   if (!Array.isArray(names) || !names.length || names.some(name => typeof name !== 'string' || !/^[^\s:]+$/.test(name)) || !settings || typeof settings !== 'object' || Array.isArray(settings)) {
     throw new Error('Provide targets and a targetOptions JSON object keyed by target name.')
   }
+
   for (const name of Object.keys(settings)) {
     if (!names.includes(name)) {
       throw new Error(`targetOptions contains unrequested target ${name}.`)
     }
   }
+
   return names.map(target => {
     const options = Object.hasOwn(settings, target) ? settings[target] : {}
+
     if (!options || typeof options !== 'object' || Array.isArray(options) || Object.hasOwn(options, 'target')) {
       throw new Error(`targetOptions.${target} must be an options object without a target field.`)
     }
-    return { ...options, target }
+
+    return {
+      ...options,
+      target
+    }
   })
 }
 
@@ -38,16 +45,20 @@ export async function main() {
     affectedOnly: booleanInput('affectedOnly', true),
   })
   const args = ['plan', '--targets-json', JSON.stringify(targets)]
+
   args.push(...(base ? [`--base=${base}`, `--head=${head}`] : ['--all']))
   const matrix = readJson(captureCli(context, args), 'Isox plan')
+
   if (!matrix || !Array.isArray(matrix.include)) {
     throw new Error('Isox did not return a matrix include array. Update the installed CLI.')
   }
+
   setOutput('matrix', matrix)
   setOutput('hasPlan', matrix.include.length > 0)
   setOutput('base', base || '')
   setOutput('head', head)
   const tasks = matrix.include.reduce((sum, row) => sum + row.projects.length, 0)
+
   summary(`## Isox plan\n\n${tasks} project commands across ${matrix.include.length} jobs. Selection: ${base ? 'affected' : 'all projects'}.\n`)
   process.stdout.write(`${JSON.stringify(matrix, null, 2)}\n`)
 }

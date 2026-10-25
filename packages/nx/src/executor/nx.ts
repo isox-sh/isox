@@ -12,6 +12,7 @@ import type { ExecutorContext, ExecutorOutput } from '@isox-sh/core'
 async function createNxContext(context: ExecutorContext, pluginPackagePath: string) {
   const projects: Record<string, NxProjectConfiguration> = Object.fromEntries(Object.entries(context.workspace.projects).map(([name, project]) => {
     const { targets, dependencies, ...metadata } = project
+
     return [name, {
       ...metadata,
       name,
@@ -21,6 +22,7 @@ async function createNxContext(context: ExecutorContext, pluginPackagePath: stri
     }]
   }))
   let nxJsonConfiguration: Record<string, unknown> = {}
+
   try {
     nxJsonConfiguration = JSON.parse(await readFile(join(context.workspaceRoot, 'nx.json'), 'utf8'))
   } catch (error) {
@@ -66,6 +68,7 @@ export async function runNxExecutor(
   const [packageName, executorConfigName] = executorName.split(':')
   const pkgJson = pluginRequire(pluginPackagePath)
   const manifest = pkgJson.executors ?? pkgJson.builders
+
   if (typeof manifest !== 'string') {
     throw new Error(`Package ${packageName} does not define an executors or builders manifest.`)
   }
@@ -74,19 +77,24 @@ export async function runNxExecutor(
   const manifestJson = pluginRequire(manifestPath)
   const registry = manifestJson.executors ?? manifestJson.builders
   const executorDef = registry && Object.hasOwn(registry, executorConfigName) ? registry[executorConfigName] : undefined
+
   if (!executorDef || typeof executorDef.implementation !== 'string') {
     throw new Error(`Executor ${executorConfigName} not found in ${packageName}.`)
   }
 
   const implPath = resolve(dirname(manifestPath), executorDef.implementation)
+
   context.logger.debug(`Resolved ${executorName} to ${implPath}`)
   const executorModule = pluginRequire(implPath)
   const executor: NxExecutor = executorModule.default ?? executorModule
+
   if (typeof executor !== 'function') {
     throw new Error(`Executor ${executorName} does not export a function.`)
   }
+
   context.logger.debug(`Using Nx adapter for ${context.command.executor}`)
   const nxContext = await createNxContext(context, pluginPackagePath)
+
   if (context.signal?.aborted) {
     return { success: false }
   }

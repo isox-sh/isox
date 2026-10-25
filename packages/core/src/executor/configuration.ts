@@ -7,8 +7,12 @@ export function resolveCommandOptions(
   requestedConfiguration?: string,
 ) {
   const configurationName = requestedConfiguration ?? command.defaultConfiguration
+
   if (configurationName === undefined) {
-    return { options: { ...command.options }, configurationName }
+    return {
+      options: { ...command.options },
+      configurationName
+    }
   }
 
   if (typeof configurationName !== 'string' || !/^[^\s:,]+$/.test(configurationName)) {
@@ -20,13 +24,17 @@ export function resolveCommandOptions(
   }
 
   const configuration = command.configurations?.[configurationName]
+
   if (!configuration || typeof configuration !== 'object' || Array.isArray(configuration)) {
     throw new Error(`Configuration ${configurationName} for ${projectName}:${commandName} must be an object.`)
   }
 
   return {
     // Match Nx: configuration values replace base values, including objects and arrays.
-    options: { ...command.options, ...configuration },
+    options: {
+      ...command.options,
+      ...configuration
+    },
     configurationName,
   }
 }

@@ -1,5 +1,9 @@
 import { formatWithOptions } from 'node:util'
 
+interface LogStream extends Pick<NodeJS.WritableStream, 'write'> {
+  isTTY?: boolean
+}
+
 export const LogLevels = {
   silent: -Infinity,
   error: 0,
@@ -31,8 +35,6 @@ export interface LoggerOptions {
   stdout?: LogStream
   stderr?: LogStream
 }
-
-type LogStream = Pick<NodeJS.WritableStream, 'write'> & { isTTY?: boolean }
 
 const levelColors: Record<LogType, number> = {
   error: 31,
@@ -79,18 +81,25 @@ export function createLogger(options: LoggerOptions = {}): Logger {
       const label = entry.type.toUpperCase()
       const level = colors ? colorize(label, levelColors[entry.type]) : label
       const message = formatWithOptions({ colors: false }, ...entry.args)
+
       stream.write(`${prefix}${level} ${message}\n`)
     },
   }]
 
   const emit = (type: LogType, args: unknown[]): void => {
     const level = LogLevels[type]
+
     if (level > instance.level) {
       return
     }
 
     for (const reporter of reporters) {
-      reporter.log({ type, level, tag, args })
+      reporter.log({
+        type,
+        level,
+        tag,
+        args
+      })
     }
   }
 

@@ -16,10 +16,12 @@ export async function runProjectCommand(
 
   const configuration = configurationName(options)
   const workspaceRoot = await findWorkspaceRoot()
+
   logger.debug(`Workspace root: ${workspaceRoot}`)
   // Executors may resolve relative paths against the process working directory.
   process.chdir(workspaceRoot)
   const workspace = await parseWorkspace(workspaceRoot)
+
   await withCancellation(controller =>
     runExecutor(workspace, projectName, commandName, workspaceRoot, logger, configuration, controller.signal),
   )

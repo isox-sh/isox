@@ -38,6 +38,7 @@ test('detects runtime import syntax and excludes type-only imports, comments, an
     import(variable)
     require('computed-' + variable)
   `)
+
   assert.deepEqual([...found].sort(), [
     'default-import', 'named-import', 'namespace-import', 'side-effect', 'mixed-import',
     'default-with-types', 'empty-import', 'named-export', 'star-export', 'mixed-export',
@@ -60,6 +61,7 @@ test('detects module-local createRequire imports and aliases without counting an
     makeRequire(pluginPackagePath).resolve('foreign-inline-dependency')
     require.resolve('workspace-plugin', { paths: [workspaceRoot] })
   `)
+
   assert.deepEqual([...found].sort(), [
     'node:module', 'module', 'runtime', '@scope/dependency/package.json',
     '@typescript/native/package.json', 'namespace-runtime',
@@ -74,6 +76,7 @@ test('workspace discovery includes type-only imports and re-exports', () => {
     import type Types = require('type-equals')
     type Shape = import('type-expression').Shape
   `
+
   assert.deepEqual([...sourceDependencies('types.ts', source)], [])
   assert.deepEqual([...sourceDependencies('types.ts', source, { includeTypes: true })].sort(), [
     'inline-type', 'type-equals', 'type-export', 'type-expression', 'type-only',
@@ -93,6 +96,7 @@ test('recognizes quoted createRequire bindings and excludes shadowed functions',
     }
     { const require = () => {}; require('block-local') }
   `
+
   assert.deepEqual([...sourceDependencies('example.cjs', source)].sort(), ['global', 'node:module', 'real'])
 })
 
@@ -105,6 +109,7 @@ test('batch analysis isolates file bindings and returns runtime and type depende
     ['factory.cjs', "const { createRequire } = require('node:module'); const local = createRequire(__filename); local('local-runtime')"],
     ['unrelated.cjs', "local('not-visible'); require('global-runtime')"],
   ]))
+
   assert.deepEqual([...result.get('shadow.js').all], [])
   assert.deepEqual([...result.get('loader.js').runtime], ['runtime'])
   assert.deepEqual([...result.get('types.ts').runtime], ['runtime'])

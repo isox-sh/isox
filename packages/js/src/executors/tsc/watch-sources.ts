@@ -24,27 +24,50 @@ export function watchSources(roots: string[], options: ts.CompilerOptions, previ
   const directories = new Map<string, boolean>()
   // Resolve the graph only when its inputs change. No typechecking or compiler
   // process is needed, and standard library files cannot affect user imports.
-  const compilerOptions = { ...options, noLib: true }
+  const compilerOptions = {
+    ...options,
+    noLib: true
+  }
   const host = ts.createCompilerHost(compilerOptions)
+
   host.readFile = file => {
     const content = ts.sys.readFile(file)
+
     contents.set(file, content)
+
     return content
   }
+
   host.fileExists = file => {
     const exists = ts.sys.fileExists(file)
+
     files.set(file, exists)
+
     return exists
   }
+
   host.directoryExists = directory => {
     const exists = ts.sys.directoryExists(directory)
+
     directories.set(directory, exists)
+
     return exists
   }
+
   host.getSourceFile = (file, languageVersion) => {
     const source = host.readFile(file)
+
     return source === undefined ? undefined : ts.createSourceFile(file, source, languageVersion, true)
   }
+
   const program = ts.createProgram(roots, compilerOptions, host)
-  return { roots, options, contents, files, directories, sources: program.getSourceFiles().map(file => file.fileName) }
+
+  return {
+    roots,
+    options,
+    contents,
+    files,
+    directories,
+    sources: program.getSourceFiles().map(file => file.fileName)
+  }
 }

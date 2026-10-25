@@ -23,6 +23,7 @@ export function getAffectedProjects(workspace: WorkspaceGraph, files: string[], 
   })).sort((a, b) => {
     const aLength = a.root === '.' ? 0 : a.root.length
     const bLength = b.root === '.' ? 0 : b.root.length
+
     return bLength - aLength || compareNames(a.name, b.name)
   })
   const directlyAffected = new Set<string>()
@@ -32,14 +33,18 @@ export function getAffectedProjects(workspace: WorkspaceGraph, files: string[], 
     if (options.ignoreFiles?.some(pattern => posix.matchesGlob(file, pattern))) {
       continue
     }
+
     if (globalFiles.some(pattern => posix.matchesGlob(file, pattern))) {
       return Object.keys(workspace.projects).sort()
     }
+
     const owner = projects.find(project => project.root === '.' || file === project.root || file.startsWith(`${project.root}/`))
+
     if (owner) {
       directlyAffected.add(owner.name)
     }
   }
+
   return collectDependents(graph, directlyAffected)
 }
 
@@ -51,11 +56,14 @@ export function compareNames(a: string, b: string): number {
 export function selectProjects(workspace: WorkspaceGraph, projects: string[], target: string, tag?: string): string[] {
   validateName(target, 'target')
   const matches = createTagFilter(tag)
+
   return [...new Set(projects)].sort().filter(name => {
     if (!Object.hasOwn(workspace.projects, name)) {
       throw new Error(`Project ${name} not found in workspace.`)
     }
+
     const project = workspace.projects[name]
+
     return Object.hasOwn(project.targets ?? {}, target)
       && !project.tags?.includes('ci=off')
       && matches(project.tags ?? [])

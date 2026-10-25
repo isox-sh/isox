@@ -14,6 +14,7 @@ export function registerRunAction(cli: CAC): void {
       }
 
       const [projectName, targetName] = targetStr.split(':')
+
       await runProjectCommand(targetName, projectName, options)
     })
 }

@@ -10,9 +10,11 @@ import type { ExecutorContext } from '@isox-sh/core'
 
 export async function collectAssets(options: TscOptions, context: ExecutorContext, outDir: string, roots: string[]) {
   const assets = new Map<string, Buffer>()
+
   for (const pattern of options.assets ?? []) {
     const input = resolve(context.workspaceRoot, pattern.input)
     const actualInput = await canonical(input)
+
     if (!inside(context.workspaceRoot, actualInput) || input !== actualInput) {
       throw new Error(`Unsafe asset input: ${input}`)
     }
@@ -22,6 +24,7 @@ export async function collectAssets(options: TscOptions, context: ExecutorContex
     }
 
     const output = resolve(outDir, pattern.output ?? '.')
+
     if (!inside(outDir, output)) {
       throw new Error(`Unsafe asset output: ${output}`)
     }
@@ -45,6 +48,7 @@ export async function collectAssets(options: TscOptions, context: ExecutorContex
     })) {
       const source = resolve(input, file)
       const entry = await lstat(source)
+
       if (entry.isSymbolicLink() || !inside(actualInput, await canonical(source))) {
         throw new Error(`Symlink in asset input: ${source}`)
       }
@@ -54,10 +58,13 @@ export async function collectAssets(options: TscOptions, context: ExecutorContex
       }
 
       const target = resolve(output, file)
+
       await safeDestination(target, roots)
+
       if (assets.has(target)) {
         throw new Error(`Asset collision at ${target}`)
       }
+
       assets.set(target, await readFile(source))
     }
   }

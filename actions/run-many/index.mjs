@@ -9,25 +9,32 @@ export function workerArgs(plan) {
     || new Set(plan.projects).size !== plan.projects.length) {
     throw new Error('plan must be a matrix row containing a target and an exact array of unique project names.')
   }
+
   const args = ['run-many', `--target=${plan.target}`, '--projects-json', JSON.stringify(plan.projects)]
+
   if (plan.config !== undefined && typeof plan.config !== 'string') {
     throw new Error('Plan config must be a string.')
   }
+
   if (plan.config) {
     args.push(`--config=${plan.config}`)
   }
+
   if (plan.parallel !== undefined) {
     if (!Number.isSafeInteger(plan.parallel) || plan.parallel < 1 || plan.parallel > 256) {
       throw new Error('Plan parallel must be an integer between 1 and 256.')
     }
+
     args.push(`--parallel=${plan.parallel}`)
   }
+
   // Keep exact stage names. The installed CLI validates them through core's planner contract.
   for (const [field, flag] of [['preTargets', '--pre-targets-json'], ['postTargets', '--post-targets-json']]) {
     if (plan[field] !== undefined) {
       args.push(flag, JSON.stringify(plan[field]))
     }
   }
+
   return args
 }
 
@@ -36,9 +43,11 @@ export async function main() {
   const plan = readJson(input('plan'), 'plan')
   const args = workerArgs(plan)
   const head = input('head')
+
   if (head && resolveRevision(context, head) !== resolveRevision(context, 'HEAD')) {
     throw new Error('This checkout does not match the plan head. Check out the same commit in the plan and worker jobs.')
   }
+
   try {
     await runCli(context, args)
     summary(`## Isox worker\n\nCompleted ${plan.projects.length} project commands.\n`)

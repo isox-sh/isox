@@ -6,14 +6,19 @@ import { Ajv } from 'ajv'
 
 import { workspaceSchemaPath } from './schema'
 
+interface AffectedSettings {
+  globalFiles?: string[]
+  ignoreFiles?: string[]
+}
+
+interface NxSettings {
+  executors?: string[]
+}
+
 export interface WorkspaceSettings {
-  affected?: {
-    globalFiles?: string[]
-    ignoreFiles?: string[]
-  }
-  nx?: {
-    executors?: string[]
-  }
+
+  affected?: AffectedSettings
+  nx?: NxSettings
 }
 
 const ajv = new Ajv({ allErrors: true })
@@ -23,6 +28,7 @@ const isWorkspaceSettings = ajv.compile<WorkspaceSettings>(schema)
 export async function readWorkspaceSettings(root: string): Promise<WorkspaceSettings> {
   const file = join(root, 'isox.json')
   let source: string
+
   try {
     source = await readFile(file, 'utf8')
   } catch (error) {
@@ -30,12 +36,15 @@ export async function readWorkspaceSettings(root: string): Promise<WorkspaceSett
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return {}
     }
+
     throw error
   }
 
   let settings: unknown
+
   try {
     settings = JSON.parse(source)
+
   } catch (error) {
     throw new Error(`Invalid workspace configuration in ${file}: invalid JSON.`, { cause: error })
   }

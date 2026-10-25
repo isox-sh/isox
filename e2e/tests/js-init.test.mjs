@@ -12,8 +12,10 @@ for (const pathStyle of ['relative', 'absolute']) {
       startDirectory: import.meta.dirname,
       plugins: { '@isox-sh/js': 'dist/js' },
     })
+
     t.onTestFinished(cleanup)
     const workspaceContext = { projectRoot: root }
+
     assert.ok(!(await readdir(root)).includes('isox.json'))
 
     await runIsox(['init'])
@@ -23,14 +25,17 @@ for (const pathStyle of ['relative', 'absolute']) {
     const projectContext = { projectRoot }
     const outputRoot = join(root, 'dist/packages/test')
     const projectPath = pathStyle === 'absolute' ? projectRoot : 'packages/test'
+
     await runIsox(['init', '@isox-sh/js', projectPath, '--importPath=@org/test'])
     const project = await readJson('project.json', projectContext)
+
     assert.equal(project.name, 'test')
     assert.equal(project.targets.build.executor, '@isox-sh/js:tsc')
     assert.deepEqual((await readJson('tsconfig.base.json', workspaceContext)).compilerOptions.paths, {
       '@org/test': ['./packages/test/src/index.ts'],
     })
     const tsconfig = await readJson('tsconfig.build.json', projectContext)
+
     assert.equal(tsconfig.extends, '../../tsconfig.base.json')
     assert.equal(tsconfig.compilerOptions.outDir, '../../dist/packages/test')
 
@@ -39,6 +44,7 @@ for (const pathStyle of ['relative', 'absolute']) {
     assert.deepEqual((await readdir(outputRoot)).sort(), ['index.d.ts', 'index.js'])
     assert.ok(!(await readdir(projectRoot)).includes('dist'))
     const empty = await runNode(['--eval', 'process.stdout.write(require("@isox-sh/core").json(require("./dist/packages/test/index.js")))'])
+
     assert.equal(empty.stdout, json({}))
 
     // Compile real TypeScript and execute the emitted JavaScript in a fresh process.
@@ -46,10 +52,12 @@ for (const pathStyle of ['relative', 'absolute']) {
   return 'Hello, ' + name
 }
 `
+
     await writeFile(join(projectRoot, 'src/index.ts'), source)
     await runIsox(['build', 'test'], join(projectRoot, 'src'))
     assert.match(await readFile(join(outputRoot, 'index.d.ts'), 'utf8'), /greet\(name: string\): string/)
     const executeOutput = () => runNode(['--eval', 'console.log(require("./dist/packages/test/index.js").greet("Isox"))'])
+
     assert.equal((await executeOutput()).stdout.trim(), 'Hello, Isox')
 
     // A successful rebuild must replace the previous output, not merely reuse it.

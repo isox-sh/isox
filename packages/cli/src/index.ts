@@ -12,6 +12,7 @@ import { registerRunManyAction } from './actions/run-many'
 import { preserveOptionValues } from './shared/parse-options'
 
 const cli = cac('isox')
+
 cli.option('--verbose', 'Show debug logs and error stack traces')
 
 registerCommandAction(cli)
@@ -30,8 +31,10 @@ async function main(): Promise<void> {
   // CAC keeps tokens after -- separately; our commands use them as literal positional names.
   cli.args = [...cli.args, ...cli.options['--']]
   logger.level = cli.options.verbose ? LogLevels.debug : LogLevels.info
+
   if (process.argv.length === 2) {
     cli.outputHelp()
+
     return
   }
 

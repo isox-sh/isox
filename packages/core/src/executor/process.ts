@@ -26,6 +26,7 @@ export async function runProcess(file: string, args: string[], options: RunProce
       detached: process.platform !== 'win32',
     })
     const cleanup = handleProcessCancellation(child, options.signal, reject, options.gracePeriodMs)
+
     child.once('error', error => {
       cleanup()
       reject(error)

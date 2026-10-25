@@ -14,8 +14,10 @@ test.skipIf(process.platform === 'win32')('cancelling the compiler also kills ch
   const { root, write } = await fixture(t)
   // Load the real wrapper beside a fake native compiler that leaves a stubborn child.
   const wrapper = join(root, 'compiler.cjs')
+
   await copyFile(join(import.meta.dirname, '../../../dist/js/executors/tsc/compiler.js'), wrapper)
   const core = join(root, 'node_modules/@isox-sh/core')
+
   await mkdir(dirname(core), { recursive: true })
   await symlink(dirname(require.resolve('@isox-sh/core/package.json')), core, 'dir')
   await write(join(root, 'node_modules/@typescript/native/package.json'), { bin: { tsc: './launch.cjs' } })
@@ -31,8 +33,10 @@ test.skipIf(process.platform === 'win32')('cancelling the compiler also kills ch
   const { invokeCompiler } = require(wrapper)
   const controller = new AbortController()
   let pid
+
   t.onTestFinished(() => {
     controller.abort()
+
     if (pid) {
       try {
         process.kill(pid, 'SIGKILL')
@@ -45,6 +49,7 @@ test.skipIf(process.platform === 'win32')('cancelling the compiler also kills ch
   })
   const running = invokeCompiler([], root, controller.signal)
   const deadline = Date.now() + 5_000
+
   while (!pid && Date.now() < deadline) {
     try {
       pid = Number(await readFile(join(root, 'ready'), 'utf8'))
@@ -53,14 +58,17 @@ test.skipIf(process.platform === 'win32')('cancelling the compiler also kills ch
         throw error
       }
     }
+
     if (!pid) {
       await delay(20)
     }
   }
+
   assert.ok(pid, 'native compiler did not start')
   controller.abort()
   assert.equal((await running).success, false)
   const stoppedBy = Date.now() + 5_000
+
   while (Date.now() < stoppedBy) {
     try {
       process.kill(pid, 0)
@@ -68,9 +76,12 @@ test.skipIf(process.platform === 'win32')('cancelling the compiler also kills ch
       if (error.code === 'ESRCH') {
         return
       }
+
       throw error
     }
+
     await delay(20)
   }
+
   assert.fail('compiler descendant survived cancellation')
 })

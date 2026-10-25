@@ -11,6 +11,11 @@ import { inferProjectDependencies } from './dependencies'
 import type { Logger } from '../logger'
 import type { ProjectDefinition } from './configuration'
 
+interface ParseWorkspaceOptions {
+  cache?: boolean
+  logger?: Logger
+}
+
 export type { ExecutorConfiguration, ProjectDefinition } from './configuration'
 
 export interface ProjectConfiguration extends ProjectDefinition {
@@ -22,10 +27,11 @@ export interface WorkspaceGraph {
   projects: Record<string, ProjectConfiguration>
 }
 
-export async function parseWorkspace(cwd: string, options: { cache?: boolean, logger?: Logger } = {}): Promise<WorkspaceGraph> {
+export async function parseWorkspace(cwd: string, options: ParseWorkspaceOptions = {}): Promise<WorkspaceGraph> {
   cwd = resolve(cwd)
   const taskLogger = options.logger ?? logger
   const cached = options.cache === false ? undefined : await readWorkspaceCache(cwd, taskLogger)
+
   if (cached) {
     return cached
   }
@@ -40,6 +46,7 @@ export async function parseWorkspace(cwd: string, options: { cache?: boolean, lo
   for (const file of files.sort()) {
     const source = await readFile(join(cwd, file), 'utf8')
     let parsed: unknown
+
     try {
       parsed = JSON.parse(source)
     } catch (error) {
@@ -50,6 +57,7 @@ export async function parseWorkspace(cwd: string, options: { cache?: boolean, lo
 
     const root = dirname(file)
     const name = content.name ?? basename(resolve(cwd, root))
+
     if (typeof name !== 'string' || !/^[^\s:]+$/.test(name)) {
       throw new Error(`Invalid project name in ${file}.`)
     }
@@ -57,11 +65,18 @@ export async function parseWorkspace(cwd: string, options: { cache?: boolean, lo
     if (Object.hasOwn(projects, name)) {
       throw new Error(`Duplicate project name ${name} in ${file}.`)
     }
-    projects[name] = { ...content, name, root }
+
+    projects[name] = {
+      ...content,
+      name,
+      root
+    }
   }
 
   const workspace = { projects }
+
   await inferProjectDependencies(cwd, workspace)
   await writeWorkspaceCache(cwd, workspace, taskLogger)
+
   return workspace
 }

@@ -7,7 +7,7 @@ import { runProcess } from '@isox-sh/core'
 import type { ExecutorContext, ExecutorResult } from '@isox-sh/core'
 
 export interface EslintOptions {
-  /** Files, directories, or globs relative to the workspace root. Defaults to the project root. */
+/** Files, directories, or globs relative to the workspace root. Defaults to the project root. */
   lintFilePatterns?: string[]
   /** Configuration path relative to the workspace root, or absolute. */
   configFile?: string
@@ -47,6 +47,7 @@ export default async function lint(options: EslintOptions, context: ExecutorCont
   const pkg = JSON.parse(readFileSync(packagePath, 'utf8'))
   const executable = resolve(dirname(packagePath), pkg.bin.eslint)
   const args = [executable, `--max-warnings=${options.maxWarnings ?? 0}`]
+
   if (options.configFile !== undefined) {
     args.push('--config', resolve(context.workspaceRoot, options.configFile))
   }
@@ -54,8 +55,13 @@ export default async function lint(options: EslintOptions, context: ExecutorCont
   if (options.fix) {
     args.push('--fix')
   }
+
   args.push('--', ...(options.lintFilePatterns ?? [context.projectRoot]))
 
   context.logger.debug(`Running ESLint for ${context.projectRoot}`)
-  return runProcess(process.execPath, args, { cwd: context.workspaceRoot, signal: context.signal })
+
+  return runProcess(process.execPath, args, {
+    cwd: context.workspaceRoot,
+    signal: context.signal
+  })
 }

@@ -6,7 +6,7 @@ import { runProcess } from '@isox-sh/core'
 import type { ExecutorContext, ExecutorResult } from '@isox-sh/core'
 
 export interface VitestOptions {
-  /** Optional Vitest config path, relative to the workspace root. */
+/** Optional Vitest config path, relative to the workspace root. */
   configFile?: string
 }
 
@@ -18,10 +18,15 @@ export default async function runVitest(options: VitestOptions, context: Executo
   const packagePath = createRequire(__filename).resolve('vitest/package.json')
   const executable = resolve(dirname(packagePath), 'vitest.mjs')
   const args = [executable, 'run', '--root', context.projectRoot]
+
   if (options.configFile !== undefined) {
     args.push('--config', resolve(context.workspaceRoot, options.configFile))
   }
 
   context.logger.debug(`Running Vitest in ${context.projectRoot}`)
-  return runProcess(process.execPath, args, { cwd: context.projectRoot, signal: context.signal })
+
+  return runProcess(process.execPath, args, {
+    cwd: context.projectRoot,
+    signal: context.signal
+  })
 }
