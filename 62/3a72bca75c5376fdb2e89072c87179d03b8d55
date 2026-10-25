@@ -1,0 +1,23 @@
+website/docs/vitest.md
+  s_5d3ad8740834ec::t_f4e099168eda88 53-54
+website/docs/contributing.mdx
+  s_5d3ad8740834ec::t_f4e099168eda88 32-33,38-42
+  s_5d3ad8740834ec::t_ffa9c079288f36 30-31
+  s_5d3ad8740834ec::t_93c6b68610a484 146-147,174-196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "623a72bca75c5376fdb2e89072c87179d03b8d55",
+  "prompts": {},
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
