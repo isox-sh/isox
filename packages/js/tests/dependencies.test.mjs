@@ -1,13 +1,10 @@
 import assert from 'node:assert/strict'
-import { createRequire } from 'node:module'
 import { join } from 'node:path'
 
 import { generatePackageJson } from '@isox-sh/js/helpers'
 import { test } from 'vitest'
 
 import { fixture, tsc } from './fixture.mjs'
-
-const require = createRequire(import.meta.url)
 
 test('infers versions from source and root manifests while preserving optional and peer dependencies', async t => {
   const { root, projectRoot, write, read, config, context } = await fixture(t)
@@ -123,15 +120,6 @@ test('infers workspace package versions, including projects without their own ma
   assert.deepEqual(JSON.parse(files.get(join(output, 'package.json'))).dependencies, { '@fixture/other': '3.0.0' })
 })
 
-test('the JS package infers the native compiler alias from the workspace root', () => {
-  const source = require('../package.json')
-  const root = require('../../../package.json')
-  const generated = require('../../../dist/js/package.json')
-
-  assert.equal(source.dependencies['@typescript/native'], undefined)
-  assert.equal(generated.dependencies['@typescript/native'], root.devDependencies['@typescript/native'])
-})
-
 test('infers a workspace dependency used only by exported types without a source dependency declaration', async t => {
   const { root, projectRoot, write, context } = await fixture(t)
 
@@ -149,18 +137,4 @@ test('infers a workspace dependency used only by exported types without a source
   const files = await generatePackageJson({}, context, output, new Set([join(output, 'index.js')]), new Map())
 
   assert.deepEqual(JSON.parse(files.get(join(output, 'package.json'))).dependencies, { '@fixture/types': '2.0.0' })
-})
-
-test('published packages retain internal dependencies removed from source manifests', () => {
-  const core = require('../../../dist/core/package.json')
-
-  for (const name of ['cli', 'js', 'eslint', 'vitest', 'nx', 'e2e']) {
-    const source = require(`../../${name}/package.json`)
-    const generated = require(`../../../dist/${name}/package.json`)
-
-    assert.equal(source.dependencies?.['@isox-sh/core'], undefined)
-    assert.equal(generated.dependencies['@isox-sh/core'], core.version, name)
-  }
-
-  assert.equal(core.dependencies['@isox-sh/nx'], undefined, 'The optional Nx adapter must remain a workspace-selected plugin')
 })

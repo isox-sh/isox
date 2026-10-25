@@ -35,7 +35,9 @@ pnpm isox test e2e # Runs only the end-to-end suite
 
 ## Tests
 
-Tests live in their owning package's `tests/` directory. After bootstrapping,
+Package tests live in their owning package's `tests/` directory. Repository-wide
+action, bootstrap, and packaging tests live in the root `tests/` directory and run
+with `pnpm isox test workspace`. After bootstrapping,
 `pnpm isox run-many --target=test` runs every project's test target, including the
 package suites, end-to-end suite, and website validation. Use
 `pnpm isox test <project>` to run one suite, such as `pnpm isox test cli`.

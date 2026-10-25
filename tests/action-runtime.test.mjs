@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events'
 
 import { afterEach, test, vi } from 'vitest'
 
-import { runCli } from '../../../actions/shared/runtime.mjs'
+import { runCli } from '../actions/shared/runtime.mjs'
 
 vi.mock('node:child_process', () => ({
   execFileSync: vi.fn(),

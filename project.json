@@ -24,6 +24,9 @@
         "notes": "{notes}",
         "prerelease": true
       }
+    },
+    "test": {
+      "executor": "vitest:test"
     }
   },
   "tags": []

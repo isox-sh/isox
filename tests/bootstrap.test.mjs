@@ -5,10 +5,10 @@ import { join } from 'node:path'
 
 import { test } from 'vitest'
 
-import { fixture, tsc } from './fixture.mjs'
+import { fixture, tsc } from '../packages/js/tests/fixture.mjs'
 
 const require = createRequire(import.meta.url)
-const { linkDependency, recordSeedOwnership } = require('../../../scripts/bootstrap-files.cjs')
+const { linkDependency, recordSeedOwnership } = require('../scripts/bootstrap-files.cjs')
 
 test('bootstrap refreshes outdated and broken dependency links without replacing directories', async t => {
   const { root } = await fixture(t)

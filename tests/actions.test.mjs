@@ -6,10 +6,10 @@ import { pathToFileURL } from 'node:url'
 
 import { test } from 'vitest'
 
-import { planTargets } from '../../../actions/plan/index.mjs'
-import { workerArgs } from '../../../actions/run-many/index.mjs'
-import { latestBranchTag, resolvePlanRange } from '../../../actions/shared/git.mjs'
-import { affectedFixture, cliPath } from './helpers/affected-fixture.mjs'
+import { planTargets } from '../actions/plan/index.mjs'
+import { workerArgs } from '../actions/run-many/index.mjs'
+import { latestBranchTag, resolvePlanRange } from '../actions/shared/git.mjs'
+import { affectedFixture, cliPath } from '../packages/cli/tests/helpers/affected-fixture.mjs'
 
 test('non-PR actions select the nearest reachable tag and ignore newer tags on other branches', async t => {
   const { root, git, write, commit, base } = await affectedFixture(t)
@@ -168,7 +168,7 @@ test('plan and run-many actions round trip exact weighted shards through GitHub 
     INPUT_BASE: base,
     INPUT_HEAD: head,
   }
-  const action = (name, extra = {}) => spawnSync(process.execPath, [resolve(import.meta.dirname, `../../../actions/${name}/index.mjs`)], {
+  const action = (name, extra = {}) => spawnSync(process.execPath, [resolve(import.meta.dirname, `../actions/${name}/index.mjs`)], {
     cwd: root,
     env: {
       ...env,
@@ -266,7 +266,7 @@ test('planner and worker preserve exact stage names and reject invalid stages th
     INPUT_AFFECTEDONLY: 'false',
     INPUT_HEAD: '',
   }
-  const action = (name, extra = {}) => spawnSync(process.execPath, [resolve(import.meta.dirname, `../../../actions/${name}/index.mjs`)], {
+  const action = (name, extra = {}) => spawnSync(process.execPath, [resolve(import.meta.dirname, `../actions/${name}/index.mjs`)], {
     cwd: root,
     env: {
       ...env,
