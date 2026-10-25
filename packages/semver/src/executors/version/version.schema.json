@@ -21,7 +21,7 @@
     "push": {
       "type": "boolean",
       "default": false,
-      "description": "Atomically push the current branch and release tag before post targets."
+      "description": "Push the release tag before post targets. Also push the current branch atomically unless skipCommit is true."
     },
     "remote": {
       "type": "string",
@@ -62,7 +62,7 @@
     "skipCommit": {
       "type": "boolean",
       "default": false,
-      "description": "Stage release files without creating a commit. The release tag points to the existing HEAD; pushing and post targets still run."
+      "description": "Stage release files without creating a commit and tag existing HEAD. Push only the tag when push is enabled; later releases allow manifest versions below the latest tag. Post targets still run."
     },
     "syncVersions": {
       "type": "boolean",

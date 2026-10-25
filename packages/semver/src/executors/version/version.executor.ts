@@ -39,8 +39,8 @@ async function release(options: VersionOptions, context: ExecutorContext): Promi
     throw new Error('Release requires a clean working tree and index. Commit or stash changes first.')
   }
 
-  // Detached checkouts can create local tags; pushing must identify a real branch.
-  const branch = options.push ? await git(['symbolic-ref', '--quiet', 'HEAD']) : undefined
+  // Only releases that create a commit need to push a branch.
+  const branch = options.push && !options.skipCommit ? await git(['symbolic-ref', '--quiet', 'HEAD']) : undefined
   const remote = options.remote ?? 'origin'
 
   if (options.push) {
@@ -85,9 +85,11 @@ async function release(options: VersionOptions, context: ExecutorContext): Promi
   await git(['tag', '-a', '-m', `Release ${values.tag}`, '--', values.tag, commit])
 
   try {
-    if (options.push && branch) {
-      // Push only this branch and release tag, together; never push unrelated local tags.
-      await git(['push', '--atomic', '--', remote, `${commit}:${branch}`, `refs/tags/${values.tag}:refs/tags/${values.tag}`])
+    if (options.push) {
+      // Skipped commits publish only the tag; other releases push branch and tag atomically.
+      const refs = [...(branch ? [`${commit}:${branch}`] : []), `refs/tags/${values.tag}:refs/tags/${values.tag}`]
+
+      await git(['push', '--atomic', '--', remote, ...refs])
     }
 
     await runPostTargets(targets, context)

@@ -319,7 +319,7 @@ if you prefer to stage generated files without committing them.
 | `releaseAs` | Derived from commits | `major`, `minor`, `patch`, or an exact semantic version |
 | `preid` | Unset | Prerelease identifier such as `alpha`; exact `releaseAs` versions take precedence |
 | `tagPrefix` | `{projectName}@`, or `v` with `syncVersions` | Tag prefix; supports `{projectName}`; use `v` for a single-package repository |
-| `push` | `false` | Atomically push the current branch and new tag before post targets |
+| `push` | `false` | Push the new tag before post targets; also push the branch atomically unless `skipCommit` is enabled |
 | `remote` | `origin` | Configured Git remote used by `push` |
 | `postTargets` | `[]` | Ordered target references or objects with `target` and `options` |
 
@@ -330,10 +330,10 @@ updates package manifests and enabled changelogs, commits them unless
 create an empty release commit if the version is unchanged and changelogs are
 disabled. Git hooks remain enabled. Configure Git author identity in CI.
 
-Pushing requires a branch checkout. Isox pushes only that branch and its new tag
-atomically, without force pushing or pushing other local tags. The remote must
-support atomic pushes. Detached checkouts can create local releases with
-`push: false`.
+When creating a release commit, pushing requires a branch checkout and pushes
+that branch and its new tag atomically. With `skipCommit: true`, Isox pushes only
+the new tag, including from detached checkouts. It never force pushes or pushes
+other local tags. The remote must support atomic pushes.
 
 Versioning does not cascade dependency bumps, update dependency ranges or
 lockfiles, or publish packages automatically.
@@ -378,9 +378,10 @@ participating manifest must have a valid name and semantic version.
 The bump uses commits anywhere inside the workspace, including shared files
 outside individual projects. The highest current package version is the baseline
 for the first synchronized release. Subsequent releases require all participating
-versions to match the latest reachable shared tag. All participants receive the
-new version, including packages without their own changes. There is one commit
-and one tag for the entire release; the default tag prefix is `v`.
+versions to match the latest reachable shared tag, unless `skipCommit` is enabled:
+in that mode, manifest versions may lag behind the tag. All participants receive
+the new version, including packages without their own changes. There is one tag
+and, unless skipped, one commit for the entire release; the default tag prefix is `v`.
 
 A root `CHANGELOG.md` contains the combined notes. By default each participating
 project also receives a changelog with its own commits; unchanged projects get a
@@ -398,6 +399,7 @@ of other participants are not scheduled automatically.
 
 `skipCommit: true` updates and stages the planned release files, then tags the
 existing `HEAD`. It does not skip tagging, an optional push, or post targets.
+When `push` is enabled, only the new tag is pushed; branch refs stay unchanged.
 `commitMessageFormat` has no effect in this mode. The clean-working-tree
 requirement still applies before the release starts.
 
@@ -406,8 +408,9 @@ therefore references the original source commit, **without** those generated
 updates. Post targets run locally after generation, so build/publish targets see
 the new manifest versions. Commit the staged files yourself if you want to keep
 them in history; a fresh checkout of the tag will still contain the original
-manifest versions. Normal version matching will reject that checkout if its
-manifest version differs from the release tag.
+manifest versions. Keep `skipCommit` enabled for subsequent releases: the latest
+reachable release tag supplies the version baseline, and older manifest versions
+are accepted. Manifest versions ahead of that tag still fail validation.
 
 `commitMessageFormat` otherwise supports `{projectName}` and `{version}` anywhere
 in the message, including multiline bodies. The message is passed directly to

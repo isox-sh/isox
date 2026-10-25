@@ -183,6 +183,12 @@ test('skipCommit stages files, tags existing HEAD, and can push that tag without
   await mkdir(remote, { recursive: true })
   f.git('init', '--bare', remote)
   f.git('remote', 'add', 'origin', remote)
+  const remoteHead = f.git('rev-parse', 'HEAD')
+
+  f.git('push', 'origin', 'HEAD:refs/heads/main')
+  f.git('tag', 'unrelated')
+  await f.write('packages/demo/index.js', 'new feature')
+  f.commit('feat: Add feature')
   const head = f.git('rev-parse', 'HEAD')
 
   await version({
@@ -197,6 +203,74 @@ test('skipCommit stages files, tags existing HEAD, and can push that tag without
   assert.deepEqual(f.git('diff', '--cached', '--name-only').split('\n'), ['packages/demo/CHANGELOG.md', 'packages/demo/package.json'])
   assert.equal(f.git('diff', '--name-only'), '')
   assert.equal(JSON.parse(f.git('--git-dir', remote, 'show', 'demo@1.1.0:packages/demo/package.json')).version, '1.0.0')
+  assert.equal(f.git('--git-dir', remote, 'rev-parse', 'refs/heads/main'), remoteHead)
+  assert.equal(f.git('--git-dir', remote, 'tag', '--list'), 'demo@1.1.0')
+})
+
+test('skipCommit can push only its release tag from a detached checkout', async t => {
+  const f = await fixture(t)
+  const remote = join(f.root, '.isox/remote.git')
+
+  await mkdir(remote, { recursive: true })
+  f.git('init', '--bare', remote)
+  f.git('remote', 'add', 'origin', remote)
+  f.git('checkout', '--detach')
+  const head = f.git('rev-parse', 'HEAD')
+
+  await version({
+    skipCommit: true,
+    releaseAs: 'patch',
+    push: true
+  }, f.context)
+  assert.equal(f.git('--git-dir', remote, 'rev-parse', 'demo@1.0.1^{}'), head)
+  assert.equal(f.git('--git-dir', remote, 'for-each-ref', '--format=%(refname)', 'refs/heads'), '')
+  assert.equal(f.git('rev-parse', 'HEAD'), head)
+})
+
+test('synchronized tag-only releases continue across fresh checkouts and alpha/beta channels', async t => {
+  const f = await syncedFixture(t)
+
+  for (const [preid, expected] of [
+    ['alpha', '1.0.1-alpha.0'],
+    ['alpha', '1.0.1-alpha.1'],
+    ['beta', '1.0.1-beta.0'],
+  ]) {
+    await f.write('packages/demo/index.js', expected)
+    const head = f.commit(`fix: Prepare ${expected}`)
+
+    await version({
+      syncVersions: true,
+      skipCommit: true,
+      preid
+    }, f.context)
+    assert.equal((await f.packageJson()).version, expected)
+    assert.equal(f.git('rev-parse', `v${expected}^{}`), head)
+    assert.equal(f.git('rev-parse', 'HEAD'), head)
+
+    // Discard generated files in this temporary fixture, as a fresh CI checkout would.
+    f.git('reset', '--hard', 'HEAD')
+    assert.equal((await f.packageJson()).version, '1.0.0')
+    f.clean()
+
+    const repeated = await planRelease({
+      syncVersions: true,
+      skipCommit: true,
+      preid
+    }, f.context)
+
+    assert.equal(repeated.values, undefined)
+  }
+
+  await f.write('packages/demo/package.json', {
+    name: '@test/demo',
+    version: '2.0.0'
+  })
+  f.commit('fix: Set a manifest ahead of the release history')
+  await assert.rejects(planRelease({
+    syncVersions: true,
+    skipCommit: true,
+    preid: 'beta'
+  }, f.context), /differs from latest/)
 })
 
 test('all four options compose in dry runs without creating files, commits, or tags', async t => {

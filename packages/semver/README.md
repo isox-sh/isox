@@ -94,8 +94,10 @@ These values reflect the final version, so stable promotion selects `latest`.
 
 Additional options:
 
-- `skipCommit`: stage generated files and tag the existing `HEAD`; pushing and
-  post targets still run. The generated changes remain uncommitted locally.
+- `skipCommit`: stage generated files and tag the existing `HEAD`; pushing sends
+  only that tag and post targets still run. Generated changes remain uncommitted
+  locally. Later releases use the latest reachable tag as their version baseline
+  and accept older manifest versions.
 - `skipProjectChangelog`: leave project changelogs untouched; synchronized
   releases still update the root changelog. Post targets still receive notes.
 - `commitMessageFormat`: customize the message using `{projectName}` and

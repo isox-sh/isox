@@ -53,7 +53,8 @@ export async function planRelease(options: VersionOptions, context: ExecutorCont
   const currentVersion = previousTag?.slice(prefix.length) ?? projects.map(project => project.manifest.version).sort(rcompare)[0]
 
   for (const project of projects) {
-    if (previousTag && currentVersion !== project.manifest.version) {
+    // Tag-only releases leave source manifests behind; never accept a manifest ahead of the tag.
+    if (previousTag && currentVersion !== project.manifest.version && (!options.skipCommit || gt(project.manifest.version, currentVersion))) {
       throw new Error(`Package version ${project.manifest.version} in ${project.path} differs from latest reachable release ${previousTag}. Restore the released version before releasing.`)
     }
   }
