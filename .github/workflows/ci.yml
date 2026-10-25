@@ -45,3 +45,9 @@ jobs:
 
       - name: Test Nx plugin through Isox
         run: pnpm isox test nx
+
+      - name: Test workspace initialization and build end to end
+        run: pnpm isox test e2e
+
+      - name: Test E2E plugin through Isox
+        run: pnpm isox test e2e-plugin

@@ -172,6 +172,9 @@ importers:
       '@isox-sh/core':
         specifier: workspace:*
         version: link:dist/core
+      '@isox-sh/e2e':
+        specifier: workspace:*
+        version: link:dist/e2e
       '@isox-sh/eslint':
         specifier: workspace:*
         version: link:dist/eslint
@@ -231,6 +234,16 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
     publishDirectory: ../../dist/core
+
+  packages/e2e:
+    dependencies:
+      '@isox-sh/core':
+        specifier: workspace:*
+        version: link:../../dist/core
+      isox:
+        specifier: workspace:*
+        version: link:../../dist/cli
+    publishDirectory: ../../dist/e2e
 
   packages/eslint:
     dependencies:

@@ -1,0 +1,33 @@
+{
+  "name": "@isox-sh/e2e",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Reusable end-to-end test workspaces for Isox plugins.",
+  "main": "../../dist/e2e/index.js",
+  "types": "../../dist/e2e/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@isox-sh/core": "workspace:*",
+    "isox": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git",
+    "directory": "packages/e2e"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/e2e",
+    "linkDirectory": true
+  },
+  "engines": {
+    "node": "^24.0.0 || >=26.0.0"
+  }
+}

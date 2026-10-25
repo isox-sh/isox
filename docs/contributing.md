@@ -1,0 +1,156 @@
+# Contributing
+
+[Documentation index](README.md)
+
+We are actively building out the core engine. Start with the
+[active roadmap](../ROADMAP.md), then use [Issues](https://github.com/isox-sh/isox/issues)
+for individual work items or submit a PR.
+
+## Development setup
+
+Use Node.js 24 or 26+ for repository development. Vitest 5 excludes Node.js 25;
+the CLI, core, and JS executor support Node.js 24+.
+The repository uses pnpm workspaces, with packages under `packages/`. Install
+[pnpm](https://pnpm.io/installation) using the version pinned in `package.json`,
+then run `pnpm install` from the repository root. Commit changes to
+`pnpm-lock.yaml` alongside dependency updates; use `pnpm install --frozen-lockfile`
+in CI.
+
+Builds use TypeScript 7 (`tsc`), installed as `@typescript/native`. The
+`typescript` dependency aliases Microsoft's TypeScript 6 compatibility package
+for ESLint's compiler API requirements. This follows the
+[TypeScript 7 migration guidance](https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/#running-side-by-side-with-typescript-6-0).
+
+```bash
+pnpm install
+pnpm bootstrap # Builds core, the executors, and CLI from a clean checkout
+pnpm lint # Checks JavaScript and TypeScript, including import sorting and no semicolons
+pnpm lint:fix # Automatically fixes supported lint issues
+pnpm test  # Builds and runs the package and end-to-end tests
+pnpm test:e2e # Builds and runs only the end-to-end tests
+```
+
+## Tests
+
+Tests live in their owning package's `tests/` directory. `pnpm test` builds the
+workspace and runs the package suites plus the end-to-end suite; after building, use
+`pnpm isox test core`, `pnpm isox test js`, `pnpm isox test cli`,
+`pnpm isox test vitest`, `pnpm isox test nx`, or `pnpm isox test e2e-plugin` for one package suite.
+
+The Vitest end-to-end suite lives in `e2e/` and runs with `pnpm isox test e2e`
+after bootstrap. It uses the public [`@isox-sh/e2e`](../packages/e2e/README.md)
+helper. Each test creates a workspace under `<root>/tmp/isox-e2e-*`, links the locally built
+CLI/core/JS packages, and runs the CLI as a child process. It creates `isox.json`
+using `isox init`, initializes a JS project with `--importPath`, builds it, checks
+JavaScript and declaration outputs, executes the compiled code, and verifies a
+rebuild after editing source. Relative and absolute project paths are covered.
+The root `tmp/` directory is excluded from Git, lint, and Isox project discovery.
+Fixtures are removed after each test, including failures. These tests require no
+registry access and exercise local builds; they do not test published tarballs.
+
+## Continuous integration
+
+Pull requests run the `CI` workflow using `.github/actions/setup-isox` to set up
+Node.js and pnpm, install dependencies, and build core, the CLI, and the
+plugins. Call this action once after checkout in each job that needs Isox; subsequent steps in that job can
+use `pnpm isox`. It defaults to Node.js 24, configurable through `node-version`.
+The CI workflow then runs lint, the package test suites, and the end-to-end
+suite through Isox.
+
+```yaml
+steps:
+  - uses: actions/checkout@v7
+  - uses: ./.github/actions/setup-isox
+  - run: pnpm isox lint core
+```
+
+## Building and running packages
+
+Packages have Isox `project.json` files with `build`, `lint`, and `test` commands.
+Run `pnpm bootstrap` once to bootstrap the local CLI, then use Isox itself:
+
+```bash
+pnpm isox build core
+pnpm isox build js
+pnpm isox build cli
+pnpm isox build vitest
+pnpm isox lint core
+pnpm isox lint cli
+pnpm isox test core
+pnpm isox test cli
+pnpm isox test js
+pnpm isox test vitest
+pnpm isox test nx
+```
+
+The syntax is `isox <command> <target>`, where target is the project's name.
+Any command defined in that project's `executors` object can be used.
+`isox run cli:build` also works. `init`, `run`, and `reset` are reserved CLI commands;
+use `isox run <project>:<command>` for project commands with those names.
+
+Package builds use [`@isox-sh/js:tsc`](typescript.md), written as `js:tsc`
+in our project files. Compiler settings stay in each package's `tsconfig.json`;
+there are no `scripts.build` entries. Lint commands use
+[`eslint:lint`](eslint.md); test commands use
+[`vitest:test`](vitest.md).
+Isox records `dependencies` but does not schedule them yet: build core before JS
+and the other packages when rebuilding manually. `pnpm bootstrap` seeds core and the JS executor
+with TypeScript, then runs the package build commands through Isox. It also
+refreshes discovery. After editing a `project.json`, use `pnpm isox reset` to
+refresh discovery on the next run.
+
+## Build outputs
+
+All repository packages build into `<repository>/dist/<package>`, including
+`dist/core`, `dist/js`, `dist/eslint`, `dist/vitest`, `dist/nx`, `dist/e2e`, and
+`dist/cli`. These directories contain runnable package artifacts: JavaScript,
+declarations, rewritten package manifests, executor manifests, and schemas.
+Source files and tests stay under `packages/<package>`.
+
+Each package's tsconfig declares the root output path. Its Isox build enables
+`generatePackageJson`, and executor schemas are copied using `assets`. Generated
+manifests use paths within the output package and resolve workspace dependency
+versions. `publishConfig.directory` selects this output for packaging; pnpm's
+`linkDirectory` makes local workspace imports resolve to it after installation.
+Run `pnpm install` after changing these settings, then `pnpm bootstrap` before
+running the CLI or tests. Publish or globally install the built package directory
+when using npm directly, for example `npm install -g ./dist/cli`.
+
+Bootstrap seeds the metadata and schemas needed to compile core and JS, prepares
+shared dependency links under `dist/node_modules`, then rebuilds every package
+through Isox. The TypeScript executor tracks ownership of bootstrap metadata so
+it can safely replace it during the build. Bootstrap refreshes outdated dependency
+links and the workspace discovery cache while retaining output ownership, so
+subsequent builds can remove outputs from deleted source files. Build directories
+are ignored by Git.
+
+## Plugin source layout
+
+Keep executors in `src/executors/<name>/<name>.executor.ts` and their options
+schemas beside them as `<name>.schema.json`. Put project initializers in
+`src/generators` and reusable helpers in `src/helpers`. Tests belong to the
+package's `tests` directory.
+
+Update `executors.json` to reference the compiled implementation and copied
+schema under `dist/executors/<name>/`. Add executor schemas to the build's
+`assets` option, and include `dist` and `executors.json` in the package's
+published files. See [plugin layout and packaging](custom-executors.md#plugin-layout)
+for a complete example and bootstrap behavior.
+
+## Trying the local CLI
+
+To try the local CLI, run it from a workspace containing `isox.json`,
+`project.json` files, and installed executor plugins:
+
+```bash
+cd /path/to/your/workspace
+node /path/to/isox/dist/cli/index.js build my-app
+```
+
+## Pull requests
+
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request

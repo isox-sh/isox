@@ -1,0 +1,11 @@
+{
+  "$schema": "../packages/core/schemas/project.schema.json",
+  "name": "e2e",
+  "dependencies": ["e2e-plugin", "js", "vitest"],
+  "executors": {
+    "test": {
+      "executor": "vitest:test"
+    }
+  },
+  "tags": []
+}

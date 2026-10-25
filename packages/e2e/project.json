@@ -1,0 +1,24 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "e2e-plugin",
+  "dependencies": [
+    "core",
+    "cli"
+  ],
+  "executors": {
+    "build": {
+      "executor": "js:tsc",
+      "options": {
+        "tsConfig": "packages/e2e/tsconfig.json",
+        "generatePackageJson": true
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    },
+    "lint": {
+      "executor": "eslint:lint"
+    }
+  },
+  "tags": []
+}

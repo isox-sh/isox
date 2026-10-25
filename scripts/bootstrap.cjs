@@ -6,7 +6,7 @@ const { linkDependency, recordSeedOwnership } = require('./bootstrap-files.cjs')
 
 const root = resolve(__dirname, '..')
 const seededFiles = new Map()
-const packageNames = ['core', 'js', 'cli', 'eslint', 'vitest', 'nx']
+const packageNames = ['core', 'js', 'cli', 'eslint', 'vitest', 'nx', 'e2e']
 const compilerPackage = require.resolve('@typescript/native/package.json')
 const compiler = require(compilerPackage)
 const executable = resolve(dirname(compilerPackage), compiler.bin.tsc)
@@ -103,7 +103,7 @@ async function bootstrap() {
   const workspace = await parseWorkspace(root)
   await recordSeedOwnership(root, seededFiles)
 
-  for (const name of ['core', 'js', 'cli', 'eslint', 'vitest', 'nx']) {
+  for (const name of ['core', 'js', 'cli', 'eslint', 'vitest', 'nx', 'e2e-plugin']) {
     await runExecutor(workspace, name, 'build', root)
   }
 }

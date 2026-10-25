@@ -8,6 +8,7 @@ build/
 coverage/
 .cache/
 .isox/
+/tmp/
 *.tsbuildinfo
 
 # Local environment files
