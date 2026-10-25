@@ -82,6 +82,20 @@ caching.
 See [custom executors and initializers](custom-executors.md) for the native
 contract, plugin manifests, continuous results, and cancellation.
 `runExecutor` accepts an optional `AbortSignal` as its seventh argument.
+When that signal is aborted, an executor may stop by throwing its abort reason
+or an `AbortError`. Isox treats these as cancellation, lets executor cleanup run,
+and preserves the CLI's SIGINT/SIGTERM exit status. Other errors still fail the task.
+
+`runProcess(file, args, { cwd, signal })` runs a child with inherited standard
+streams and cancels its process tree when aborted. Plugins that need captured
+output can spawn their own child and call
+`handleProcessCancellation(child, signal, onError)`. Spawn it with
+`detached: process.platform !== 'win32'` and call the returned cleanup function
+on both `error` and `close` events. Cancellation sends SIGTERM, then SIGKILL after
+two seconds by default on POSIX; Windows uses `taskkill` to terminate the tree.
+Set `gracePeriodMs` in `runProcess` options, or pass it as the fourth argument to
+`handleProcessCancellation`, to change that interval. CLI workers allow five
+seconds so their executors can finish stopping subprocesses first.
 
 ## Types and schemas
 
@@ -189,11 +203,34 @@ and uses `readJson` and `writeJson` for project containment and file-action logg
 Repeated additions leave the file untouched. Run the workspace's package manager
 afterward to install dependencies and update its lockfile.
 
+## Affected selection and planning
+
+Core exports `createProjectGraph`, `getGitChanges`, `getAffectedProjects`,
+`selectProjects`, and `createProjectMatrix` for programmatic planning:
+
+```ts
+import { createProjectMatrix, getAffectedProjects, getGitChanges, parseWorkspace, readWorkspaceSettings } from '@isox-sh/core'
+
+const workspace = await parseWorkspace(root, { cache: false })
+const settings = await readWorkspaceSettings(root)
+const changes = await getGitChanges(root, { base: 'origin/main', head: 'HEAD' })
+const projects = getAffectedProjects(workspace, changes.files, settings.affected)
+const matrix = createProjectMatrix(workspace, projects, [{ target: 'test', maxJobs: 3 }])
+```
+
+`parseWorkspace` accepts an optional logger and `cache: false` to bypass cached
+reads and refresh the saved workspace. `getAffectedProjects` propagates changed
+files through explicit dependency edges; `createProjectMatrix` applies command
+and tag filters, checks configurations, and distributes project weights. It
+returns the same matrix contract used by the CLI and actions. See the
+[affected and CI guide](affected-and-ci.md) for complete semantics.
+
 ## Scope and migration
 
-Native Isox execution currently runs one command at a time. Project dependencies
-are metadata; scheduling, affected detection, task caching, and sandboxing are
-planned. Shell execution is not isolated.
+`runExecutor` executes one project command. The CLI also offers affected selection,
+weighted planning, and multiple commands in isolated child CLI processes.
+Prerequisite task scheduling, task caching and sandboxing remain planned.
+Separate processes do not isolate filesystem access or make execution hermetic.
 
 The optional Nx adapter lives in the separately installed `@isox-sh/nx` package
 and supports Nx 23 only, for initial migration. Adopt native

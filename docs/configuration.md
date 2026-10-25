@@ -20,7 +20,7 @@ that use the Nx executor adapter.
 ## Project definitions
 
 The project definition uses `name`, `dependencies` (project names), `executors`,
-and `tags`. Each command specifies an `executor`, optional `options`, and optional
+`tags`, and optional `plan.weight`. Each command specifies an `executor`, optional `options`, and optional
 `configurations` and `defaultConfiguration`. The
 project root comes from the file's location; an omitted name defaults to that
 directory's name. Dependencies and tags are optional. For example:
@@ -30,6 +30,7 @@ directory's name. Dependencies and tags are optional. For example:
   "$schema": "../core/schemas/project.schema.json",
   "name": "cli",
   "dependencies": ["core"],
+  "plan": { "weight": 3 },
   "executors": {
     "build": {
       "executor": "js:tsc",
@@ -57,14 +58,25 @@ narrow them to their own types. Defined Isox fields are still validated.
 See [named configurations](cli.md#named-configurations) for option overrides and
 [Nx project conversion](nx-migration.md#project-conversion) for existing Nx files.
 
+`dependencies` drives affected-project propagation. Reference project names;
+affected planning rejects unknown dependencies and reports dependency cycles.
+`plan.weight` is a positive number that estimates a project's relative CI cost.
+It defaults to `1`; increasing it gives the project more weight when balancing
+shards. Fractional weights are supported. See [affected and CI](affected-and-ci.md)
+for tag filters, distribution, and the optional `affected.globalFiles` globs in
+`isox.json` for shared tooling changes.
+
 ## Discovery cache
 
 The first workspace scan saves all discovered project configurations, including
 commands, options, and dependencies, to `.isox/workspace.json`. Later
-runs read this cache without scanning project files. After adding, removing, or
+runs of single-project commands read this cache without scanning project files. After adding, removing, or
 editing projects, run `isox reset` from anywhere in the workspace to remove the
 entire `.isox` directory. The next run recreates the cache. Invalid or outdated
 cache files are rebuilt automatically. Keep `.isox/` out of version control.
+
+`affected`, `plan`, and `run-many` always read current project files and refresh
+the cache so branch changes and changed weights cannot produce stale plans.
 
 Project initialization refreshes discovery automatically. See
 [getting started](getting-started.md#define-a-project) to create a project.

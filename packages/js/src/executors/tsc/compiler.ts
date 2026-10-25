@@ -5,6 +5,8 @@ import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 
+import { handleProcessCancellation } from '@isox-sh/core'
+
 export interface CompilerConfig {
   compilerOptions: {
     outDir?: string
@@ -58,40 +60,7 @@ export async function invokeCompiler(
     })
     let output = ''
     const emitted: string[] = []
-    let killTimer: ReturnType<typeof setTimeout> | undefined
-    const kill = (force = false) => {
-      if (!child.pid) {
-        return
-      }
-
-      try {
-        if (process.platform === 'win32') {
-          const killer = spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
-          killer.on('error', () => child.kill())
-        } else {
-          process.kill(-child.pid, force ? 'SIGKILL' : 'SIGTERM')
-        }
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ESRCH') {
-          reject(error)
-        }
-      }
-    }
-
-    const abort = () => {
-      kill()
-      killTimer = setTimeout(() => kill(true), 2_000)
-      killTimer.unref()
-    }
-    signal?.addEventListener('abort', abort, { once: true })
-    const cleanup = () => {
-      signal?.removeEventListener('abort', abort)
-      // The launcher may exit while a native child is still ignoring SIGTERM.
-      if (signal?.aborted) {
-        kill(true)
-      }
-      clearTimeout(killTimer)
-    }
+    const cleanup = handleProcessCancellation(child, signal, reject)
 
     for (const stream of [child.stdout, child.stderr]) {
       const lines = createInterface({ input: stream })
@@ -118,9 +87,6 @@ export async function invokeCompiler(
       }
       resolveResult({ success: code === 0 && !signal?.aborted, output, emitted })
     })
-    if (signal?.aborted) {
-      abort()
-    }
   })
 }
 

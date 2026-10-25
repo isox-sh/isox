@@ -67,39 +67,51 @@ export async function runExecutor(
   }
 
   taskLogger.info(`Running ${executorName} for ${projectName}...`)
-  const result = await executorFn(options, context)
-  if (isAsyncIterable(result)) {
-    let hasResult = false
-    let continuous = false
-    for await (const output of result) {
-      hasResult = true
-      if (!isNxExecutor && output?.continuous === true) {
-        if (typeof output.success !== 'boolean') {
-          throw new Error(`Invalid continuous executor result for ${projectName}.`)
+  try {
+    const result = await executorFn(options, context)
+    if (isAsyncIterable(result)) {
+      let hasResult = false
+      let continuous = false
+      for await (const output of result) {
+        // A stopped child may yield a failed result while the iterator is shutting down.
+        if (signal?.aborted) {
+          break
         }
-        continuous = true
-        if (output.success) {
-          taskLogger.success(`Build completed for ${projectName}. Watching for changes...`)
+        hasResult = true
+        if (!isNxExecutor && output?.continuous === true) {
+          if (typeof output.success !== 'boolean') {
+            throw new Error(`Invalid continuous executor result for ${projectName}.`)
+          }
+          continuous = true
+          if (output.success) {
+            taskLogger.success(`Build completed for ${projectName}. Watching for changes...`)
+          } else {
+            taskLogger.error(`Build failed for ${projectName}. Watching for changes...`)
+          }
         } else {
-          taskLogger.error(`Build failed for ${projectName}. Watching for changes...`)
+          assertSuccess(output)
         }
-      } else {
-        assertSuccess(output)
       }
-    }
 
-    if (!hasResult && !signal?.aborted) {
-      throw new Error(`Task failed for ${projectName}: executor returned no results.`)
-    }
+      if (!hasResult && !signal?.aborted) {
+        throw new Error(`Task failed for ${projectName}: executor returned no results.`)
+      }
 
-    if (continuous || signal?.aborted) {
+      if (continuous || signal?.aborted) {
+        return
+      }
+    } else {
+      if (signal?.aborted) {
+        return
+      }
+      assertSuccess(result)
+    }
+  } catch (error) {
+    // Abort-aware APIs reject instead of returning a result; unrelated failures still propagate.
+    if (signal?.aborted && (error === signal.reason || (error instanceof Error && error.name === 'AbortError'))) {
       return
     }
-  } else {
-    if (signal?.aborted) {
-      return
-    }
-    assertSuccess(result)
+    throw error
   }
   taskLogger.success(`Successfully completed ${executorName} for ${projectName}.`)
 }

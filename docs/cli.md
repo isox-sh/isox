@@ -9,12 +9,22 @@
 | `isox init` | Create `isox.json` in the current directory |
 | `isox init <package> <path> [--importPath=<name>]` | Scaffold a project using an installed package inside an existing workspace |
 | `isox <command> <project>` | Run a project's configured command |
-| `isox run <project>:<command>` | Alternative syntax, including commands named `init`, `run`, or `reset` |
+| `isox run <project>:<command>` | Alternative syntax, including commands whose names are reserved by the CLI |
+| `isox affected --target=<command>` | Run changed projects and their dependents; add `--print-matrix` for a JSON project array |
+| `isox plan --target=<command> --max-jobs=3` | Print an affected, weighted GitHub Actions matrix; use `--all` to select every matching project |
+| `isox run-many --target=<command> --projects=core,cli` | Run selected projects with optional `--parallel` |
 | `isox reset` | Remove `.isox`; the next command rebuilds discovery data |
 | `isox --help` | Show usage |
 
 Use `--verbose` for debug logging and error stacks. Arbitrary executor options
 are configured in `project.json`; the CLI does not forward unknown flags.
+
+For `affected`, `plan`, and `run-many`, `--pre-targets` and `--post-targets` accept
+comma- or newline-separated command lists. Use `--pre-targets-json` and
+`--post-targets-json` for exact arrays, including command names that contain
+commas. For example, `--pre-targets-json '["prepare,assets:acc"]'` runs
+`prepare,assets` with its `acc` configuration. Do not combine a list flag with its
+JSON counterpart. See [affected projects and CI](affected-and-ci.md) for stage ordering.
 
 ## Named configurations
 
@@ -49,7 +59,8 @@ isox build my-app -c staging
 `--prod` selects `production`. `--config`, `--configuration`, and `-c` are aliases;
 an explicit name takes precedence over `--prod`, then `defaultConfiguration`
 applies if neither selects a name. Without any selection or default, only base
-options are used. An unknown configuration fails with an error.
+options are used. An unknown configuration fails with an error. Names retain
+their exact spelling, including leading zeros in names such as `001`.
 
 Options are merged at the top level: `{ ...options, ...configurations[name] }`.
 Nested objects and arrays are replaced rather than recursively merged. This
@@ -62,14 +73,17 @@ can be selected per invocation. Other executor CLI flags are not forwarded.
 
 Isox stores discovered projects in `.isox/workspace.json`. After adding, changing,
 renaming, or removing project files, run `isox reset`. The cache stores project
-configuration, not build outputs or task results.
+configuration, not build outputs or task results. `affected`, `plan`, and
+`run-many` always rescan project files and refresh the cache.
 
 See [workspace configuration](configuration.md) for discovery details and
 [Nx migration](nx-migration.md) for temporary adapter support.
 
 ## Current scope
 
-Dependency scheduling, affected-project selection, task-result caching, parallel
-or distributed execution, and isolation are planned. Declaring `dependencies`
-does not schedule prerequisite builds today; use package-manager scripts for
-ordering. See the [roadmap](../ROADMAP.md).
+Affected selection follows explicit `dependencies`. Parallel execution uses
+separate child CLI processes, and the GitHub actions distribute exact weighted
+project lists. See [affected projects and CI](affected-and-ci.md).
+Declaring `dependencies` does not schedule prerequisite builds; prepare required
+outputs before running workers. Task-result caching, dependency task scheduling,
+and isolation remain on the [roadmap](../ROADMAP.md).

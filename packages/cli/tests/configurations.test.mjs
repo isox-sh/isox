@@ -35,6 +35,8 @@ async function fixture(t, nx = false) {
       production: { mode: 'production', nested: { prod: true }, list: [], enabled: false },
       staging: { mode: 'staging' },
       123: { mode: 'numeric' },
+      '001': { mode: 'leading-zero' },
+      '=acc': { mode: 'leading-equals' },
     },
   }
   const project = {
@@ -77,9 +79,16 @@ for (const nx of [false, true]) {
       [['run', 'demo:build', '--config', 'staging'], 'staging'],
       [['build', 'demo', '--configuration=staging'], 'staging'],
       [['build', 'demo', '-c', 'staging'], 'staging'],
+      [['build', 'demo', '-c=staging'], 'staging'],
       [['--config=production', 'build', 'demo'], 'production'],
       [['build', 'demo', '--prod', '--config=staging'], 'staging'],
       [['build', 'demo', '--config=123'], '123'],
+      [['build', 'demo', '--config=001'], '001'],
+      [['run', 'demo:build', '-c', '001'], '001'],
+      [['run', 'demo:build', '-c=001'], '001'],
+      [['build', 'demo', '-c==acc'], '=acc'],
+      [['build', 'demo', '-c', '=acc'], '=acc'],
+      [['build', 'demo', '--config==acc'], '=acc'],
       [['build', 'demo'], 'development'],
     ]) {
       const result = run(root, args)
@@ -108,8 +117,10 @@ test('invalid configuration selections fail without invoking the executor', asyn
     [['build', 'demo', '--config=missing'], /Configuration missing not found for demo:build/],
     [['run', 'demo:build', '--config=toString'], /Configuration toString not found/],
     [['build', 'demo', '--config='], /value is missing/],
+    [['build', 'demo', '-c='], /value is missing/],
     [['build', 'demo', '--config'], /value is missing/],
     [['build', 'demo', '--config', 'production', '--config', 'staging'], /exactly one configuration/],
+    [['build', 'demo', '-c', 'production', '--configuration', 'staging'], /exactly one configuration/],
     [['build', 'demo', '--config=production,staging'], /Invalid configuration name/],
     [['init', '--prod'], /Unknown option/],
     [['reset', '--config=production'], /Unknown option/],

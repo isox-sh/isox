@@ -61,8 +61,7 @@ export async function initializeProject(packageName: string, projectPath: string
 
   // Refresh discovery before checking names; projects may have been added by hand.
   const cacheFile = join(workspaceRoot, '.isox', 'workspace.json')
-  await rm(cacheFile, { force: true })
-  const workspace = await parseWorkspace(workspaceRoot)
+  const workspace = await parseWorkspace(workspaceRoot, { cache: false })
   if (Object.hasOwn(workspace.projects, projectName)) {
     throw new Error(`Project ${projectName} already exists in the workspace.`)
   }

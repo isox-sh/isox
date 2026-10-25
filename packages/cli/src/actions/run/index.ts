@@ -1,6 +1,6 @@
 import { runProjectCommand } from '../../shared/run-project-command'
 
-import type { RunProjectCommandOptions } from '../../shared/run-project-command'
+import type { ConfigurationOptions } from '../../shared/options'
 import type { CAC } from 'cac'
 
 export function registerRunAction(cli: CAC): void {
@@ -8,7 +8,7 @@ export function registerRunAction(cli: CAC): void {
     .command('run <target>', 'Run a project command (e.g., my-app:build)')
     .option('--prod', 'Use the production configuration')
     .option('-c, --config, --configuration <name>', 'Use a named command configuration')
-    .action(async (targetStr: string, options: RunProjectCommandOptions) => {
+    .action(async (targetStr: string, options: ConfigurationOptions) => {
       if (!/^[^:]+:[^:]+$/.test(targetStr)) {
         throw new Error('Invalid target format. Use project:target')
       }

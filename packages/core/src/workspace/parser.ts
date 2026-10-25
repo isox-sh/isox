@@ -3,9 +3,11 @@ import { basename, dirname, join, resolve } from 'node:path'
 
 import fg from 'fast-glob'
 
+import { logger } from '../logger'
 import { readWorkspaceCache, writeWorkspaceCache } from './cache'
 import { parseProjectDefinition } from './configuration'
 
+import type { Logger } from '../logger'
 import type { ProjectDefinition } from './configuration'
 
 export type { ExecutorConfiguration, ProjectDefinition } from './configuration'
@@ -19,9 +21,10 @@ export interface WorkspaceGraph {
   projects: Record<string, ProjectConfiguration>
 }
 
-export async function parseWorkspace(cwd: string): Promise<WorkspaceGraph> {
+export async function parseWorkspace(cwd: string, options: { cache?: boolean, logger?: Logger } = {}): Promise<WorkspaceGraph> {
   cwd = resolve(cwd)
-  const cached = await readWorkspaceCache(cwd)
+  const taskLogger = options.logger ?? logger
+  const cached = options.cache === false ? undefined : await readWorkspaceCache(cwd, taskLogger)
   if (cached) {
     return cached
   }
@@ -56,6 +59,6 @@ export async function parseWorkspace(cwd: string): Promise<WorkspaceGraph> {
   }
 
   const workspace = { projects }
-  await writeWorkspaceCache(cwd, workspace)
+  await writeWorkspaceCache(cwd, workspace, taskLogger)
   return workspace
 }

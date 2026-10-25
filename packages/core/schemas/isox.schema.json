@@ -3,6 +3,17 @@
   "title": "Isox workspace",
   "type": "object",
   "properties": {
+    "affected": {
+      "type": "object",
+      "properties": {
+        "globalFiles": {
+          "description": "Additional workspace-relative glob patterns whose changes affect every project, including shared tools owned by a project.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "nx": {
       "type": "object",
       "properties": {

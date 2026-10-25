@@ -60,6 +60,58 @@ test('ordinary failed streams still stop and run iterator cleanup', async t => {
   assert.equal(await readFile(join(root, 'closed'), 'utf8'), 'yes')
 })
 
+test('cancelled streams close without reporting a task failure or completion', async t => {
+  const { root, workspace, logger, logs } = await fixture(t, `module.exports = async function* (_, context) {
+    try {
+      if (!context.signal.aborted) await new Promise(resolve => context.signal.addEventListener('abort', resolve, { once: true }))
+      yield { success: false }
+      throw new Error('A cancelled stream must not be resumed')
+    } finally { require('node:fs').writeFileSync(require('node:path').join(context.workspaceRoot, 'closed'), 'yes') }
+  }`)
+  const controller = new AbortController()
+  const running = runExecutor(workspace, 'demo', 'build', root, logger, undefined, controller.signal)
+  controller.abort()
+  await running
+  assert.equal(await readFile(join(root, 'closed'), 'utf8'), 'yes')
+  assert.ok(logs.every(entry => entry.type !== 'error' && entry.type !== 'success'))
+})
+
+for (const iterable of [false, true]) {
+  for (const api of ['timer', 'throwIfAborted']) {
+    test(`cancelled ${iterable ? 'streams' : 'promises'} accept ${api} cancellation and finish cleanup`, async t => {
+      const { root, workspace, logger, logs } = await fixture(t, `module.exports = async function${iterable ? '*' : ''} (_, context) {
+        try {
+          ${api === 'timer'
+            ? "await require('node:timers/promises').setTimeout(60_000, undefined, { signal: context.signal })"
+            : 'context.signal.throwIfAborted()'}
+          ${iterable ? 'yield' : 'return'} { success: true }
+        } finally { require('node:fs').writeFileSync(require('node:path').join(context.workspaceRoot, 'closed'), 'yes') }
+      }`)
+      const controller = new AbortController()
+      controller.abort(new Error('Stopped by caller'))
+      await runExecutor(workspace, 'demo', 'build', root, logger, undefined, controller.signal)
+      assert.equal(await readFile(join(root, 'closed'), 'utf8'), 'yes')
+      assert.ok(logs.every(entry => entry.type !== 'error' && entry.type !== 'success'))
+    })
+  }
+}
+
+test('cancellation does not suppress an unrelated executor failure', async t => {
+  const { root, workspace, logger } = await fixture(t, `module.exports = async () => {
+    throw new Error('Cleanup failed')
+  }`)
+  const controller = new AbortController()
+  controller.abort()
+  await assert.rejects(runExecutor(workspace, 'demo', 'build', root, logger, undefined, controller.signal), /Cleanup failed/)
+})
+
+test('an AbortError still fails the task when its signal has not been cancelled', async t => {
+  const { root, workspace, logger } = await fixture(t, `module.exports = async () => {
+    throw new DOMException('Independent operation aborted', 'AbortError')
+  }`)
+  await assert.rejects(runExecutor(workspace, 'demo', 'build', root, logger, undefined, new AbortController().signal), /Independent operation aborted/)
+})
+
 test('native child processes are terminated on cancellation even when they ignore SIGTERM', async t => {
   const { root } = await fixture(t, 'module.exports = () => ({ success: true })')
   const { runProcess } = require('../../../dist/core')

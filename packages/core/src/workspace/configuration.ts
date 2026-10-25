@@ -1,10 +1,10 @@
-import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 
 import { Ajv } from 'ajv'
 
 import { isNxProjectSchema, migrateNxProject } from './nx'
+import { workspaceSchemaPath } from './schema'
 
 export interface ExecutorConfiguration {
   [key: string]: unknown
@@ -22,11 +22,15 @@ export interface ProjectDefinition {
   dependencies?: string[]
   executors?: Record<string, ExecutorConfiguration>
   tags?: string[]
+  plan?: {
+    [key: string]: unknown
+    /** Relative CI cost. Defaults to 1 and must be positive. */
+    weight?: number
+  }
 }
 
 const ajv = new Ajv({ allErrors: true })
-const schemaPath = [join(__dirname, '../schemas/project.schema.json'), join(__dirname, '../../schemas/project.schema.json')]
-  .find(path => existsSync(path))!
+const schemaPath = workspaceSchemaPath('project.schema.json')
 const schema = JSON.parse(readFileSync(schemaPath, 'utf8'))
 export const isProjectDefinition = ajv.compile<ProjectDefinition>(schema)
 

@@ -17,7 +17,9 @@ Nx executors and config helpers. Retaining the adapter is an intermediate step,
 not a completed migration.
 
 Use the [active roadmap](../../ROADMAP.md) to distinguish implemented Isox behavior
-from planned scheduling, affected detection, caching, and isolation features.
+from planned prerequisite scheduling, caching, and isolation features. Use the
+[affected and CI guide](../affected-and-ci.md) to replace Nx affected commands and
+nx-extend matrix actions with native Isox selection and weighted plans.
 
 ## 1. Inspect the existing behavior
 

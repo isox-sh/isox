@@ -5,7 +5,8 @@
 ## Requirements
 
 Node.js 24+. Use your existing npm, pnpm, or Yarn workspace.
-Isox runs one project command at a time and does not require a background daemon.
+Isox runs project commands without a background daemon. It also supports
+[affected selection and CI distribution](affected-and-ci.md).
 
 ## Install
 

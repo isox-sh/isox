@@ -7,6 +7,7 @@ import { isProjectDefinition } from './configuration'
 import { isNxProjectSchema } from './nx'
 import { findWorkspaceRoot } from './root'
 
+import type { Logger } from '../logger'
 import type { WorkspaceGraph } from './parser'
 
 const cacheVersion = 5
@@ -30,7 +31,7 @@ function isWorkspaceCache(value: unknown): value is WorkspaceGraph & { version: 
     })
 }
 
-export async function readWorkspaceCache(root: string): Promise<WorkspaceGraph | undefined> {
+export async function readWorkspaceCache(root: string, taskLogger: Logger = logger): Promise<WorkspaceGraph | undefined> {
   const file = join(root, '.isox', 'workspace.json')
   let content: string
   try {
@@ -46,21 +47,21 @@ export async function readWorkspaceCache(root: string): Promise<WorkspaceGraph |
   try {
     cached = JSON.parse(content)
   } catch {
-    logger.warn(`Invalid workspace cache at ${file}, rebuilding.`)
+    taskLogger.warn(`Invalid workspace cache at ${file}, rebuilding.`)
     return undefined
   }
 
   if (!isWorkspaceCache(cached)) {
-    logger.warn(`Invalid or outdated workspace cache at ${file}, rebuilding.`)
+    taskLogger.warn(`Invalid or outdated workspace cache at ${file}, rebuilding.`)
     return undefined
   }
 
-  logger.debug(`Loaded workspace cache from ${file}`)
+  taskLogger.debug(`Loaded workspace cache from ${file}`)
   // Preserve the parser's dictionary semantics for names such as "__proto__".
   return { projects: Object.assign(Object.create(null), cached.projects) }
 }
 
-export async function writeWorkspaceCache(root: string, workspace: WorkspaceGraph): Promise<void> {
+export async function writeWorkspaceCache(root: string, workspace: WorkspaceGraph, taskLogger: Logger = logger): Promise<void> {
   const directory = join(root, '.isox')
   const file = join(directory, 'workspace.json')
   const temporaryFile = join(directory, `workspace.${randomUUID()}.tmp`)
@@ -72,7 +73,7 @@ export async function writeWorkspaceCache(root: string, workspace: WorkspaceGrap
   } finally {
     await rm(temporaryFile, { force: true })
   }
-  logger.debug(`Saved workspace cache to ${file}`)
+  taskLogger.debug(`Saved workspace cache to ${file}`)
 }
 
 /** Remove the detected workspace's cache without rebuilding it. */

@@ -7,6 +7,7 @@ Start with the setup guide, then use the topic references for your workspace.
 
 - [Getting started](getting-started.md) — requirements, installation, and your first project.
 - [CLI reference](cli.md) — commands, named configurations, and current scope.
+- [Affected projects and GitHub Actions](affected-and-ci.md) — Git selection, weighted plans, tag filters, and CI workers.
 - [Workspace and project configuration](configuration.md) — workspace roots, schemas, metadata, and discovery caching.
 - [TypeScript executor](typescript.md) — project initialization, compiler options, assets, package generation, and watch mode.
 - [ESLint executor](eslint.md) — project linting, fixes, and warning limits.

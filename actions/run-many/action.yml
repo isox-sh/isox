@@ -1,0 +1,16 @@
+name: Run Isox projects
+description: Run exactly the projects and configuration in an Isox matrix row.
+inputs:
+  plan:
+    description: JSON matrix row from actions/plan, typically toJSON(matrix).
+    required: true
+  head:
+    description: Optional plan head revision to verify against this checkout before execution.
+  workingDirectory:
+    description: Workspace directory relative to GITHUB_WORKSPACE.
+    default: '.'
+  cliPath:
+    description: Optional built CLI JavaScript path relative to workingDirectory. Defaults to the workspace's installed isox binary.
+runs:
+  using: node24
+  main: index.mjs

@@ -1,5 +1,5 @@
 const { spawnSync } = require('node:child_process')
-const { copyFileSync, existsSync, globSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } = require('node:fs')
+const { copyFileSync, existsSync, globSync, mkdirSync, readFileSync, realpathSync, writeFileSync } = require('node:fs')
 const { dirname, resolve } = require('node:path')
 
 const { linkDependency, recordSeedOwnership } = require('./bootstrap-files.cjs')
@@ -99,8 +99,7 @@ async function bootstrap() {
 
   const { parseWorkspace, runExecutor } = require('../dist/core')
   // Refresh discovery without discarding output ownership or active build locks.
-  rmSync(resolve(root, '.isox/workspace.json'), { force: true })
-  const workspace = await parseWorkspace(root)
+  const workspace = await parseWorkspace(root, { cache: false })
   await recordSeedOwnership(root, seededFiles)
 
   for (const name of ['core', 'js', 'cli', 'eslint', 'vitest', 'nx', 'e2e-plugin']) {

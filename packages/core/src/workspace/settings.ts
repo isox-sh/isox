@@ -1,18 +1,22 @@
-import { existsSync, readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { Ajv } from 'ajv'
 
+import { workspaceSchemaPath } from './schema'
+
 export interface WorkspaceSettings {
+  affected?: {
+    globalFiles?: string[]
+  }
   nx?: {
     executors?: string[]
   }
 }
 
 const ajv = new Ajv({ allErrors: true })
-const schema = JSON.parse(readFileSync([join(__dirname, '../schemas/isox.schema.json'), join(__dirname, '../../schemas/isox.schema.json')]
-  .find(path => existsSync(path))!, 'utf8'))
+const schema = JSON.parse(readFileSync(workspaceSchemaPath('isox.schema.json'), 'utf8'))
 const isWorkspaceSettings = ajv.compile<WorkspaceSettings>(schema)
 
 export async function readWorkspaceSettings(root: string): Promise<WorkspaceSettings> {

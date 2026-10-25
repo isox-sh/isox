@@ -1,0 +1,33 @@
+name: Plan Isox projects
+description: Select affected projects and distribute their exact names into weighted matrix shards.
+inputs:
+  targets:
+    description: Project commands, separated by newlines or commas.
+    required: true
+  targetOptions:
+    description: JSON object keyed by target, with tag, config, maxJobs, parallel, preTargets and postTargets settings.
+    default: '{}'
+  affectedOnly:
+    description: Select affected projects using the event or explicit base/head; false selects all projects.
+    default: 'true'
+  base:
+    description: Base revision. Defaults to ISOX_BASE, the PR base SHA, or the nearest reachable Git tag for other events. No reachable tag selects all projects.
+  head:
+    description: Head revision. Defaults to ISOX_HEAD or the checked-out GitHub SHA.
+  workingDirectory:
+    description: Workspace directory relative to GITHUB_WORKSPACE.
+    default: '.'
+  cliPath:
+    description: Optional built CLI JavaScript path relative to workingDirectory. Defaults to the workspace's installed isox binary.
+outputs:
+  matrix:
+    description: JSON object with an include array containing exact project lists and execution settings.
+  hasPlan:
+    description: The string true if the plan has at least one job, otherwise false.
+  base:
+    description: Selected base revision, or empty for an all-project plan.
+  head:
+    description: Selected head revision or GitHub SHA.
+runs:
+  using: node24
+  main: index.mjs

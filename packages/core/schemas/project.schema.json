@@ -18,13 +18,25 @@
       "type": "array",
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^[^\\s:]+$" },
-      "description": "Names of projects this project depends on. Dependency scheduling is not yet implemented."
+      "description": "Names of projects this project depends on. Used to propagate affected changes; prerequisite scheduling is not yet implemented."
     },
     "executors": {
       "type": "object",
       "propertyNames": { "pattern": "^[^\\s:]+$" },
       "additionalProperties": { "$ref": "#/definitions/executor" },
       "description": "Commands available through isox <command> <target>, where target is the project name."
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "weight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 1,
+          "description": "Relative cost of this project when balancing CI shards. A higher weight represents more work."
+        }
+      }
     },
     "tags": {
       "type": "array",
