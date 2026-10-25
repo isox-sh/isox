@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { link, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { chmod, link, mkdir, mkdtemp, readdir, readFile, rm, stat, symlink, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -91,4 +91,13 @@ test('serialization failures do not create directories or log success', async t 
   }
   assert.deepEqual(await readdir(context.projectRoot), [])
   assert.deepEqual(context.entries, [])
+})
+
+test.skipIf(process.platform === 'win32')('updates preserve restrictive permissions', async t => {
+  const context = await fixture(t)
+  const file = join(context.projectRoot, 'private.json')
+  await writeFile(file, '{}')
+  await chmod(file, 0o600)
+  await writeJson('private.json', { updated: true }, context)
+  assert.equal((await stat(file)).mode & 0o777, 0o600)
 })

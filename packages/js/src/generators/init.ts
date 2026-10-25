@@ -1,4 +1,6 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { randomUUID } from 'node:crypto'
+import { constants } from 'node:fs'
+import { chmod, link, lstat, mkdir, open, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 
 import { json, writeJson } from '@isox-sh/core'
@@ -21,8 +23,19 @@ const init: ProjectInitializer = async (options, context) => {
   const baseFile = join(workspaceRoot, 'tsconfig.base.json')
   let source: string
   let createBase = false
+  let mode: number | undefined
   try {
-    source = await readFile(baseFile, 'utf8')
+    const entry = await lstat(baseFile)
+    if (entry.isSymbolicLink()) {
+      throw new Error(`Cannot update TypeScript configuration through a symlink: ${baseFile}`)
+    }
+    mode = entry.mode & 0o777
+    const handle = await open(baseFile, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0))
+    try {
+      source = await handle.readFile('utf8')
+    } finally {
+      await handle.close()
+    }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
       throw error
@@ -94,7 +107,20 @@ const init: ProjectInitializer = async (options, context) => {
     }, context, { overwrite: false })
     await writeFile(join(projectRoot, 'src/index.ts'), 'export {}\n', { flag: 'wx' })
     if (createBase || options.importPath !== undefined) {
-      await writeFile(baseFile, source, { flag: createBase ? 'wx' : 'w' })
+      const temporary = `${baseFile}.${randomUUID()}.tmp`
+      try {
+        await writeFile(temporary, source, { flag: 'wx', mode })
+        if (mode !== undefined) {
+          await chmod(temporary, mode)
+        }
+        if (createBase) {
+          await link(temporary, baseFile)
+        } else {
+          await rename(temporary, baseFile)
+        }
+      } finally {
+        await rm(temporary, { force: true })
+      }
     }
   } catch (error) {
     await rm(projectRoot, { recursive: true, force: true })

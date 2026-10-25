@@ -233,3 +233,15 @@ test('initializers resolve plugins whose exports hide package.json', async t => 
   assert.equal(result.status, 0, result.stderr)
   assert.ok((await readdir(root)).includes('created'))
 })
+
+test('initialization refuses a symlinked base config without modifying its target', async t => {
+  const root = await fixture(t)
+  const outside = join(root, '../outside.json')
+  await writeFile(outside, '{}')
+  await symlink(outside, join(root, 'tsconfig.base.json'))
+  const result = run(root, 'init', '@isox-sh/js', 'created', '--importPath=@org/created')
+  assert.equal(result.status, 1)
+  assert.match(result.stderr, /symlink/)
+  assert.equal(await readFile(outside, 'utf8'), '{}')
+  assert.ok(!(await readdir(root)).includes('created'))
+})

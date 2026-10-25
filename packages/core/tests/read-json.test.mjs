@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const { createLogger, readJson, writeJson } = require('../../../dist/core')
@@ -82,4 +82,40 @@ test('supports a project root reached through a symlink', async t => {
   const projectRoot = join(context.workspaceRoot, 'project-alias')
   await symlink(context.projectRoot, projectRoot, 'junction')
   assert.deepEqual(await readJson('value.json', { projectRoot }), { enabled: true })
+})
+
+test('reads cannot follow a file swapped to a symlink between validation and open', async t => {
+  const context = await fixture(t)
+  const fs = require('node:fs/promises')
+  const target = join(context.projectRoot, 'value.json')
+  const outside = join(context.workspaceRoot, 'secret.json')
+  await writeFile(target, '{}')
+  await writeFile(outside, '{"secret":true}')
+  const open = fs.open
+  const spy = vi.spyOn(fs, 'open').mockImplementationOnce(async (...args) => {
+    await rm(target)
+    await symlink(outside, target)
+    return open(...args)
+  })
+  t.onTestFinished(() => spy.mockRestore())
+  await assert.rejects(readJson('value.json', context), /ELOOP|changed while opening/)
+})
+
+test('reads reject a parent directory swapped to a symlink before opening', async t => {
+  const context = await fixture(t)
+  const fs = require('node:fs/promises')
+  const directory = join(context.projectRoot, 'config')
+  const outside = join(context.workspaceRoot, 'outside')
+  await mkdir(directory)
+  await mkdir(outside)
+  await writeFile(join(directory, 'value.json'), '{}')
+  await writeFile(join(outside, 'value.json'), '{"secret":true}')
+  const open = fs.open
+  const spy = vi.spyOn(fs, 'open').mockImplementationOnce(async (...args) => {
+    await fs.rename(directory, `${directory}-original`)
+    await symlink(outside, directory, 'junction')
+    return open(...args)
+  })
+  t.onTestFinished(() => spy.mockRestore())
+  await assert.rejects(readJson('config/value.json', context), /changed while opening/)
 })

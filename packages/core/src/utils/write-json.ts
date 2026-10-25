@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { link, lstat, mkdir, realpath, rename, rm, writeFile } from 'node:fs/promises'
+import { chmod, link, lstat, mkdir, realpath, rename, rm, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 
 import { logger } from '../logger'
@@ -51,8 +51,11 @@ export async function writeJson(
 
   const target = join(directory, basename(destination))
   let existed = false
+  let mode: number | undefined
   try {
-    if ((await lstat(target)).isSymbolicLink()) {
+    const entry = await lstat(target)
+    mode = entry.mode & 0o777
+    if (entry.isSymbolicLink()) {
       throw new Error(`Cannot write JSON through a symlink: ${file}`)
     }
     existed = true
@@ -64,7 +67,10 @@ export async function writeJson(
 
   const temporary = join(dirname(target), `.${basename(target)}.${randomUUID()}.tmp`)
   try {
-    await writeFile(temporary, source, { flag: 'wx' })
+    await writeFile(temporary, source, { flag: 'wx', mode })
+    if (mode !== undefined) {
+      await chmod(temporary, mode)
+    }
     if (options.overwrite === false) {
       // Publish without replacing a file created by another writer.
       await link(temporary, target)
