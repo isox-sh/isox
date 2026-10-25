@@ -2,7 +2,7 @@ name: Plan Isox projects
 description: Select affected projects and distribute their exact names into weighted matrix shards.
 inputs:
   targets:
-    description: Project commands, separated by newlines or commas.
+    description: Project commands as a JSON string array, or separated by newlines or commas. Use JSON for names containing commas.
     required: true
   targetOptions:
     description: JSON object keyed by target, with tag, config, maxJobs, parallel, preTargets and postTargets settings.

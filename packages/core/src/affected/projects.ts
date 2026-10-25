@@ -32,7 +32,9 @@ export function getAffectedProjects(workspace: WorkspaceGraph, files: string[], 
       return Object.keys(workspace.projects).sort()
     }
     const owner = projects.find(project => project.root === '.' || file === project.root || file.startsWith(`${project.root}/`))
-    if (!owner) {
+    const removedProject = posix.basename(file) === 'project.json'
+      && !projects.some(project => project.root === posix.dirname(file))
+    if (!owner || removedProject) {
       return Object.keys(workspace.projects).sort()
     }
     directlyAffected.add(owner.name)

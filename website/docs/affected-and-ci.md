@@ -239,6 +239,10 @@ Use `fetch-depth: 0` in the planning job to fetch full history and tags. Automat
 tag selection rejects shallow checkouts. It does not query the last successful
 workflow run; pass that revision as `base` if your deployment policy requires it.
 
+The plan action also accepts `targets` as a JSON array, such as
+`["prepare,assets", "build"]`. Use this form when a command name contains commas
+so the exact name survives planning and worker execution.
+
 The outputs are `matrix`, `hasPlan` (strings `true`/`false`), `base`, and `head`.
 Gate matrix jobs using `hasPlan` as shown. A plan with different targets does not
 order those targets; separate build and deploy jobs with `needs` when ordering

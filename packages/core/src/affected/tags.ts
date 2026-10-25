@@ -9,7 +9,8 @@ function parseCondition(value: string): TagCondition {
     throw new Error('Tag filters must not contain empty comma-separated conditions.')
   }
 
-  const operator = condition.includes('!=') ? '!=' : '='
+  const equalsIndex = condition.indexOf('=')
+  const operator = equalsIndex > 0 && condition[equalsIndex - 1] === '!' ? '!=' : '='
   const index = condition.indexOf(operator)
   if (index < 0) {
     return { tag: condition, exclude: false }

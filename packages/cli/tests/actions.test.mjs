@@ -171,3 +171,12 @@ test('planner and worker preserve exact stage names and reject invalid stages th
   }
   assert.equal(await readFile(join(root, 'events.log'), 'utf8'), recorded)
 })
+
+test('JSON targets preserve commas in command names', () => {
+  assert.deepEqual(planTargets('["prepare,assets","build"]', { 'prepare,assets': { maxJobs: 2 } }), [
+    { target: 'prepare,assets', maxJobs: 2 }, { target: 'build' },
+  ])
+  for (const value of ['[]', '[null]', '["bad target"]', '["bad:target"]']) {
+    assert.throws(() => planTargets(value, {}))
+  }
+})

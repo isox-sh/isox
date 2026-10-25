@@ -4,8 +4,11 @@ import { resolvePlanRange } from '../shared/git.mjs'
 import { actionMain, booleanInput, captureCli, cliContext, input, readJson, setOutput, summary } from '../shared/runtime.mjs'
 
 export function planTargets(targets, settings = {}) {
-  const names = targets.split(/[\r\n,]/).map(name => name.trim()).filter(Boolean)
-  if (!names.length || !settings || typeof settings !== 'object' || Array.isArray(settings)) {
+  const names = targets.trimStart().startsWith('[')
+    ? readJson(targets, 'targets')
+    : targets.split(/[\r\n,]/).map(name => name.trim()).filter(Boolean)
+
+  if (!Array.isArray(names) || !names.length || names.some(name => typeof name !== 'string' || !/^[^\s:]+$/.test(name)) || !settings || typeof settings !== 'object' || Array.isArray(settings)) {
     throw new Error('Provide targets and a targetOptions JSON object keyed by target name.')
   }
   for (const name of Object.keys(settings)) {

@@ -52,6 +52,7 @@ test('ownership uses path boundaries and the deepest root, including a root proj
   assert.deepEqual(getAffectedProjects(graph, ['libs/ui/nested/a.ts']), ['nested'])
   assert.deepEqual(getAffectedProjects(graph, ['libs/ui-extra/a.ts']), ['other'])
   assert.deepEqual(getAffectedProjects(graph, ['readme.md']), ['root'])
+  assert.deepEqual(getAffectedProjects(graph, ['nx.json']), ['root'])
   assert.deepEqual(getAffectedProjects(graph, ['pnpm-lock.yaml']), ['nested', 'other', 'parent', 'root'])
   assert.deepEqual(getAffectedProjects(graph, ['tsconfig.base.json']), ['nested', 'other', 'parent', 'root'])
   assert.deepEqual(getAffectedProjects(workspace({ app: {}, lib: {} }), ['removed-project/source.ts']), ['app', 'lib'])
@@ -198,4 +199,25 @@ test('shallow history failures explain how to fetch the missing base', async t =
   t.onTestFinished(() => rm(clone, { recursive: true, force: true }))
   execFileSync('git', ['clone', '--depth=1', `file://${root}`, clone], { stdio: 'pipe' })
   await assert.rejects(getGitChanges(clone, { base }), /fetch full history.*fetch-depth: 0/)
+})
+
+test('removed project definitions affect all projects even with a root project', () => {
+  const graph = workspace({ root: { root: '.' }, app: {} })
+  assert.deepEqual(getAffectedProjects(graph, ['packages/deleted/project.json', 'packages/deleted/index.ts']), ['app', 'root'])
+})
+
+test('tag equality can contain inequality text in its value', () => {
+  assert.equal(matchesTags(['expression=a!=b'], 'expression=a!=b'), true)
+  assert.equal(matchesTags(['expression=a!=b'], 'expression!=a!=b'), false)
+})
+
+test('matrix rows own their stage arrays', () => {
+  const graph = workspace({ a: {}, b: {} })
+  const options = { target: 'build', maxJobs: 2, preTargets: ['build'], postTargets: ['build'] }
+  const { include } = createProjectMatrix(graph, ['a', 'b'], [options])
+  include[0].preTargets.push('changed')
+  include[0].postTargets.push('changed')
+  assert.deepEqual(include[1].preTargets, ['build'])
+  assert.deepEqual(include[1].postTargets, ['build'])
+  assert.deepEqual(options.preTargets, ['build'])
 })
