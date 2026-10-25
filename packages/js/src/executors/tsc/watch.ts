@@ -9,11 +9,14 @@ import { collectAssets } from './assets'
 import { buildConfiguration } from './build-config'
 import { CompilerProcessError } from './compiler'
 import { hash, inside, slash } from './files'
+import { watchSources } from './watch-sources'
 
 import type { TscOptions } from './options'
+import type { SourceGraph } from './watch-sources'
 import type { ExecutorContext, ExecutorResult } from '@isox-sh/core'
 
 interface SnapshotState {
+  sourceGraph?: SourceGraph
   configuration?: {
     inputs: Map<string, string | undefined>
     roots: string[]
@@ -21,6 +24,7 @@ interface SnapshotState {
     directories: string[]
     outputs: string[]
     diagnostics: string[]
+    options: ts.CompilerOptions
   }
 }
 
@@ -48,8 +52,13 @@ function configuration(tsConfig: string, context: ExecutorContext, state: Snapsh
     diagnostics.push(ts.flattenDiagnosticMessageText(error.messageText, '\n'))
   }
   let outputs: string[] = []
+  let options = parsed?.options ?? {}
   try {
-    outputs = buildConfiguration(tsConfig, context, readConfigFile)?.outputs ?? []
+    const build = buildConfiguration(tsConfig, context, readConfigFile)
+    outputs = build?.outputs ?? []
+    if (build) {
+      options = { ...options, paths: build.config.compilerOptions.paths }
+    }
   } catch (error) {
     diagnostics.push(String(error))
   }
@@ -61,6 +70,7 @@ function configuration(tsConfig: string, context: ExecutorContext, state: Snapsh
     directories: Object.keys(parsed?.wildcardDirectories ?? {}),
     outputs,
     diagnostics,
+    options,
   }
   return state.configuration
 }
@@ -99,6 +109,12 @@ export async function snapshot(
   }
   for (const project of Object.values(context.workspace?.projects ?? {})) {
     files.add(resolve(context.workspaceRoot, project.root, 'package.json'))
+  }
+  const sourceRoots = [...files].filter(file => /\.[cm]?[jt]sx?$/.test(file)
+    && !roots.some(root => inside(root, file))).sort()
+  state.sourceGraph = watchSources(sourceRoots, plan.options, state.sourceGraph)
+  for (const file of [...state.sourceGraph.sources, ...state.sourceGraph.contents.keys()]) {
+    files.add(file)
   }
   for (const file of [...files].sort()) {
     if (roots.some(root => inside(root, file))) {

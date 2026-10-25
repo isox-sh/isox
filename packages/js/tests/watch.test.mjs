@@ -178,3 +178,32 @@ test('watch snapshots ignore unrelated project sources but track extended config
   await write('base.json', { ...config, compilerOptions: { ...config.compilerOptions, strict: true } })
   assert.notEqual(await current(), added)
 })
+
+test('watch follows transitive imports outside projectRoot and discovers new imports', async t => {
+  const { root, config, write, context } = await fixture(t)
+  const shared = join(root, 'shared')
+  config.compilerOptions.noEmit = true
+  config.compilerOptions.rootDir = '../..'
+  delete config.include
+  config.files = ['src/index.ts']
+  await write('tsconfig.json', config)
+  await write('src/index.ts', "import { value } from '../../../shared/first.js'; export const answer: number = value")
+  await write(join(shared, 'first.ts'), "export { value } from './second.js'")
+  await write(join(shared, 'second.ts'), 'export const value = 1')
+  const controller = new AbortController()
+  const stream = await tsc({ watch: true, pollInterval: 100 }, { ...context, signal: controller.signal })
+  const iterator = stream[Symbol.asyncIterator]()
+  t.onTestFinished(async () => {
+    controller.abort()
+    await iterator.return()
+  })
+  assert.equal((await next(iterator)).value.success, true)
+  await write(join(shared, 'second.ts'), 'export const value = "wrong type"')
+  assert.equal((await next(iterator)).value.success, false)
+  await write(join(shared, 'second.ts'), "export { value } from './new/third.js'")
+  assert.equal((await next(iterator)).value.success, false)
+  await write(join(shared, 'new/third.ts'), 'export const value = 3')
+  assert.equal((await next(iterator)).value.success, true)
+  await write(join(shared, 'new/third.ts'), 'export const value = "wrong again"')
+  assert.equal((await next(iterator)).value.success, false)
+})
