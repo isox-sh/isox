@@ -14,6 +14,7 @@ interface ProjectSources {
   root: string
   manifest: Record<string, unknown>
   options: ts.CompilerOptions
+  config: string | undefined
 }
 
 function inside(root: string, file: string): boolean {
@@ -79,7 +80,7 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
     packages.set(name, project.name)
     const config = join(root, 'tsconfig.json')
     const options = ts.sys.fileExists(config) ? compilerOptions(config) : sharedOptions
-    projects.push({ project, root, manifest, options })
+    projects.push({ project, root, manifest, options, config: ts.sys.fileExists(config) ? config : baseConfig })
     for (const directory of [options.outDir, options.declarationDir]) {
       if (directory && inside(workspaceRoot, directory) && !inside(directory, root)) {
         outputs.push({ root: directory, name: project.name })
@@ -87,9 +88,24 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
     }
   }
 
+  const outputDirectories = outputs.map(output => output.root)
+  // A shared outDir preserves each project's path relative to rootDir. Never assign
+  // the entire shared directory to whichever project happened to be discovered first.
+  const ownedOutputs = outputs.flatMap(output => {
+    if (new Set(outputs.filter(other => other.root === output.root).map(other => other.name)).size === 1) {
+      return [output]
+    }
+    const source = projects.find(source => source.project.name === output.name)!
+    const rootDir = source.options.rootDir ?? (source.config ? dirname(source.config) : source.root)
+    if (rootDir === source.root || !inside(rootDir, source.root)) {
+      return []
+    }
+    return [{ ...output, root: resolve(output.root, relative(rootDir, source.root)) }]
+  })
+
   // A file in a nested project belongs to that project, not its enclosing project.
   projects.sort((a, b) => b.root.length - a.root.length || a.project.name.localeCompare(b.project.name))
-  const roots = [...projects.map(({ root, project }) => ({ root, name: project.name })), ...outputs]
+  const roots = [...projects.map(({ root, project }) => ({ root, name: project.name })), ...ownedOutputs]
     .sort((a, b) => b.root.length - a.root.length)
   const owner = (file: string): string | undefined => roots.find(entry => inside(entry.root, file))?.name
   const edges = new Map(projects.map(({ project }) => [project.name, new Set(project.dependencies ?? [])]))
@@ -116,10 +132,11 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
   const files = await fg('**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}', {
     cwd: workspaceRoot,
     absolute: true,
+    dot: true,
     followSymbolicLinks: false,
     ignore: [
       '**/node_modules/**', '**/.git/**', '**/.isox/**', '**/dist/**', '**/coverage/**', 'tmp/**',
-      ...outputs.map(output => `${fg.escapePath(relative(workspaceRoot, output.root).split(sep).join('/'))}/**`),
+      ...outputDirectories.map(output => `${fg.escapePath(relative(workspaceRoot, output).split(sep).join('/'))}/**`),
     ],
   })
   for (const file of files.sort()) {
@@ -151,9 +168,13 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
         const [prefix, suffix = ''] = pattern.split('*')
         const wildcard = specifier.slice(prefix.length, specifier.length - suffix.length)
         const base = options.baseUrl ?? options.pathsBasePath
-        for (const target of options.paths![pattern]) {
-          add(project.name, owner(resolve(typeof base === 'string' ? base : workspaceRoot, target.replace('*', wildcard))))
-        }
+        const resolved = ts.resolveModuleName(specifier, file, options, ts.sys).resolvedModule
+        const targets = options.paths![pattern].map(target =>
+          resolve(typeof base === 'string' ? base : workspaceRoot, target.replace('*', wildcard)),
+        )
+        // TypeScript selects the first resolving fallback. If outputs do not exist
+        // yet, retain only the first known owner so build ordering still works.
+        add(project.name, resolved ? owner(resolved.resolvedFileName) : targets.map(owner).find(Boolean))
       } else {
         add(project.name, packages.get(packageName(specifier)))
       }

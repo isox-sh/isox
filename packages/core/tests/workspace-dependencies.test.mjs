@@ -132,3 +132,38 @@ test('rejects ambiguous package names and malformed manifests before saving a ca
   await assert.rejects(parseWorkspace(root), /Invalid package manifest/)
   await assert.rejects(readFile(join(root, '.isox/workspace.json')), { code: 'ENOENT' })
 })
+
+test('uses the first resolving paths fallback without adding false dependencies', async t => {
+  const { root, write, project } = await fixture(t)
+  for (const name of ['app', 'first', 'fallback']) {
+    await project(name)
+  }
+  await write('tsconfig.base.json', { compilerOptions: { paths: {
+    '@choice': ['packages/first/index.ts', 'packages/fallback/index.ts'],
+  } } })
+  await write('packages/first/index.ts', 'export {}')
+  await write('packages/fallback/index.ts', 'export {}')
+  await write('packages/app/index.ts', "import '@choice'")
+  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['first'])
+  await rm(join(root, 'packages/first/index.ts'))
+  assert.deepEqual((await parseWorkspace(root, { cache: false })).projects.app.dependencies, ['fallback'])
+})
+
+test('assigns shared output subdirectories to their source projects', async t => {
+  const { root, write, project } = await fixture(t)
+  for (const name of ['app', 'one', 'two']) {
+    await project(name)
+  }
+  await write('tsconfig.base.json', { compilerOptions: { rootDir: '.', outDir: 'output' } })
+  await write('packages/app/index.ts', "import '../../output/packages/two/index.js'")
+  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['two'])
+})
+
+test('discovers hidden projects and imports in hidden source directories', async t => {
+  const { root, write, project } = await fixture(t)
+  await project('app')
+  await write('.tools/project.json', { name: 'tools' })
+  await write('.tools/package.json', { name: '@org/tools' })
+  await write('packages/app/.storybook/main.ts', "import '@org/tools'")
+  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['tools'])
+})

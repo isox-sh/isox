@@ -80,7 +80,9 @@ Use `project.json`'s optional `dependencies` for additional project names that
 cannot be inferred, such as dynamically selected plugins or generated inputs.
 These are merged with detected dependencies in `.isox/workspace.json`; source
 project files stay unchanged. Comments, ordinary strings, Node builtins, self-imports,
-dependency folders and generated output are excluded. Merely listing a command's
+dependency folders and recognized output directories are excluded. Generated files
+outside the ignored paths and configured output directories are still scanned.
+Merely listing a command's
 executor does not add an edge. Affected planning rejects unknown dependencies and
 reports dependency cycles.
 

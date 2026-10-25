@@ -32,6 +32,7 @@ export async function parseWorkspace(cwd: string, options: { cache?: boolean, lo
 
   const files = await fg('**/project.json', {
     cwd,
+    dot: true,
     ignore: ['**/node_modules/**', '**/.git/**', '**/.isox/**', 'tmp/**'],
   })
   const projects: Record<string, ProjectConfiguration> = Object.create(null)

@@ -14,10 +14,30 @@ function unwrap(expression: ts.Expression): ts.Expression {
 /** Inspect syntax only: comments, ordinary strings, and computed module names are not imports. */
 export function sourceDependencies(file: string, source: string, options: { includeTypes?: boolean } = {}): Set<string> {
   const tree = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true)
+  // Resolve local bindings without loading imports or libraries, so shadowed names
+  // never count as Node's require or createRequire.
+  const program = ts.createProgram([file], { noResolve: true, noLib: true, allowJs: true, types: [] }, {
+    ...ts.createCompilerHost({}),
+    getSourceFile: name => name === file ? tree : undefined,
+    fileExists: name => name === file,
+    readFile: name => name === file ? source : undefined,
+  })
+  const checker = program.getTypeChecker()
+  const symbol = (node: ts.Node) => checker.getSymbolAtLocation(node)
+  const remember = (set: Set<ts.Symbol>, node: ts.Node) => {
+    const binding = symbol(node)
+    if (binding) {
+      set.add(binding)
+    }
+  }
+  const has = (set: Set<ts.Symbol>, node: ts.Node) => {
+    const binding = symbol(node)
+    return binding !== undefined && set.has(binding)
+  }
   const dependencies = new Set<string>()
-  const requires = new Set(['require'])
-  const factories = new Set<string>()
-  const moduleNamespaces = new Set<string>()
+  const requires = new Set<ts.Symbol>()
+  const factories = new Set<ts.Symbol>()
+  const moduleNamespaces = new Set<ts.Symbol>()
   const add = (node: ts.Node | undefined) => {
     if (node && (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node))) {
       dependencies.add(node.text)
@@ -27,13 +47,13 @@ export function sourceDependencies(file: string, source: string, options: { incl
     && ['node:module', 'module'].includes(node.text)
   const isFactory = (node: ts.Expression): boolean => {
     const expression = unwrap(node)
-    return (ts.isIdentifier(expression) && factories.has(expression.text))
+    return (ts.isIdentifier(expression) && has(factories, expression))
       || (ts.isPropertyAccessExpression(expression) && expression.name.text === 'createRequire'
-        && ts.isIdentifier(expression.expression) && moduleNamespaces.has(expression.expression.text))
+        && ts.isIdentifier(expression.expression) && has(moduleNamespaces, expression.expression))
   }
   const isRequire = (node: ts.Expression): boolean => {
     const expression = unwrap(node)
-    return (ts.isIdentifier(expression) && requires.has(expression.text))
+    return (ts.isIdentifier(expression) && (has(requires, expression) || (expression.text === 'require' && !symbol(expression)?.declarations?.length)))
       || (ts.isCallExpression(expression) && isFactory(expression.expression)
         && !!expression.arguments[0] && isLocalOrigin(expression.arguments[0]))
   }
@@ -50,15 +70,15 @@ export function sourceDependencies(file: string, source: string, options: { incl
     if (ts.isImportDeclaration(node) && !node.importClause?.isTypeOnly && isModule(node.moduleSpecifier)) {
       const clause = node.importClause
       if (clause?.name) {
-        moduleNamespaces.add(clause.name.text)
+        remember(moduleNamespaces, clause.name)
       }
       const imports = clause?.namedBindings
       if (imports && ts.isNamespaceImport(imports)) {
-        moduleNamespaces.add(imports.name.text)
+        remember(moduleNamespaces, imports.name)
       } else if (imports) {
         for (const entry of imports.elements) {
           if (!entry.isTypeOnly && (entry.propertyName ?? entry.name).text === 'createRequire') {
-            factories.add(entry.name.text)
+            remember(factories, entry.name)
           }
         }
       }
@@ -68,11 +88,13 @@ export function sourceDependencies(file: string, source: string, options: { incl
       const value = node.initializer && unwrap(node.initializer)
       if (value && ts.isCallExpression(value) && isRequire(value.expression) && isModule(value.arguments[0])) {
         if (ts.isIdentifier(node.name)) {
-          moduleNamespaces.add(node.name.text)
+          remember(moduleNamespaces, node.name)
         } else if (ts.isObjectBindingPattern(node.name)) {
           for (const entry of node.name.elements) {
-            if (ts.isIdentifier(entry.name) && (entry.propertyName?.getText(tree) ?? entry.name.text) === 'createRequire') {
-              factories.add(entry.name.text)
+            const property = entry.propertyName ?? entry.name
+            if (ts.isIdentifier(entry.name) && (ts.isIdentifier(property) || ts.isStringLiteral(property))
+              && property.text === 'createRequire') {
+              remember(factories, entry.name)
             }
           }
         }
@@ -91,8 +113,8 @@ export function sourceDependencies(file: string, source: string, options: { incl
       }
       const value = unwrap(node.initializer)
       for (const [names, matches] of [[factories, isFactory(value)], [requires, isRequire(value)]] as const) {
-        if (matches && !names.has(node.name.text)) {
-          names.add(node.name.text)
+        if (matches && symbol(node.name) && !has(names, node.name)) {
+          remember(names, node.name)
           changed = true
         }
       }

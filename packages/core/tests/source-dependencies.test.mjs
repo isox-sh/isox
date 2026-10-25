@@ -79,3 +79,19 @@ test('workspace discovery includes type-only imports and re-exports', () => {
     'inline-type', 'type-equals', 'type-export', 'type-expression', 'type-only',
   ])
 })
+
+test('recognizes quoted createRequire bindings and excludes shadowed functions', () => {
+  const source = `
+    const { 'createRequire': factory } = require('node:module')
+    const local = factory(__filename)
+    local('real')
+    require('global')
+    function shadow(require, local, factory) {
+      require('not-node')
+      local('not-local')
+      factory(__filename)('not-factory')
+    }
+    { const require = () => {}; require('block-local') }
+  `
+  assert.deepEqual([...sourceDependencies('example.cjs', source)].sort(), ['global', 'node:module', 'real'])
+})
