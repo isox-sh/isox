@@ -6,6 +6,12 @@
     "affected": {
       "type": "object",
       "properties": {
+        "ignoreFiles": {
+          "description": "Workspace-relative glob patterns excluded from affected selection, taking precedence over built-in and additional global files.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
         "globalFiles": {
           "description": "Additional workspace-relative glob patterns whose changes affect every project, including shared tools owned by a project.",
           "type": "array",

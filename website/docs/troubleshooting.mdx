@@ -80,8 +80,9 @@ the CLI, executors, and prerequisite outputs from a clean checkout.
 
 ## Affected selection is larger than expected
 
-Changes to root manifests, lockfiles, shared TypeScript configuration, `.github`,
-and files outside every project affect all projects. Dependencies propagate
+Changes to root manifests, lockfiles, shared TypeScript configuration, and `.github`
+affect all projects. Other files outside every project are ignored unless matched
+by `affected.globalFiles`. Dependencies propagate
 changes to their transitive dependents before command and tag filtering.
 
 Inspect the selection without running tasks:
@@ -90,7 +91,8 @@ Inspect the selection without running tasks:
 npx isox affected --target=test --base=origin/main --print-matrix
 ```
 
-Use narrow `affected.globalFiles` globs for additional shared tooling. See
+Use narrow `affected.globalFiles` globs for additional shared tooling and
+`affected.ignoreFiles` to exclude files before global and project matching. See
 [what counts as affected](/docs/affected-and-ci#what-counts-as-affected).
 
 ## Affected selection is empty or Git history is missing

@@ -9,6 +9,7 @@ import { workspaceSchemaPath } from './schema'
 export interface WorkspaceSettings {
   affected?: {
     globalFiles?: string[]
+    ignoreFiles?: string[]
   }
   nx?: {
     executors?: string[]

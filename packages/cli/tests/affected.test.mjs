@@ -35,6 +35,40 @@ test('affected defaults to committed changes, supports local opt-ins and empty m
   assert.deepEqual(JSON.parse(run('plan', '--target=build').stdout), { include: [] })
 })
 
+test('affected and plan ignore unowned files and configured exclusions from local changes', async t => {
+  const { write, git, commit, run } = await affectedFixture(t)
+  await write('isox.json', { affected: { ignoreFiles: ['**/*.md', 'pnpm-lock.yaml'] } })
+  const base = commit()
+  await write('NEXT_ON.md', 'notes')
+  git('add', 'NEXT_ON.md')
+  await write('notes.txt', 'untracked root file')
+  await write('packages/lib/README.md', 'ignored project file')
+  await write('pnpm-lock.yaml', 'ignored global file')
+  const args = ['--target=build', `--base=${base}`, '--uncommitted', '--untracked']
+  const affected = () => {
+    const result = run('affected', ...args, '--print-matrix')
+    assert.equal(result.status, 0, result.stderr)
+    return JSON.parse(result.stdout)
+  }
+  assert.deepEqual(affected(), [])
+  await write('packages/lib/change.ts', 'export const value = 1')
+  assert.deepEqual(affected(), ['app', 'lib'])
+  const plan = run('plan', ...args)
+  assert.equal(plan.status, 0, plan.stderr)
+  assert.deepEqual(JSON.parse(plan.stdout).include.flatMap(row => row.projects).sort(), ['app', 'lib'])
+})
+
+test('affected validates ignoreFiles patterns in workspace settings', async t => {
+  const { write, run } = await affectedFixture(t)
+  for (const ignoreFiles of ['*.md', [1], [''], ['*.md', '*.md']]) {
+    await write('isox.json', { affected: { ignoreFiles } })
+    const result = run('affected', '--target=build', '--print-matrix')
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /Invalid workspace configuration/)
+    assert.equal(result.stdout, '')
+  }
+})
+
 test('plans bypass stale discovery data and apply changed weights without reset', async t => {
   const { project, run } = await affectedFixture(t)
   const original = run('plan', '--target=build', '--all', '--max-jobs=2')
