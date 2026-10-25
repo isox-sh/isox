@@ -12,7 +12,6 @@
     "dist"
   ],
   "dependencies": {
-    "@isox-sh/core": "workspace:*",
     "cac": "^7.1.0"
   },
   "description": "A lightweight monorepo command runner with explicit project configuration.",

@@ -2,8 +2,9 @@
 
 [Documentation index](README.md)
 
-Isox selects changed projects and their transitive dependents using Git and the
-explicit `dependencies` in each `project.json`. The same selection powers local
+Isox selects changed projects and their transitive dependents using Git and
+dependencies inferred during workspace discovery, plus explicit `dependencies`
+in each `project.json`. The same selection powers local
 execution, JSON project lists, and weighted GitHub Actions matrices.
 
 ## Local commands
@@ -48,9 +49,11 @@ to the children and return exit codes 130/143.
   Files outside every known project also affect all projects. This conservatively
   handles shared scripts, documentation and deleted project directories.
 - All transitive dependents are included **before** command and tag filtering.
-  Only project names in `dependencies` create edges; npm dependencies, source
-  imports and plugin use are not inferred. Unknown references and cycles fail
-  with an explanation.
+  Discovery combines source imports, TypeScript aliases, local package references,
+  and explicitly declared project dependencies. Type-only imports and tests count.
+  Dynamically selected plugins need explicit dependencies; executor selections
+  alone do not add edges. Unknown references and cycles fail with an explanation.
+  See [dependency discovery](configuration.md#project-definitions).
 - Projects without the requested command and projects tagged `ci=off` are
   excluded from selection. Explicit `run-many --projects-json` runs exactly its
   list, including a project tagged `ci=off`.

@@ -10,7 +10,7 @@ import { findWorkspaceRoot } from './root'
 import type { Logger } from '../logger'
 import type { WorkspaceGraph } from './parser'
 
-const cacheVersion = 5
+const cacheVersion = 6
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)

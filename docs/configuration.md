@@ -58,8 +58,25 @@ narrow them to their own types. Defined Isox fields are still validated.
 See [named configurations](cli.md#named-configurations) for option overrides and
 [Nx project conversion](nx-migration.md#project-conversion) for existing Nx files.
 
-`dependencies` drives affected-project propagation. Reference project names;
-affected planning rejects unknown dependencies and reports dependency cycles.
+Discovery detects project dependencies from TypeScript/JavaScript imports,
+re-exports, literal dynamic imports and require calls, including type-only imports
+and test files. Package names and subpaths map to their owning projects. Relative
+cross-project imports and exact or wildcard TypeScript `paths` aliases also count;
+extended configs and project-specific overrides are respected. Aliases can point
+to source files or declared compiler output directories, even before a build.
+
+Local package references in `dependencies`, `devDependencies`, `optionalDependencies`,
+and `peerDependencies` are also detected. Package aliases and relative workspace
+references are supported. Duplicate workspace package names fail discovery.
+
+Use `project.json`'s optional `dependencies` for additional project names that
+cannot be inferred, such as dynamically selected plugins or generated inputs.
+These are merged with detected dependencies in `.isox/workspace.json`; source
+project files stay unchanged. Comments, ordinary strings, Node builtins, self-imports,
+dependency folders and generated output are excluded. Merely listing a command's
+executor does not add an edge. Affected planning rejects unknown dependencies and
+reports dependency cycles.
+
 `plan.weight` is a positive number that estimates a project's relative CI cost.
 It defaults to `1`; increasing it gives the project more weight when balancing
 shards. Fractional weights are supported. See [affected and CI](affected-and-ci.md)

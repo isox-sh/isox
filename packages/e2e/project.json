@@ -1,10 +1,6 @@
 {
   "$schema": "../core/schemas/project.schema.json",
   "name": "e2e-plugin",
-  "dependencies": [
-    "core",
-    "cli"
-  ],
   "executors": {
     "build": {
       "executor": "js:tsc",

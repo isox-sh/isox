@@ -1,9 +1,6 @@
 {
   "$schema": "../core/schemas/project.schema.json",
   "name": "eslint",
-  "dependencies": [
-    "core"
-  ],
   "executors": {
     "build": {
       "executor": "js:tsc",

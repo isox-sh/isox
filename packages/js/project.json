@@ -2,9 +2,6 @@
   "$schema": "../core/schemas/project.schema.json",
   "name": "js",
   "plan": { "weight": 2 },
-  "dependencies": [
-    "core"
-  ],
   "executors": {
     "build": {
       "executor": "js:tsc",

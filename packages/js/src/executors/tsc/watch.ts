@@ -5,6 +5,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 import fg from 'fast-glob'
 
 import { collectAssets } from './assets'
+import { buildConfiguration } from './build-config'
 import { CompilerProcessError, readConfig } from './compiler'
 import { hash, inside, slash } from './files'
 
@@ -37,6 +38,18 @@ export async function snapshot(tsConfig: string, options: TscOptions, context: E
   }
   files.add(tsConfig)
   const parts = [parsed.output]
+  if (parsed.config) {
+    try {
+      // A dependency's declarations may be rebuilt after its source change was observed.
+      for (const output of buildConfiguration(tsConfig, context)?.outputs ?? []) {
+        for (const file of await fg('**/*', { cwd: output, absolute: true, dot: true, followSymbolicLinks: false })) {
+          files.add(file)
+        }
+      }
+    } catch (error) {
+      parts.push(String(error))
+    }
+  }
   for (const file of [...files].sort()) {
     if (roots.some(root => inside(root, file))) {
       continue

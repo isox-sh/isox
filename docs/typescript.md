@@ -66,6 +66,21 @@ and source maps. `noEmitOnError` is always enabled. Emitting builds require an
 `outDir` inside the workspace, separate from sources and other project roots;
 `noEmit` configs can run without one. `outFile` is unsupported.
 
+Workspace TypeScript `paths` can point directly to other projects' source files.
+For dependencies in the workspace graph, the executor creates a temporary config
+under `.isox/tsc/` that remaps these aliases to their built declarations, using
+each dependency's `rootDir` and `declarationDir` (or `outDir`). Exact aliases and
+wildcard subpaths are supported; aliases within the current project keep using
+source files. The original configs stay unchanged, so editors navigate to source.
+The temporary config is removed after compilation, including failed builds.
+
+Build dependencies with declarations enabled before building their consumers;
+Isox does not schedule prerequisite builds yet. Dependency configs come from the
+same command's `tsConfig` option (falling back to `build`, then the project's
+`tsconfig.json`). A matching named configuration takes precedence over the
+dependency's default configuration. Watch mode also monitors dependency output
+files, so new declarations trigger a rebuild after dependencies are compiled.
+
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `tsConfig` | Project's `tsconfig.json` | Workspace-relative or absolute config path |
@@ -152,10 +167,14 @@ namespace, and side-effect imports, runtime re-exports, literal `import()`,
 `require()`, and `require.resolve()` calls count. Module-local
 `createRequire(__filename)` and `createRequire(import.meta.url)` calls are also
 recognized, including aliases. A require created for another package's path is
-not treated as this project's dependency. Computed module names cannot be inferred.
+not treated as this project's dependency; neither are `require.resolve` calls
+with explicit lookup options for another workspace. Computed module names cannot
+be inferred.
 
 `import type`, `export type`, inline type-only bindings, and `import()` type
-expressions do not add dependencies. Mixed imports count when they have a runtime
+expressions add dependencies only for local workspace packages, so published
+declarations can resolve their workspace types. External type-only packages are
+not inferred. Mixed imports count when they have a runtime
 binding. Declaration files, comments, ordinary strings, Node builtins, relative
 imports, self-imports, and path aliases resolved within the project are excluded.
 

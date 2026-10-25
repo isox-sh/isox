@@ -8,66 +8,6 @@ import { test } from 'vitest'
 import { fixture, tsc } from './fixture.mjs'
 
 const require = createRequire(import.meta.url)
-const { sourceDependencies } = require('../../../dist/js/helpers/source-dependencies.js')
-
-test('detects runtime import syntax and excludes type-only imports, comments, and strings', () => {
-  const found = sourceDependencies('example.ts', `
-    import value from 'default-import'
-    import { value } from 'named-import'
-    import * as values from 'namespace-import'
-    import 'side-effect'
-    import { type Shape, value } from 'mixed-import'
-    import Default, { type Shape } from 'default-with-types'
-    import {} from 'empty-import'
-    export { value } from 'named-export'
-    export * from 'star-export'
-    export { type Shape, value } from 'mixed-export'
-    import value = require('import-equals')
-    import('dynamic-import')
-    require('commonjs')
-    require.resolve('resolved/package.json')
-    import.meta.resolve('meta-resolved')
-    import type Default from 'type-default'
-    import type * as Types from 'type-namespace'
-    import type { Shape } from 'type-named'
-    import { type Shape } from 'inline-type-import'
-    import type Value = require('type-import-equals')
-    export type { Shape } from 'type-export'
-    export type * from 'type-star-export'
-    export { type Shape } from 'inline-type-export'
-    type Shape = import('import-type-expression').Shape
-    // import value from 'comment'
-    /* require('block-comment') */
-    const text = "import value from 'string'"
-    import(variable)
-    require('computed-' + variable)
-  `)
-  assert.deepEqual([...found].sort(), [
-    'default-import', 'named-import', 'namespace-import', 'side-effect', 'mixed-import',
-    'default-with-types', 'empty-import', 'named-export', 'star-export', 'mixed-export',
-    'import-equals', 'dynamic-import', 'commonjs', 'resolved/package.json', 'meta-resolved',
-  ].sort())
-})
-
-test('detects module-local createRequire imports and aliases without counting another package’s lookups', () => {
-  const found = sourceDependencies('example.ts', `
-    import { createRequire as makeRequire } from 'node:module'
-    import * as module from 'module'
-    const local = makeRequire(import.meta.url)
-    const alias = local
-    alias('runtime')
-    local.resolve('@scope/dependency/package.json')
-    makeRequire(__filename).resolve('@typescript/native/package.json')
-    module.createRequire(__filename)('namespace-runtime')
-    const foreign = makeRequire(pluginPackagePath)
-    foreign.resolve('foreign-dependency')
-    makeRequire(pluginPackagePath).resolve('foreign-inline-dependency')
-  `)
-  assert.deepEqual([...found].sort(), [
-    'node:module', 'module', 'runtime', '@scope/dependency/package.json',
-    '@typescript/native/package.json', 'namespace-runtime',
-  ].sort())
-})
 
 test('infers versions from source and root manifests while preserving optional and peer dependencies', async t => {
   const { root, projectRoot, write, read, config, context } = await fixture(t)
@@ -158,4 +98,26 @@ test('the JS package infers the native compiler alias from the workspace root', 
   const generated = require('../../../dist/js/package.json')
   assert.equal(source.dependencies['@typescript/native'], undefined)
   assert.equal(generated.dependencies['@typescript/native'], root.devDependencies['@typescript/native'])
+})
+
+test('infers a workspace dependency used only by exported types without a source dependency declaration', async t => {
+  const { root, projectRoot, write, context } = await fixture(t)
+  context.workspace.projects.types = { name: 'types', root: 'packages/types' }
+  await write(join(root, 'packages/types/package.json'), { name: '@fixture/types', version: '2.0.0' })
+  await write('src/index.ts', "export type { Shape } from '@fixture/types'")
+  await write('dist/index.js', '')
+  const output = join(projectRoot, 'dist')
+  const files = await generatePackageJson({}, context, output, new Set([join(output, 'index.js')]), new Map())
+  assert.deepEqual(JSON.parse(files.get(join(output, 'package.json'))).dependencies, { '@fixture/types': '2.0.0' })
+})
+
+test('published packages retain internal dependencies removed from source manifests', () => {
+  const core = require('../../../dist/core/package.json')
+  for (const name of ['cli', 'js', 'eslint', 'vitest', 'nx', 'e2e']) {
+    const source = require(`../../${name}/package.json`)
+    const generated = require(`../../../dist/${name}/package.json`)
+    assert.equal(source.dependencies?.['@isox-sh/core'], undefined)
+    assert.equal(generated.dependencies['@isox-sh/core'], core.version, name)
+  }
+  assert.equal(core.dependencies['@isox-sh/nx'], undefined, 'The optional Nx adapter must remain a workspace-selected plugin')
 })

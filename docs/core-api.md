@@ -220,10 +220,15 @@ const matrix = createProjectMatrix(workspace, projects, [{ target: 'test', maxJo
 
 `parseWorkspace` accepts an optional logger and `cache: false` to bypass cached
 reads and refresh the saved workspace. `getAffectedProjects` propagates changed
-files through explicit dependency edges; `createProjectMatrix` applies command
+files through inferred and explicitly declared dependency edges; `createProjectMatrix` applies command
 and tag filters, checks configurations, and distributes project weights. It
 returns the same matrix contract used by the CLI and actions. See the
 [affected and CI guide](affected-and-ci.md) for complete semantics.
+
+Discovery merges import and local package references into each cached project's
+`dependencies`. The source `project.json` retains only manual additions. Core also
+exports `sourceDependencies(file, source, { includeTypes: true })` to inspect
+literal import references; omit `includeTypes` to collect runtime references only.
 
 ## Scope and migration
 

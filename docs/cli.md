@@ -81,7 +81,7 @@ See [workspace configuration](configuration.md) for discovery details and
 
 ## Current scope
 
-Affected selection follows explicit `dependencies`. Parallel execution uses
+Affected selection follows inferred and explicitly declared dependencies. Parallel execution uses
 separate child CLI processes, and the GitHub actions distribute exact weighted
 project lists. See [affected projects and CI](affected-and-ci.md).
 Declaring `dependencies` does not schedule prerequisite builds; prepare required

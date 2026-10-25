@@ -18,7 +18,7 @@
       "type": "array",
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^[^\\s:]+$" },
-      "description": "Names of projects this project depends on. Used to propagate affected changes; prerequisite scheduling is not yet implemented."
+      "description": "Additional project dependencies, merged with imports and local package references during discovery. Used to propagate affected changes; prerequisite scheduling is not yet implemented."
     },
     "executors": {
       "type": "object",

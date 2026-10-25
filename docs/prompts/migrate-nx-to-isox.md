@@ -112,9 +112,11 @@ source of truth if migrating against a different Isox version.
   the location of `project.json`; do not add a `root` field.
 - Rename `targets` to `executors`. A command requires `executor` and accepts optional
   `options` plus additional metadata. Executors use `package:executor` references; options must be objects.
-- Convert dependencies to explicit Isox project names in `dependencies`.
-  Resolve any Nx patterns, exclusions, or implicit/inferred relationships before
-  converting them. These entries are metadata, not execution prerequisites.
+- Convert manual dependencies to explicit Isox project names in `dependencies`.
+  Resolve any Nx patterns and exclusions before converting them. Isox also infers
+  relationships from source imports, TypeScript aliases, and local package
+  references. Preserve relationships that cannot be inferred as explicit entries.
+  These edges propagate affected changes; they do not schedule prerequisites.
 - Preserve applicable string `tags`. Neither tags nor dependencies enforce
   module boundaries or schedule commands.
 - Keep extra fields such as `sourceRoot`, `projectType`, or custom metadata when

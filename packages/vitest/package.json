@@ -9,7 +9,6 @@
     "executors.json"
   ],
   "dependencies": {
-    "@isox-sh/core": "workspace:*",
     "vitest": "^5.0.5"
   },
   "repository": {

@@ -2,11 +2,11 @@ import { readFile } from 'node:fs/promises'
 import { isBuiltin } from 'node:module'
 import { dirname, isAbsolute, resolve } from 'node:path'
 
+import { sourceDependencies } from '@isox-sh/core'
 import ts from 'typescript'
 
 import { canonical, inside } from './files'
 import { defaultManifest, optionalManifest, versionPattern } from './package-manifest'
-import { sourceDependencies } from './source-dependencies'
 
 import type { PackageJsonContext, PackageJsonOptions } from './package-json'
 import type { Manifest } from './package-manifest'
@@ -60,12 +60,18 @@ export async function inferDependencies(
     if (/\.d\.[cm]?ts$/.test(file)) {
       continue
     }
-    for (const specifier of sourceDependencies(file, await readFile(file, 'utf8'))) {
+    const source = await readFile(file, 'utf8')
+    const runtime = sourceDependencies(file, source)
+    for (const specifier of sourceDependencies(file, source, { includeTypes: true })) {
       if (isBuiltin(specifier) || specifier.startsWith('.') || specifier.startsWith('#')
         || isAbsolute(specifier) || /^[a-z][a-z\d+.-]*:/i.test(specifier)) {
         continue
       }
       const name = specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0]
+      // Published declarations also need the workspace packages referenced by their types.
+      if (!runtime.has(specifier) && !workspacePackages.has(name)) {
+        continue
+      }
       if (name === manifest.name) {
         continue
       }

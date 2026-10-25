@@ -6,9 +6,6 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "@isox-sh/core": "workspace:*"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/isox-sh/isox.git",

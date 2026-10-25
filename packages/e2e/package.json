@@ -9,7 +9,6 @@
     "dist"
   ],
   "dependencies": {
-    "@isox-sh/core": "workspace:*",
     "isox": "workspace:*"
   },
   "repository": {

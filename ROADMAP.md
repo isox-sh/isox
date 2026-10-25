@@ -36,7 +36,7 @@ command/configuration proposals below are not implemented contracts.
 ## Current capability boundary
 
 Isox discovers projects, runs individual or multiple commands, and selects
-affected projects through Git changes and explicit reverse dependency edges.
+affected projects through Git changes and inferred or declared reverse dependency edges.
 Weighted plans use `plan.weight` (default 1), exact project lists and bounded
 worker concurrency. Native GitHub actions plan/run these lists and are used in
 our CI. See [affected projects and CI](docs/affected-and-ci.md).
@@ -87,13 +87,14 @@ Foundation code: [workspace](packages/core/src/workspace/),
 
 ## 1. Explicit dependency and task graphs
 
-Build a native graph from declarations. Do not depend on the Nx adapter or source
-AST inference. Start with project names in `dependencies`; decide separately
-whether to opt into package-manifest dependency mapping.
+Build a native graph without the Nx adapter. Discovery combines literal source
+imports, TypeScript aliases, and local package-manifest references with additional
+project names from `dependencies`. It does not perform type checking or execute
+source files while building the graph.
 
 - [x] Validate dependency references and report cycles with the complete cycle path during affected selection/planning.
 - [x] Build forward and reverse project edges with deterministic ordering and safe handling of isolated projects.
-- [ ] Decide whether/how package names map to project names, including conflicting declarations and dependency types.
+- [x] Map package names, subpaths, TypeScript aliases and relative imports to project names; merge local package dependency fields and explicit additions, and reject duplicate package names.
 - [ ] Specify and validate native command prerequisites, including the proposed `dependsOn: ['^build']` dependency-command syntax.
 - [ ] Define missing prerequisite commands, self-project prerequisites, and configuration propagation explicitly.
 - [ ] Produce an inspectable task plan before executing; deduplicate shared prerequisites and identify tasks by project, command, and configuration.
@@ -288,3 +289,32 @@ Follow-up review: 2026-10-25.
   values, executor cleanup, and SIGINT/SIGTERM exit statuses.
 - Package builds, ESLint, workflow lint, and **156 core/CLI tests passed**
   (core 106, CLI 50). Other package suites were unchanged in this review.
+
+Automatic workspace dependencies: 2026-10-25.
+
+- Removed internal `@isox-sh/*` dependency declarations from source package
+  manifests and duplicate dependency arrays from package project definitions.
+  Root TypeScript paths resolve package imports against the original sources.
+  The JS executor remaps dependencies to compiled declarations in a temporary
+  build config, preserving source aliases for editors and workspace discovery.
+- Discovery now merges literal imports, type references, TypeScript path aliases,
+  and local package-manifest references with manual project dependencies. It saves
+  those edges in cache format 6 without rewriting source project definitions.
+- Shared the syntax scanner between discovery and package generation. Published
+  manifests retain required internal packages, including workspace type references;
+  external plugin lookups no longer imply a dependency on the optional Nx adapter.
+- All **265 tests passed** (core 115, CLI 57, JS 34, Nx 41, ESLint 5, Vitest 4,
+  E2E plugin 7, end-to-end 2). ESLint and package builds passed. An isolated
+  bootstrap starting without `dist` or a workspace cache also built all packages
+  and produced the weighted test plan successfully.
+
+Source alias follow-up: 2026-10-25.
+
+- `js:tsc` now uses a temporary config to compile against dependency declarations
+  while checked-in TypeScript aliases point to source. Watch mode detects rebuilt
+  dependency outputs, and temporary configs are removed after success or failure.
+- Added five regression tests for source aliases, wildcard subpaths, inherited
+  settings, config-relative paths, declaration directories, missing dependency
+  builds, cleanup, and watch updates.
+- ESLint and **156 core/JS/end-to-end tests passed** (115, 39, and 2). Package
+  builds and an isolated bootstrap without existing outputs or cache also passed.

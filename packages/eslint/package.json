@@ -9,7 +9,6 @@
     "executors.json"
   ],
   "dependencies": {
-    "@isox-sh/core": "workspace:*",
     "eslint": "^10.13.0"
   },
   "repository": {

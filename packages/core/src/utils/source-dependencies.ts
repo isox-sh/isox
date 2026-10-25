@@ -12,7 +12,7 @@ function unwrap(expression: ts.Expression): ts.Expression {
 }
 
 /** Inspect syntax only: comments, ordinary strings, and computed module names are not imports. */
-export function sourceDependencies(file: string, source: string): Set<string> {
+export function sourceDependencies(file: string, source: string, options: { includeTypes?: boolean } = {}): Set<string> {
   const tree = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true)
   const dependencies = new Set<string>()
   const requires = new Set(['require'])
@@ -105,21 +105,23 @@ export function sourceDependencies(file: string, source: string): Set<string> {
       const bindings = clause?.namedBindings
       const onlyTypeBindings = !clause?.name && bindings && ts.isNamedImports(bindings)
         && bindings.elements.length > 0 && bindings.elements.every(entry => entry.isTypeOnly)
-      if (!clause?.isTypeOnly && !onlyTypeBindings) {
+      if (options.includeTypes || (!clause?.isTypeOnly && !onlyTypeBindings)) {
         add(node.moduleSpecifier)
       }
     } else if (ts.isExportDeclaration(node)) {
       const onlyTypeBindings = node.exportClause && ts.isNamedExports(node.exportClause)
         && node.exportClause.elements.length > 0 && node.exportClause.elements.every(entry => entry.isTypeOnly)
-      if (!node.isTypeOnly && !onlyTypeBindings) {
+      if (options.includeTypes || (!node.isTypeOnly && !onlyTypeBindings)) {
         add(node.moduleSpecifier)
       }
-    } else if (ts.isImportEqualsDeclaration(node) && !node.isTypeOnly && ts.isExternalModuleReference(node.moduleReference)) {
+    } else if (ts.isImportEqualsDeclaration(node) && (options.includeTypes || !node.isTypeOnly) && ts.isExternalModuleReference(node.moduleReference)) {
       add(node.moduleReference.expression)
+    } else if (options.includeTypes && ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument)) {
+      add(node.argument.literal)
     } else if (ts.isCallExpression(node)) {
       const expression = unwrap(node.expression)
       if (expression.kind === ts.SyntaxKind.ImportKeyword || isRequire(expression)
-        || (ts.isPropertyAccessExpression(expression) && expression.name.text === 'resolve'
+        || (node.arguments.length === 1 && ts.isPropertyAccessExpression(expression) && expression.name.text === 'resolve'
           && (isRequire(expression.expression) || expression.expression.kind === ts.SyntaxKind.MetaProperty))) {
         add(node.arguments[0])
       }

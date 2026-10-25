@@ -5,6 +5,7 @@ import fg from 'fast-glob'
 
 import { generatePackageJson } from '../../helpers/package-json'
 import { collectAssets } from './assets'
+import { withBuildConfig } from './build-config'
 import { compile, readConfig } from './compiler'
 import {
   atomicWrite,
@@ -84,7 +85,9 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
 
     const outDir = config.compilerOptions.outDir ? resolve(dirname(tsConfig), config.compilerOptions.outDir) : undefined
     const assets = outDir ? await collectAssets(options, context, outDir, roots) : new Map<string, Buffer>()
-    const compilation = await compile(tsConfig, context.workspaceRoot, stateFile, config, signal)
+    const compilation = await withBuildConfig(tsConfig, context, stateFile, buildConfig =>
+      compile(buildConfig, context.workspaceRoot, stateFile, config, signal),
+    )
     if (!compilation.success || signal?.aborted) {
       return { success: false }
     }

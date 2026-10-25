@@ -5,7 +5,7 @@ export interface ProjectGraph {
   dependents: Record<string, string[]>
 }
 
-/** Build explicit edges only. Package imports and npm dependency names are not inferred. */
+/** Build edges from the cached union of declared and inferred project dependencies. */
 export function createProjectGraph(workspace: WorkspaceGraph): ProjectGraph {
   const names = Object.keys(workspace.projects).sort()
   const dependencies: Record<string, string[]> = Object.create(null)

@@ -58,7 +58,7 @@ The planning job runs lint and creates an affected test matrix through our
 `actions/plan` action. Up to three workers bootstrap their prerequisites and use
 `actions/run-many` to execute the exact planned package and end-to-end suites.
 Projects' `plan.weight` values balance expensive suites. Changes propagate through
-declared dependencies; workspace-wide inputs and unowned paths select all suites.
+inferred and declared dependencies; workspace-wide inputs and unowned paths select all suites.
 A final required check preserves failures and accepts an empty plan. Pull requests
 use their base SHA; other events use the nearest reachable Git tag, or all
 projects if none exists. This workflow runs only for pull requests and merge groups.
@@ -100,6 +100,17 @@ in our project files. Compiler settings stay in each package's `tsconfig.json`;
 there are no `scripts.build` entries. Lint commands use
 [`eslint:lint`](eslint.md); test commands use
 [`vitest:test`](vitest.md).
+Internal package imports use the root `tsconfig.base.json` paths, which point to
+the original sources in `packages/*/src`. The `js:tsc` executor creates a temporary
+build config that maps dependencies to their compiled declarations. Build
+prerequisites first; editor navigation and workspace discovery use the source
+aliases without needing a build. Root development
+dependencies keep the local plugins available to Node and the CLI; TypeScript
+paths do not rewrite emitted imports. Source package manifests omit internal
+`@isox-sh/*` dependencies, and package generation restores the dependencies needed
+by their published code and types. Workspace discovery infers project edges, so
+package project definitions do not duplicate these imports.
+
 Isox uses `dependencies` for affected selection but does not schedule prerequisite builds yet: build core before JS
 and the other packages when rebuilding manually. `pnpm bootstrap` seeds core and the JS executor
 with TypeScript, then runs the package build commands through Isox. It also

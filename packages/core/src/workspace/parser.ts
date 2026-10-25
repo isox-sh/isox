@@ -6,6 +6,7 @@ import fg from 'fast-glob'
 import { logger } from '../logger'
 import { readWorkspaceCache, writeWorkspaceCache } from './cache'
 import { parseProjectDefinition } from './configuration'
+import { inferProjectDependencies } from './dependencies'
 
 import type { Logger } from '../logger'
 import type { ProjectDefinition } from './configuration'
@@ -59,6 +60,7 @@ export async function parseWorkspace(cwd: string, options: { cache?: boolean, lo
   }
 
   const workspace = { projects }
+  await inferProjectDependencies(cwd, workspace)
   await writeWorkspaceCache(cwd, workspace, taskLogger)
   return workspace
 }

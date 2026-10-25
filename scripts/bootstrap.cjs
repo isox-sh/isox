@@ -1,5 +1,5 @@
 const { spawnSync } = require('node:child_process')
-const { copyFileSync, existsSync, globSync, mkdirSync, readFileSync, realpathSync, writeFileSync } = require('node:fs')
+const { copyFileSync, existsSync, globSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } = require('node:fs')
 const { dirname, resolve } = require('node:path')
 
 const { linkDependency, recordSeedOwnership } = require('./bootstrap-files.cjs')
@@ -77,7 +77,23 @@ function compileSeed(name) {
   }
 
   const configPath = resolve(root, command.options?.tsConfig ?? `packages/${name}/tsconfig.json`)
-  const result = spawnSync(process.execPath, [executable, '--project', configPath], { cwd: root, stdio: 'inherit' })
+  // The JS executor is not available yet to remap source aliases for isolated builds.
+  const cache = resolve(root, '.isox')
+  mkdirSync(cache, { recursive: true })
+  const directory = mkdtempSync(resolve(cache, 'bootstrap-'))
+  let result
+  try {
+    const seedConfig = resolve(directory, 'tsconfig.json')
+    writeFileSync(seedConfig, JSON.stringify({
+      extends: configPath,
+      compilerOptions: {
+        paths: name === 'js' ? { '@isox-sh/core': [resolve(root, 'dist/core/index.d.ts')] } : {},
+      },
+    }))
+    result = spawnSync(process.execPath, [executable, '--project', seedConfig], { cwd: root, stdio: 'inherit' })
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
   if (result.error) {
     throw result.error
   }
