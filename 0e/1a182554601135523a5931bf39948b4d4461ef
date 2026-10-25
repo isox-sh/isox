@@ -1,0 +1,17 @@
+.github/workflows/shard.yml
+  h_b13471b77746e9 1-54
+.github/workflows/pull-requests.yml
+  h_b13471b77746e9 42,45-47,50,52-55,58,62
+  h_b13471b77746e9 51,56-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0e1a182554601135523a5931bf39948b4d4461ef",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
