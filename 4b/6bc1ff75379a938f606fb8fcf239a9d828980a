@@ -1,0 +1,149 @@
+website/docs/introduction.mdx
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 34
+packages/core/tests/affected.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 15,95,117
+packages/js/tests/build-config.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 85
+website/docs/concepts.mdx
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 36,43
+website/docs/vitest.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 26
+packages/nx/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 5
+ROADMAP.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 12
+packages/vitest/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 25,68
+e2e/tests/js-init.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 29
+packages/js/tests/tsc.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 64
+packages/e2e/tests/workspace.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 73
+packages/core/src/workspace/nx.ts
+  s_51871bdcdb3b4c::t_30f33373c6081b 35-36
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 31-33
+packages/cli/tests/cli.test.mjs
+  s_51871bdcdb3b4c::t_3dee88cdf2492e 144
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 34,61,77,133,139,201
+website/docs/typescript.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 49
+website/docs/getting-started.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 39,100
+packages/e2e/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 4
+website/docs/configuration.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 29,41
+  s_51871bdcdb3b4c::t_2aa297aa66b35e 25-28
+website/index.mdx
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 30
+packages/nx/tests/nx-workspace-graph.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 25
+website/docs/troubleshooting.mdx
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 31
+packages/cli/tests/affected.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 59,157,185
+packages/eslint/README.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 9
+scripts/bootstrap.cjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 74
+packages/eslint/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 4
+packages/cli/src/shared/run-projects.ts
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 21
+website/docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_3dee88cdf2492e 65-66
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 54-55
+  s_51871bdcdb3b4c::t_3c01e9caa22990 91,118,215
+e2e/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 6
+packages/core/src/executor/runner.ts
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 25
+packages/core/src/affected/targets.ts
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 45
+packages/core/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 51,58,87,92,115-116,118-119,124,162-164
+  s_51871bdcdb3b4c::t_0c27557ecf7dfc 165-175,177
+packages/core/tests/executor-lifecycle.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 24
+website/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 4
+packages/core/src/workspace/configuration.ts
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 24
+packages/js/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 5
+packages/nx/tests/nx-runner.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 104,107,109,136,141,247,321
+website/docs/affected-and-ci.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 94
+packages/cli/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 5
+packages/cli/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 31,45,62
+packages/core/tests/project-configuration.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 18,36-45,61,110,126,128
+packages/core/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 5
+website/docs/nx-migration.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 30,96
+  s_51871bdcdb3b4c::t_e789d344b0864b 97,105,110,122
+packages/cli/tests/actions.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 131
+website/docs/core-api.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 33
+website/docs/custom-executors.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 65
+packages/nx/src/executor/nx.ts
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 14,18
+website/docs/shell-commands.mdx
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 19,67
+packages/cli/tests/init-project.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 55-56
+website/docs/eslint.md
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 24
+packages/cli/tests/configurations.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 45,60,109
+packages/core/schemas/project.schema.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 23
+packages/eslint/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 25,37,80
+packages/cli/tests/helpers/affected-fixture.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 39
+packages/vitest/project.json
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 4
+packages/core/tests/bootstrap.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 29,44,54,57,61,66,175,177,199,227
+packages/core/src/affected/projects.ts
+  s_51871bdcdb3b4c::t_9da0df0d5095e9 56
+packages/core/src/workspace/cache.ts
+  s_51871bdcdb3b4c::t_b5767c73b8ecf2 13
+packages/js/src/executors/tsc/build-config.ts
+  s_51871bdcdb3b4c::t_9abe5dfc778d9d 51-52
+packages/js/src/generators/init.ts
+  s_51871bdcdb3b4c::t_0ed3e71a9c6d3e 69
+packages/js/tests/watch.test.mjs
+  s_51871bdcdb3b4c::t_42b56f221c4125 82
+website/docs/contributing.mdx
+  s_51871bdcdb3b4c::t_0c408af634bcc9 100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4b6bc1ff75379a938f606fb8fcf239a9d828980a",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
