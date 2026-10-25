@@ -1,0 +1,114 @@
+packages/eslint/README.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 11
+website/docs/cli.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,30,82-83,89,92
+website/docs/getting-started.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,11,13,25-26,32-62,79-81,117-119,132-133
+packages/nx/README.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 12-13
+website/docs/vitest.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,8,17-22,43-44,49-50,53
+website/docs.json
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-194
+website/docs/shell-commands.mdx
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-75
+website/docs/typescript.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6
+  s_5d3ad8740834ec::t_20f86a3fbe80f4 163
+website/docs/configuration.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,61-62,85,102
+website/docs/nx-migration.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,136
+actions/run-many/README.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 19
+website/docs/affected-and-ci.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,59
+website/README.md
+  s_5d3ad8740834ec::t_20f86a3fbe80f4 38
+  s_5d3ad8740834ec::t_3712bcc93a8cdc 14,31,37
+  s_5d3ad8740834ec::t_498d7a0654beca 83-97,101
+  s_5d3ad8740834ec::t_f4ee2bc90ea255 1,8-13,15-22,52-53,56-58,64-65,73-74
+  s_5d3ad8740834ec::t_171e15ba670823 26-28,32,35-36,40,66-69
+  s_5d3ad8740834ec::t_3779e0adcb4b08 6-7,23-25,29-30,33-34,39,41-51,54-55,59-63,70-72,75-80
+website/docs/concepts.mdx
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-122
+packages/vitest/README.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 12-13
+ROADMAP.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 20,42,58
+website/docs/contributing.mdx
+  s_51871bdcdb3b4c::t_be4cdb99c8870b 81,105
+  s_5d3ad8740834ec::t_f4ee2bc90ea255 177-178,193-194,196
+  s_5d3ad8740834ec::t_171e15ba670823 186-187,190,198-200
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-59,67-80,82-104,106-156,164-176,179-181,183-185,192,195,197,201-211
+  s_5d3ad8740834ec::t_20f86a3fbe80f4 60-66,157-163,191
+  s_5d3ad8740834ec::t_3712bcc93a8cdc 182,188-189
+website/docs/custom-executors.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,59,116,163,167,188,203
+website/project.json
+  s_5d3ad8740834ec::t_171e15ba670823 1-4,6-7,9-21
+  h_b13471b77746e9 5,8
+website/docs/introduction.mdx
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-83
+README.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 41,45,48-54,58
+website/docs/troubleshooting.mdx
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-62,65-118
+  s_51871bdcdb3b4c::t_be4cdb99c8870b 63-64
+packages/js/README.md
+  s_5d3ad8740834ec::t_f4ee2bc90ea255 12-13
+packages/cli/README.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 12-15
+website/docs/core-api.md
+  s_5d3ad8740834ec::t_20f86a3fbe80f4 113
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,85,229,246-247
+website/docs/eslint.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-8,19-20,38-39
+website/docs/plugin-testing.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-93
+packages/core/README.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 15-17
+actions/plan/README.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 22
+website/index.mdx
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-5,7-18,20-26,28-43,45-48,50-118,120-123,125-134
+website/docs/prompts/migrate-nx-to-isox.md
+  s_5d3ad8740834ec::t_3779e0adcb4b08 1-6,24,26,182-186,188-191,197,304-308,340-352
+website/.gitignore
+  s_5d3ad8740834ec::t_0ea3a3cb8a7971 1
+website/custom.css
+  s_5d3ad8740834ec::t_56e7833bec3467 1-14,16-28,31-113,116-118,122-131,135-152,156
+website/images/logo-dark.svg
+  s_5d3ad8740834ec::t_b854aa14b7d23c 1-11
+website/images/logo-light.svg
+  s_5d3ad8740834ec::t_0e0fddfdeef460 1-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "16df8c1983d5629ff7b47a83b42ce50803b72ee3",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
