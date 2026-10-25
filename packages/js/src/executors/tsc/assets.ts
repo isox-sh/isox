@@ -28,7 +28,7 @@ export async function collectAssets(options: TscOptions, context: ExecutorContex
 
     const outputPatterns = roots
       .filter(root => inside(input, root))
-      .map(root => `${slash(relative(input, root))}/**`)
+      .map(root => `${fg.escapePath(slash(relative(input, root)))}/**`)
 
     for (const file of await fg(pattern.glob, {
       cwd: input,

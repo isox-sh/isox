@@ -6,7 +6,7 @@ import type { PackageJsonContext } from './package-json'
 
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
 export type Manifest = Record<string, Json>
-export const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/
+export const versionPattern = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?![\s\S])/
 
 export async function readManifest(path: string): Promise<Manifest> {
   const value = await readJson<Manifest>(basename(path), { projectRoot: dirname(path) })

@@ -24,6 +24,12 @@ function linkDependency(destination, target) {
 async function recordSeedOwnership(root, seededFiles) {
   // These helpers are available after the initial core/JS compilation.
   const { atomicWrite, hash, loadState } = require('../dist/js/executors/tsc/files')
+  for (const directory of ['.isox', '.isox/tsc']) {
+    const entry = lstatSync(resolve(root, directory), { throwIfNoEntry: false })
+    if (entry && (entry.isSymbolicLink() || !entry.isDirectory())) {
+      throw new Error(`Unsafe TypeScript output-state directory: ${directory}`)
+    }
+  }
   for (const [name, files] of seededFiles) {
     const project = await realpath(resolve(root, 'packages', name))
     const path = resolve(root, '.isox/tsc', `${hash(project)}.json`)

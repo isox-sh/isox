@@ -12,7 +12,7 @@ export interface AssetPattern {
   ignore?: string[]
 }
 
-export interface TscOptions extends PackageJsonOptions {
+export interface TscOptions extends Omit<PackageJsonOptions, 'sourceFiles'> {
   tsConfig?: string
   clean?: boolean
   assets?: AssetPattern[]

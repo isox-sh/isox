@@ -96,7 +96,7 @@ files, so new declarations trigger a rebuild after dependencies are compiled.
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `tsConfig` | Project's `tsconfig.json` | Workspace-relative or absolute config path |
-| `clean` | `true` | Remove stale, unchanged files recorded by previous successful builds |
+| `clean` | `true` | Remove stale, unchanged files recorded by previous compilations |
 | `assets` | `[]` | Asset patterns with `input`, `glob`, optional `output`, and `ignore` |
 | `generatePackageJson` | `false` | Generate a distributable manifest in `outDir` |
 | `generateExportsField` | `false` | Add inferred root and configured subpath exports |
@@ -109,7 +109,8 @@ and transformer options are not accepted as executor options: move compiler
 settings into tsconfig and explicitly migrate packaging requirements.
 
 Cleanup records content hashes in `.isox/tsc/`. It removes only unchanged files
-owned by the previous successful build. Unrelated files and user-modified stale
+owned by previous compilations, including compilations whose later packaging step
+failed. Unrelated files and user-modified stale
 files remain. `clean: false` retains stale output; enabling cleanup later removes
 it. Symlinked output paths and overlapping project output ownership are rejected.
 Output directories are reserved before compilation, including when projects are

@@ -45,3 +45,12 @@ test('bootstrap keeps output ownership so deleted sources are cleaned on the nex
   await assert.rejects(readFile(join(output, 'removed.d.ts')), { code: 'ENOENT' })
   assert.match(await readFile(join(output, 'index.js'), 'utf8'), /answer/)
 })
+
+test('bootstrap refuses symlinked output-state directories before reading or writing them', async t => {
+  const { root } = await fixture(t)
+  const outside = join(root, 'outside')
+  await mkdir(outside)
+  await mkdir(join(root, '.isox'))
+  await symlink(outside, join(root, '.isox/tsc'), 'junction')
+  await assert.rejects(recordSeedOwnership(root, new Map()), /Unsafe TypeScript output-state directory/)
+})

@@ -216,6 +216,9 @@ export async function generatePackageJson(
   for (const name of ['README.md', 'LICENSE', 'LICENSE.md', 'NOTICE']) {
     const file = resolve(context.projectRoot, name)
     if (await existingFile(file)) {
+      if (!inside(await canonical(context.projectRoot), await canonical(file))) {
+        throw new Error(`Unsafe package documentation path: ${file}`)
+      }
       extra.set(resolve(outDir, name), await readFile(file))
     }
   }
@@ -287,7 +290,8 @@ export async function generatePackageJson(
   if (options.generateExportsField) {
     const exports: Record<string, Json> = {}
     if (typeof manifest.main === 'string') {
-      exports['.'] = { ...(typeof manifest.types === 'string' ? { types: manifest.types } : {}), default: manifest.main }
+      const types = manifest.types ?? manifest.typings
+      exports['.'] = { ...(typeof types === 'string' ? { types } : {}), default: manifest.main }
     }
 
     for (const [name, entry] of Object.entries(options.additionalEntryPoints ?? {})) {

@@ -44,7 +44,7 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
   }
 
   const config = parsed.config
-  const roots = await outputRoots(config, tsConfig, context)
+  const roots = config.compilerOptions.noEmit ? [] : await outputRoots(config, tsConfig, context)
   const stateFile = statePath(context)
   if (await canonical(dirname(stateFile)) !== dirname(stateFile)) {
     throw new Error('Symlink in TypeScript output-state directory.')
@@ -100,6 +100,14 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
     for (const file of emitted) {
       await safeDestination(file, roots)
     }
+
+    // The compiler has already published these files. Record them before packaging
+    // so a failed metadata build cannot strand output that later builds cannot clean.
+    const pendingFiles = { ...previous?.files }
+    for (const file of emitted) {
+      pendingFiles[file] = hash(await readFile(file))
+    }
+    await atomicWrite(stateFile, JSON.stringify({ ...claim, files: pendingFiles }))
 
     const declarationDir = config.compilerOptions.declarationDir
       ? resolve(dirname(tsConfig), config.compilerOptions.declarationDir)

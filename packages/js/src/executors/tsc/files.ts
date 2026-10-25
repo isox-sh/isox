@@ -26,7 +26,8 @@ export async function atomicWrite(path: string, data: string | Buffer): Promise<
 
 export async function safeDestination(path: string, roots: string[]): Promise<void> {
   const actual = await canonical(path)
-  if (!roots.some(root => inside(root, path) && inside(root, actual))) {
+  const actualRoots = await Promise.all(roots.map(canonical))
+  if (!roots.some((root, index) => inside(root, path) && inside(actualRoots[index], actual))) {
     throw new Error(`Unsafe output path: ${path}`)
   }
   // Do not follow even an internal symlink when writing or deleting output.
@@ -65,8 +66,7 @@ export async function outputRoots(config: CompilerConfig, tsConfig: string, cont
   for (const root of roots) {
     const actual = await canonical(root)
     if (
-      root !== actual
-      || !inside(workspace, actual)
+      !inside(workspace, actual)
       || inside(actual, project)
       || inside(actual, await canonical(tsConfig))
       || sources.some(file => inside(actual, file))
@@ -83,6 +83,17 @@ export async function outputRoots(config: CompilerConfig, tsConfig: string, cont
       }
     }
 
+    for (let part = root; inside(workspace, part) && part !== workspace; part = dirname(part)) {
+      try {
+        if ((await lstat(part)).isSymbolicLink()) {
+          throw new Error(`Symlink in output path: ${part}`)
+        }
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+          throw error
+        }
+      }
+    }
     await safeDestination(root, roots)
   }
 
@@ -131,6 +142,7 @@ export async function loadState(path: string): Promise<OutputState | undefined> 
 
 export async function checkOwners(path: string, roots: string[], context: ExecutorContext): Promise<void> {
   const directory = dirname(path)
+  const actualRoots = await Promise.all(roots.map(canonical))
   for (const file of await fg(['*.json', '*.claim'], { cwd: directory, absolute: true })) {
     if (file === path) {
       continue
@@ -144,7 +156,8 @@ export async function checkOwners(path: string, roots: string[], context: Execut
       continue
     }
 
-    const overlaps = roots.some(root => other.roots.some(otherRoot =>
+    const otherRoots = await Promise.all(other.roots.map(canonical))
+    const overlaps = actualRoots.some(root => otherRoots.some(otherRoot =>
       inside(root, otherRoot) || inside(otherRoot, root),
     ))
     if (overlaps) {

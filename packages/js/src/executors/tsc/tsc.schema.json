@@ -56,7 +56,7 @@
     "additionalEntryPoints": {
       "type": "object",
       "propertyNames": {
-        "pattern": "^\\./[^*]+$"
+        "pattern": "^\\./.+$"
       },
       "additionalProperties": {
         "oneOf": [

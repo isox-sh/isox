@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 
@@ -191,4 +191,53 @@ test('builds a standalone package in the workspace dist directory with colocated
   assert.equal(registry.executors.demo.schema, './executors/demo/demo.schema.json')
   assert.deepEqual(JSON.parse(await readFile(join(output, 'executors/demo/demo.schema.json'), 'utf8')), { type: 'object' })
   assert.equal(JSON.parse(await read('package.json')).publishConfig.directory, '../../dist/demo')
+})
+
+test('uses typings for generated root exports and supports wildcard additional entry points', async t => {
+  const { write, read, context } = await fixture(t)
+  await write('package.json', { name: 'demo', version: '1.0.0', typings: './dist/index.d.ts' })
+  await tsc({ generatePackageJson: true, generateExportsField: true, additionalEntryPoints: { './*': './*.js' } }, context)
+  const manifest = JSON.parse(await read('dist/package.json'))
+  assert.deepEqual(manifest.exports, { '.': { types: './index.d.ts', default: './index.js' }, './*': './*.js' })
+})
+
+test('rejects documentation symlinks that escape the package', async t => {
+  const { root, projectRoot, write, context } = await fixture(t)
+  await write(join(root, 'secret.txt'), 'private')
+  for (const name of ['README.md', 'LICENSE', 'LICENSE.md', 'NOTICE']) {
+    const file = join(projectRoot, name)
+    await symlink(join(root, 'secret.txt'), file)
+    await assert.rejects(tsc({ generatePackageJson: true }, context), /Unsafe package documentation path/)
+    await rm(file)
+  }
+})
+
+test('rejects invalid SemVer identifiers and trailing newlines', async t => {
+  const { projectRoot, write, context } = await fixture(t)
+  const output = join(projectRoot, 'dist')
+  for (const version of ['1.2.3-01', '1.2.3-alpha.01', '1.2.3\n']) {
+    await write('package.json', { name: 'demo', version })
+    await assert.rejects(generatePackageJson({}, context, output, new Set(), new Map()), /valid version/)
+  }
+  for (const version of ['1.2.3-0', '1.2.3-alpha.1', '1.2.3+001']) {
+    await write('package.json', { name: 'demo', version })
+    await generatePackageJson({}, context, output, new Set(), new Map())
+  }
+})
+
+test('rejects relative workspace dependencies without a manifest or configured project', async t => {
+  const { projectRoot, write, context } = await fixture(t)
+  await write('package.json', { name: 'demo', version: '1.0.0', dependencies: { phantom: 'workspace:../missing' } })
+  const output = join(projectRoot, 'dist')
+  await assert.rejects(generatePackageJson({}, context, output, new Set(), new Map()), /not an Isox project/)
+})
+
+test('relative manifest-less dependencies retain the configured project name', async t => {
+  const { projectRoot, write, context } = await fixture(t)
+  context.workspace.projects.other = { name: '@fixture/other', root: 'packages/other' }
+  await write('package.json', { name: 'demo', version: '1.0.0', dependencies: { alias: 'workspace:../other' } })
+  const output = join(projectRoot, 'dist')
+  const files = await generatePackageJson({}, context, output, new Set(), new Map())
+  const manifest = JSON.parse(files.get(join(output, 'package.json')))
+  assert.deepEqual(manifest.dependencies, { alias: 'npm:@fixture/other@0.0.0' })
 })

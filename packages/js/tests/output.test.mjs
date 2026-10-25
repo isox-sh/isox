@@ -118,3 +118,55 @@ test('makes shebang JavaScript executable after both builds and rebuilds', async
     assert.equal(spawnSync(link).status, 0)
   }
 })
+
+test('compiler output remains cleanable after package generation fails', async t => {
+  const { projectRoot, write, read, context } = await fixture(t)
+  await write('src/temporary.ts', 'export const temporary = true')
+  await write('package.json', { name: 'demo', version: 'invalid' })
+  await assert.rejects(tsc({ generatePackageJson: true }, context), /valid version/)
+  assert.match(await read('dist/temporary.js'), /temporary/)
+  await rm(join(projectRoot, 'src/temporary.ts'))
+  await write('package.json', { name: 'demo', version: '1.0.0' })
+  assert.deepEqual(await tsc({ generatePackageJson: true }, context), { success: true })
+  await assert.rejects(read('dist/temporary.js'), { code: 'ENOENT' })
+  await assert.rejects(read('dist/temporary.d.ts'), { code: 'ENOENT' })
+})
+
+test('noEmit projects do not claim shared output directories', async t => {
+  const { root, config, write, context } = await fixture(t)
+  config.compilerOptions.outDir = '../../dist/shared'
+  await write('tsconfig.json', config)
+  await tsc({}, context)
+  await write('../other/src/index.ts', 'export const other = true')
+  await write('../other/tsconfig.json', { ...config, compilerOptions: { ...config.compilerOptions, noEmit: true } })
+  assert.deepEqual(await tsc({}, { ...context, projectName: 'other', projectRoot: join(root, 'packages/other') }), { success: true })
+})
+
+test('asset collection excludes output directories containing glob metacharacters', async t => {
+  const { config, write, read, context } = await fixture(t)
+  config.compilerOptions.outDir = 'dist[demo]'
+  await write('tsconfig.json', config)
+  await write('asset.txt', 'asset')
+  const options = { assets: [{ input: 'packages/demo package', glob: '**/*.txt', output: 'assets' }] }
+  await tsc(options, context)
+  await tsc(options, context)
+  assert.equal(await read('dist[demo]/assets/asset.txt'), 'asset')
+  await assert.rejects(read('dist[demo]/assets/dist[demo]/assets/asset.txt'), { code: 'ENOENT' })
+})
+
+test('accepts output casing differences on case-insensitive filesystems', async t => {
+  const { projectRoot, config, write, context } = await fixture(t)
+  await mkdir(join(projectRoot, 'BuildOutput'))
+  try {
+    await stat(join(projectRoot, 'buildoutput'))
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return t.skip('case-sensitive filesystem')
+    }
+    throw error
+  }
+  config.compilerOptions.outDir = 'buildoutput'
+  await write('tsconfig.json', config)
+  assert.deepEqual(await tsc({}, context), { success: true })
+  assert.match(await readFile(join(projectRoot, 'BuildOutput/index.js'), 'utf8'), /answer/)
+})

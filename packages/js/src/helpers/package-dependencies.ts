@@ -117,6 +117,7 @@ export async function workspaceDependencies(manifest: Manifest, context: Package
 
   const projectDirectories = Object.values(context.workspace?.projects ?? {})
     .map(project => resolve(context.workspaceRoot, project.root))
+  const projectRoots = await Promise.all(projectDirectories.map(canonical))
   const directories = new Set([context.projectRoot, ...projectDirectories])
   for (const directory of directories) {
     await add(directory)
@@ -144,10 +145,17 @@ export async function workspaceDependencies(manifest: Manifest, context: Package
       let pkg = packages.get(packageName)
       if (range.startsWith('.')) {
         const directory = await canonical(resolve(context.projectRoot, range))
-        if (!inside(context.workspaceRoot, directory)) {
+        if (!inside(await canonical(context.workspaceRoot), directory)) {
           throw new Error(`Workspace dependency escapes the workspace: ${specifier}`)
         }
-        pkg = await optionalManifest(resolve(directory, 'package.json')) ?? defaultManifest(directory, context, root)
+        pkg = await optionalManifest(resolve(directory, 'package.json'))
+        const projectDirectory = projectDirectories[projectRoots.indexOf(directory)]
+        if (!pkg && projectDirectory) {
+          pkg = defaultManifest(projectDirectory, context, root)
+        }
+        if (!pkg) {
+          throw new Error(`Workspace dependency is not an Isox project and has no package.json: ${specifier}`)
+        }
         if (typeof pkg.name !== 'string') {
           throw new Error(`Workspace dependency has no package name: ${specifier}`)
         }
