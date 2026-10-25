@@ -1,0 +1,24 @@
+packages/js/src/executors/tsc/watch.ts
+  s_51871bdcdb3b4c::t_ef4956d4f118c2 12,15,19,27,55,57-61,73,113-117
+  s_51871bdcdb3b4c::t_28c6e0901b3537 118
+packages/js/tests/watch.test.mjs
+  s_51871bdcdb3b4c::t_c75ad4df00c141 181-209
+packages/js/src/executors/tsc/watch-sources.ts
+  s_51871bdcdb3b4c::t_ef4956d4f118c2 1-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c95aeac6921a080185a84cb8762952bd07a42b67",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
