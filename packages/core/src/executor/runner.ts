@@ -81,6 +81,7 @@ export async function runExecutor(
   }
 
   taskLogger.info(`Running ${executorName} for ${projectName}...`)
+  const startedAt = performance.now()
 
   try {
     const result = await executorFn({
@@ -140,7 +141,9 @@ export async function runExecutor(
     throw error
   }
 
-  taskLogger.success(`Successfully completed ${executorName} for ${projectName}.`)
+  const duration = ((performance.now() - startedAt) / 1000).toFixed(2)
+
+  taskLogger.success(`Successfully completed ${executorName} for ${projectName} in ${duration}s.`)
 }
 
 function isAsyncIterable(output: ExecutorOutput): output is AsyncIterable<ExecutorResult> {

@@ -181,8 +181,14 @@ for (const [label, source, key] of [
 ]) {
   test(`executes a plugin with a ${label}`, async (t) => {
     const { root, workspace } = await executorFixture(t, source, key)
+    const logs = []
+    const logger = createLogger({ reporters: [{ log: entry => logs.push(entry) }] })
 
-    await runExecutor(workspace, 'demo', 'build', root)
+    await runExecutor(workspace, 'demo', 'build', root, logger)
+    const completed = logs.filter(entry => entry.type === 'success')
+
+    assert.equal(completed.length, 1)
+    assert.match(completed[0].args[0], /^Successfully completed @fixture\/plugin:build for demo in \d+\.\d{2}s\.$/)
   })
 }
 
