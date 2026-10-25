@@ -1,0 +1,23 @@
+packages/cli/tests/configurations.test.mjs
+  s_51871bdcdb3b4c::t_f89d67d4237123 172
+packages/cli/tests/affected.test.mjs
+  s_51871bdcdb3b4c::t_f89d67d4237123 14,23-26,305,317,350,361,400,416
+packages/cli/tests/helpers/affected-fixture.mjs
+  s_51871bdcdb3b4c::t_f89d67d4237123 10-13,38,87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "435839c200981cd5052410c77727f1ae7025a3e8",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
