@@ -1,0 +1,79 @@
+website/docs/shell-commands.mdx
+  s_5d3ad8740834ec::t_a234f6b14eff09 53-55
+  s_5d3ad8740834ec::t_e2e333ae993e0f 51
+  s_51871bdcdb3b4c::t_9254488375abc2 52
+website/docs/troubleshooting.mdx
+  s_51871bdcdb3b4c::t_c93e4c02ab1bdb 98
+  s_5d3ad8740834ec::t_c4182e8e4f6de3 40,82-97,99-110
+  s_5d3ad8740834ec::t_2278db00b71a69 111
+website/docs/custom-executors.md
+  s_5d3ad8740834ec::t_df8124c08f879a 125-129,169-170,177,182-184
+website/docs/prompts/migrate-nx-to-isox.md
+  s_5d3ad8740834ec::t_0648fe991185bb 356-358,360
+  s_5d3ad8740834ec::t_e2e333ae993e0f 346-348,361
+website/docs/getting-started.md
+  s_5d3ad8740834ec::t_a234f6b14eff09 63-66,110,135-150
+  s_51871bdcdb3b4c::t_aa23b3e8992ec5 151
+website/docs/plugin-testing.md
+  s_5d3ad8740834ec::t_0648fe991185bb 12-15,19-22
+website/docs/concepts.mdx
+  s_5d3ad8740834ec::t_c4182e8e4f6de3 108,112-113
+  s_5d3ad8740834ec::t_e2e333ae993e0f 36-38,111
+website/docs/contributing.mdx
+  s_5d3ad8740834ec::t_e2e333ae993e0f 105-107,137-138,243-244
+  s_5d3ad8740834ec::t_0648fe991185bb 42,103,189-191,240-242,245-249
+website/docs/typescript.md
+  s_5d3ad8740834ec::t_c4182e8e4f6de3 10-20,30,118,137,139-156,273
+  s_5d3ad8740834ec::t_e2e333ae993e0f 136,138
+website/docs/configuration.md
+  s_51871bdcdb3b4c::t_c93e4c02ab1bdb 82-83
+  s_5d3ad8740834ec::t_00e92e825cfac4 10-28,53-54,58-59,65,69,73-81,84-91,102-106,115-118,130-135,163-164,166-169
+  s_5d3ad8740834ec::t_e2e333ae993e0f 170
+website/README.md
+  s_5d3ad8740834ec::t_df8124c08f879a 14,58,81-82
+  s_5d3ad8740834ec::t_e2e333ae993e0f 13,15
+website/docs/core-api.md
+  s_5d3ad8740834ec::t_df8124c08f879a 2,28-31,164-168,200,202,205,210-211
+  s_5d3ad8740834ec::t_55074b56d1b15d 212
+website/docs/semver.md
+  s_5d3ad8740834ec::t_18a3398e7903be 11-13,15,23-27,42-51,499-504
+website/docs/eslint.md
+  s_5d3ad8740834ec::t_a234f6b14eff09 10,19-21,70-74
+  s_51871bdcdb3b4c::t_0a2375b555e302 75
+website/docs/affected-and-ci.md
+  s_5d3ad8740834ec::t_c4182e8e4f6de3 63,85-89
+  s_5d3ad8740834ec::t_d2486c1fe66121 90
+website/docs/cli.md
+  s_5d3ad8740834ec::t_a234f6b14eff09 23-29,59-60,117-119
+website/docs/vitest.md
+  s_5d3ad8740834ec::t_a234f6b14eff09 49,51-69
+website/docs/introduction.mdx
+  s_5d3ad8740834ec::t_18a3398e7903be 81
+website/docs.json
+  s_5d3ad8740834ec::t_18a3398e7903be 171-173
+  s_5d3ad8740834ec::t_34a143e6ad4219 170
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "34de97cccb73fa6a56ae62739dcc70a400992816",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
