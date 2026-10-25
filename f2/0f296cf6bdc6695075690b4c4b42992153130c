@@ -1,0 +1,51 @@
+packages/js/src/executors/tsc/files.ts
+  s_51871bdcdb3b4c::t_6f0f1ac353af04 69,86-96
+  s_51871bdcdb3b4c::t_166329a636e445 29-30,145
+  s_51871bdcdb3b4c::t_ddf006aba29e93 159-160
+packages/js/tests/package-json.test.mjs
+  s_51871bdcdb3b4c::t_e39860fd3eda12 216-217,229,231,234-242
+  s_51871bdcdb3b4c::t_24dddbdef28e56 3,195-215,218-228,230,232-233,243
+packages/js/src/executors/tsc/options.ts
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 15
+scripts/bootstrap-files.cjs
+  s_51871bdcdb3b4c::t_166329a636e445 27-32
+packages/js/src/helpers/package-manifest.ts
+  s_51871bdcdb3b4c::t_9a098ca99a85fa 9
+packages/js/src/helpers/package-json.ts
+  s_51871bdcdb3b4c::t_9a098ca99a85fa 219-221,293-294
+packages/js/src/executors/tsc/tsc.executor.ts
+  s_51871bdcdb3b4c::t_6f0f1ac353af04 47,104-110
+  s_51871bdcdb3b4c::t_4589cadce44adc 111
+packages/js/src/executors/tsc/assets.ts
+  s_51871bdcdb3b4c::t_6f0f1ac353af04 31
+packages/js/src/helpers/package-dependencies.ts
+  s_51871bdcdb3b4c::t_9a098ca99a85fa 151,155-158
+  s_51871bdcdb3b4c::t_e39860fd3eda12 120,152-154
+  s_51871bdcdb3b4c::t_d16b35d554ac5a 148
+packages/js/tests/output.test.mjs
+  s_51871bdcdb3b4c::t_78a5d9f806af64 164-165
+  s_51871bdcdb3b4c::t_cc759133e97c98 163
+  s_51871bdcdb3b4c::t_812df1ce5ee425 121-162,166-172
+packages/js/src/executors/tsc/tsc.schema.json
+  s_51871bdcdb3b4c::t_9a098ca99a85fa 59
+packages/js/tests/bootstrap.test.mjs
+  s_51871bdcdb3b4c::t_331fe1149874e7 48-56
+website/docs/typescript.md
+  s_51871bdcdb3b4c::t_af350a0c53bcef 99,112-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f20f296cf6bdc6695075690b4c4b42992153130c",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
