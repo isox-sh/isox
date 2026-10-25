@@ -50,4 +50,5 @@ root remains the same when selecting a different config file.
 
 In this repository, tests stay inside each package's `tests/` directory.
 Run `pnpm bootstrap` once, then `pnpm isox test vitest` to test this executor.
-`pnpm test` bootstraps and runs all package suites and the end-to-end suite through Isox.
+After bootstrapping, `pnpm isox run-many --target=test` runs every project's test
+target, including package suites, the end-to-end suite, and website validation.

@@ -18,10 +18,6 @@
   },
   "scripts": {
     "isox": "node dist/cli/index.js",
-    "lint": "eslint . --max-warnings 0",
-    "lint:fix": "eslint . --fix --max-warnings 0",
-    "test": "pnpm bootstrap && pnpm isox test core && pnpm isox test cli && pnpm isox test js && pnpm isox test eslint && pnpm isox test vitest && pnpm isox test nx && pnpm isox test e2e-plugin && pnpm isox test e2e",
-    "test:e2e": "pnpm bootstrap && pnpm isox test e2e",
     "bootstrap": "node scripts/bootstrap.cjs"
   },
   "devDependencies": {

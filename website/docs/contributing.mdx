@@ -27,19 +27,19 @@ for ESLint's compiler API requirements. This follows the
 ```bash
 pnpm install
 pnpm bootstrap # Builds core, the executors, and CLI from a clean checkout
-pnpm exec tsc --project tsconfig.json # Typechecks all package sources without emitting files
-pnpm lint # Checks JavaScript and TypeScript, including import sorting and no semicolons
-pnpm lint:fix # Automatically fixes supported lint issues
-pnpm test  # Builds and runs the package and end-to-end tests
-pnpm test:e2e # Builds and runs only the end-to-end tests
+pnpm isox run-many --target=lint # Runs every project's lint target
+pnpm isox run-many --target=lint --fix # Automatically fixes supported lint issues
+pnpm isox run-many --target=test # Runs every project's test target
+pnpm isox test e2e # Runs only the end-to-end suite
 ```
 
 ## Tests
 
-Tests live in their owning package's `tests/` directory. `pnpm test` builds the
-workspace and runs the package suites plus the end-to-end suite; after building, use
-`pnpm isox test core`, `pnpm isox test js`, `pnpm isox test cli`,
-`pnpm isox test eslint`, `pnpm isox test vitest`, `pnpm isox test nx`, or `pnpm isox test e2e-plugin` for one package suite.
+Tests live in their owning package's `tests/` directory. After bootstrapping,
+`pnpm isox run-many --target=test` runs every project's test target, including the
+package suites, end-to-end suite, and website validation. Use
+`pnpm isox test <project>` to run one suite, such as `pnpm isox test cli`.
+Rebuild changed packages before running their tests.
 
 The Vitest end-to-end suite lives in `e2e/` and runs with `pnpm isox test e2e`
 after bootstrap. It uses the public [`@isox-sh/e2e`](/docs/plugin-testing)
@@ -143,7 +143,8 @@ versions. `publishConfig.directory` selects this output for packaging; pnpm's
 `linkDirectory` makes local workspace imports resolve to it after installation.
 Run `pnpm install` after changing these settings, then `pnpm bootstrap` before
 running the CLI or tests. Publish or globally install the built package directory
-when using npm directly, for example `npm install -g ./dist/cli`.
+when using npm directly. See [trying the local CLI](#trying-the-local-cli) for the
+global installation commands.
 
 Bootstrap seeds the metadata and schemas needed to compile core and JS, prepares
 shared dependency links under `dist/node_modules`, then rebuilds every package
@@ -170,8 +171,29 @@ for an alternative layout with a package-local `dist` directory.
 
 ## Trying the local CLI
 
-To try the local CLI, run it from a workspace containing `isox.json`,
-`project.json` files, and installed executor plugins:
+After installing dependencies with `pnpm install`, run these commands from the
+Isox repository root to build your checkout and install its CLI globally:
+
+```bash
+node ./scripts/bootstrap.cjs
+npm install -g ./dist/cli --install-links=false
+```
+
+The global `isox` command links to this checkout's built CLI.
+[`--install-links=false`](https://docs.npmjs.com/cli/v12/commands/npm-install/#install-links)
+keeps the local package linked. After changing source code, rerun
+`node ./scripts/bootstrap.cjs` from the repository root to update the build used
+by the global command.
+
+Use it from a workspace containing `isox.json`, `project.json` files, and installed
+executor plugins:
+
+```bash
+cd /path/to/your/workspace
+isox build my-app
+```
+
+You can also invoke the built CLI directly:
 
 ```bash
 cd /path/to/your/workspace
