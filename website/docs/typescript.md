@@ -17,14 +17,23 @@ isox build test
 ```
 
 Install `@isox-sh/js` in the workspace first. The initializer creates
-`project.json` with a build command, `tsconfig.json` extending the workspace's
-`tsconfig.base.json`, and `src/index.ts`. It creates the base config if missing.
+`project.json` with a build command, `tsconfig.json` for editors,
+`tsconfig.build.json` for compilation, and `src/index.ts`. Both configs extend
+the workspace's `tsconfig.base.json`, which is created if missing.
+The editor config sets `noEmit: true`, disables composite mode, and uses the
+workspace as `rootDir`, so imports of other projects' sources work before a build.
+The build command explicitly selects `tsconfig.build.json`, which enables emit
+and keeps `rootDir: "./src"`. Existing workspace `tsconfig.json` files are preserved.
 The generated `outDir` mirrors the project's workspace-relative path under the
 workspace's `dist/` directory. For example, `packages/test` builds into
 `<workspace>/dist/packages/test`, with JavaScript and declarations there.
 The optional `--importPath` adds `compilerOptions.paths["@org/test"]` pointing to
 the new entry point, preserving existing settings, aliases, and JSONC comments.
 An existing `baseUrl` is respected when computing the mapping.
+
+Run `tsc --project packages/test/tsconfig.json` to typecheck the generated project
+without emitting files. Use `isox build test` to compile it; build any dependencies
+first so the executor can use their declarations.
 
 The workspace must already contain `isox.json` (created by plain `isox init`).
 Relative project paths resolve from the current directory; absolute paths must

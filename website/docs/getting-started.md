@@ -82,7 +82,8 @@ npx isox build test
 ```
 
 This requires an existing Isox workspace. It creates `project.json`,
-`tsconfig.json`, and `src/index.ts` in a new directory, plus `tsconfig.base.json`
+`tsconfig.json` for editors, `tsconfig.build.json` for compilation, and `src/index.ts`
+in a new directory, plus `tsconfig.base.json`
 at the workspace root if missing. The optional `--importPath` adds an alias to
 the base config's `compilerOptions.paths`. Existing settings and comments are
 preserved. Relative paths resolve from the current directory; absolute paths

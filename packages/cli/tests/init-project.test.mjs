@@ -1,13 +1,23 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
+import { dirname, join, resolve } from 'node:path'
 
 import { test } from 'vitest'
 
 const cliPath = resolve(import.meta.dirname, '../../../dist/cli/index.js')
 const jsPackage = resolve(import.meta.dirname, '../../../dist/js')
+const require = createRequire(import.meta.url)
+
+function typecheck(root, project, packageName, bin) {
+  const manifest = require.resolve(`${packageName}/package.json`)
+  return spawnSync(process.execPath, [
+    resolve(dirname(manifest), require(manifest).bin[bin]),
+    '--project', `${project}/tsconfig.json`, '--pretty', 'false',
+  ], { cwd: root, encoding: 'utf8' })
+}
 
 async function fixture(t, workspace = true) {
   const directory = await mkdtemp(join(tmpdir(), 'isox-init-project-'))
@@ -37,14 +47,16 @@ test('init creates a buildable JS project and adds its import alias to a new bas
   await writeFile(join(root, '.isox/keep'), 'other cache data')
   const result = run(root, 'init', '@isox-sh/js', 'packages/test', '--importPath=@org/test')
   assert.equal(result.status, 0, result.stderr)
-  assert.deepEqual(result.stdout.match(/packages\/test\/(?:project|tsconfig)\.json/g), [
-    'packages/test/project.json', 'packages/test/tsconfig.json',
+  assert.deepEqual(result.stdout.match(/packages\/test\/(?:project|tsconfig(?:\.build)?)\.json/g), [
+    'packages/test/project.json', 'packages/test/tsconfig.json', 'packages/test/tsconfig.build.json',
   ])
   const project = await readJson(join(root, 'packages/test/project.json'))
   assert.equal(project.name, 'test')
   assert.equal(project.executors.build.executor, '@isox-sh/js:tsc')
+  assert.equal(project.executors.build.options.tsConfig, './packages/test/tsconfig.build.json')
   assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).extends, '../../tsconfig.base.json')
-  assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).compilerOptions.outDir, '../../dist/packages/test')
+  assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).compilerOptions.noEmit, true)
+  assert.equal((await readJson(join(root, 'packages/test/tsconfig.build.json'))).compilerOptions.outDir, '../../dist/packages/test')
   const base = await readJson(join(root, 'tsconfig.base.json'))
   assert.deepEqual(base.compilerOptions.paths, { '@org/test': ['./packages/test/src/index.ts'] })
   assert.equal(await readFile(join(root, '.isox/keep'), 'utf8'), 'other cache data')
@@ -62,9 +74,58 @@ test('init resolves relative paths from a nested cwd and preserves an existing b
   const result = run(join(root, 'packages'), 'init', '@isox-sh/js', 'nested')
   assert.equal(result.status, 0, result.stderr)
   assert.equal((await readJson(join(root, 'packages/nested/project.json'))).name, 'nested')
-  assert.equal((await readJson(join(root, 'packages/nested/tsconfig.json'))).compilerOptions.outDir, '../../dist/packages/nested')
+  assert.equal((await readJson(join(root, 'packages/nested/tsconfig.build.json'))).compilerOptions.outDir, '../../dist/packages/nested')
   assert.equal(await readFile(join(root, 'tsconfig.base.json'), 'utf8'), source)
 })
+
+for (const composite of [false, true]) {
+  test(`initialized projects typecheck source aliases before building and retain their output layout (composite base: ${composite})`, async (t) => {
+    const root = await fixture(t)
+    const editorConfig = '{ "files": [], "references": [] }\n'
+    await writeFile(join(root, 'tsconfig.json'), editorConfig)
+    if (composite) {
+      await writeFile(join(root, 'tsconfig.base.json'), JSON.stringify({
+        compilerOptions: {
+          target: 'ES2022', module: 'NodeNext', moduleResolution: 'NodeNext',
+          declaration: true, strict: true, composite: true, noEmit: true, rootDir: './legacy/src',
+        },
+      }))
+    }
+    for (const [path, alias] of [['libraries/shared', '@org/shared'], ['apps/deep/consumer', '@org/consumer']]) {
+      const result = run(root, 'init', '@isox-sh/js', path, `--importPath=${alias}`)
+      assert.equal(result.status, 0, result.stdout + result.stderr)
+    }
+    await writeFile(join(root, 'libraries/shared/src/index.ts'), 'export const answer: number = 42\n')
+    await writeFile(join(root, 'apps/deep/consumer/src/index.ts'), 'import { answer } from "@org/shared"\nexport const result = answer + 1\n')
+
+    for (const [packageName, bin] of [['typescript', 'tsc6'], ['@typescript/native', 'tsc']]) {
+      for (const project of ['libraries/shared', 'apps/deep/consumer']) {
+        const result = typecheck(root, project, packageName, bin)
+        assert.equal(result.status, 0, `${packageName}: ${result.stdout}${result.stderr}`)
+        assert.deepEqual(await readdir(join(root, project, 'src')), ['index.ts'])
+      }
+    }
+    assert.ok(!(await readdir(root)).includes('dist'))
+    assert.equal(await readFile(join(root, 'tsconfig.json'), 'utf8'), editorConfig)
+
+    for (const project of ['shared', 'consumer']) {
+      const result = run(root, 'build', project)
+      assert.equal(result.status, 0, result.stdout + result.stderr)
+    }
+    for (const project of ['libraries/shared', 'apps/deep/consumer']) {
+      assert.deepEqual((await readdir(join(root, 'dist', project))).sort(), ['index.d.ts', 'index.js'])
+    }
+    assert.match(await readFile(join(root, 'dist/apps/deep/consumer/index.d.ts'), 'utf8'), /result: number/)
+
+    // Editors must keep checking dependency sources even when built declarations exist.
+    await writeFile(join(root, 'libraries/shared/src/index.ts'), 'export const answer: number = "invalid"\n')
+    for (const [packageName, bin] of [['typescript', 'tsc6'], ['@typescript/native', 'tsc']]) {
+      const result = typecheck(root, 'apps/deep/consumer', packageName, bin)
+      assert.notEqual(result.status, 0)
+      assert.match(result.stdout + result.stderr, /TS2322/)
+    }
+  })
+}
 
 test('init preserves JSONC comments, settings and aliases, honoring an existing baseUrl', async (t) => {
   const root = await fixture(t)

@@ -30,7 +30,7 @@ for (const pathStyle of ['relative', 'absolute']) {
     assert.deepEqual((await readJson('tsconfig.base.json', workspaceContext)).compilerOptions.paths, {
       '@org/test': ['./packages/test/src/index.ts'],
     })
-    const tsconfig = await readJson('tsconfig.json', projectContext)
+    const tsconfig = await readJson('tsconfig.build.json', projectContext)
     assert.equal(tsconfig.extends, '../../tsconfig.base.json')
     assert.equal(tsconfig.compilerOptions.outDir, '../../dist/packages/test')
 
