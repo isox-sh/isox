@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto'
-import { chmod, link, lstat, mkdir, realpath, rename, rm, writeFile } from 'node:fs/promises'
+import { chmod, lstat, mkdir, realpath, rename, rm, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 
 import { logger } from '../logger'
 import { json } from './json'
 import { resolveProjectPath } from './project-path'
+import { publishNewFile } from './publish-new-file'
 
 import type { Logger } from '../logger'
 
@@ -73,7 +74,7 @@ export async function writeJson(
     }
     if (options.overwrite === false) {
       // Publish without replacing a file created by another writer.
-      await link(temporary, target)
+      await publishNewFile(temporary, target)
     } else {
       // Replace the entry atomically, without modifying hard-linked files elsewhere.
       await rename(temporary, target)

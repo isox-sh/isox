@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { constants } from 'node:fs'
-import { chmod, link, lstat, mkdir, open, rename, rm, writeFile } from 'node:fs/promises'
+import { chmod, lstat, mkdir, open, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 
-import { json, writeJson } from '@isox-sh/core'
+import { json, publishNewFile, writeJson } from '@isox-sh/core'
 import { applyEdits, modify, parse } from 'jsonc-parser'
 
 import type { ProjectInitializer } from '@isox-sh/core'
@@ -114,7 +114,7 @@ const init: ProjectInitializer = async (options, context) => {
           await chmod(temporary, mode)
         }
         if (createBase) {
-          await link(temporary, baseFile)
+          await publishNewFile(temporary, baseFile)
         } else {
           await rename(temporary, baseFile)
         }
