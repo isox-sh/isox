@@ -1,6 +1,9 @@
-# Workspace and project configuration
-
-[Documentation index](README.md)
+---
+title: "Workspace and project configuration"
+description: "Configure workspace roots, project definitions, dependency discovery, schemas, and caching."
+sidebarTitle: "Configuration"
+icon: "sliders"
+---
 
 ## Workspace root
 
@@ -55,8 +58,8 @@ context: read them through `context.project` and `context.command`. The exported
 TypeScript interfaces expose additional fields as `unknown`, so consumers can
 narrow them to their own types. Defined Isox fields are still validated.
 
-See [named configurations](cli.md#named-configurations) for option overrides and
-[Nx project conversion](nx-migration.md#project-conversion) for existing Nx files.
+See [named configurations](/docs/cli#named-configurations) for option overrides and
+[Nx project conversion](/docs/nx-migration#project-conversion) for existing Nx files.
 
 Discovery detects project dependencies from TypeScript/JavaScript imports,
 re-exports, literal dynamic imports and require calls, including type-only imports
@@ -79,7 +82,7 @@ reports dependency cycles.
 
 `plan.weight` is a positive number that estimates a project's relative CI cost.
 It defaults to `1`; increasing it gives the project more weight when balancing
-shards. Fractional weights are supported. See [affected and CI](affected-and-ci.md)
+shards. Fractional weights are supported. See [affected and CI](/docs/affected-and-ci)
 for tag filters, distribution, and the optional `affected.globalFiles` globs in
 `isox.json` for shared tooling changes.
 
@@ -96,4 +99,4 @@ cache files are rebuilt automatically. Keep `.isox/` out of version control.
 the cache so branch changes and changed weights cannot produce stale plans.
 
 Project initialization refreshes discovery automatically. See
-[getting started](getting-started.md#define-a-project) to create a project.
+[getting started](/docs/getting-started#define-a-project) to create a project.

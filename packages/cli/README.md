@@ -9,10 +9,10 @@ npm install --save-dev isox
 
 ## Documentation
 
-- [Getting started](https://github.com/isox-sh/isox/blob/main/docs/getting-started.md)
-- [CLI reference](https://github.com/isox-sh/isox/blob/main/docs/cli.md)
-- [Workspace configuration](https://github.com/isox-sh/isox/blob/main/docs/configuration.md)
-- [All documentation](https://github.com/isox-sh/isox/blob/main/docs/README.md)
+- [Getting started](https://github.com/isox-sh/isox/blob/main/website/docs/getting-started.md)
+- [CLI reference](https://github.com/isox-sh/isox/blob/main/website/docs/cli.md)
+- [Workspace configuration](https://github.com/isox-sh/isox/blob/main/website/docs/configuration.md)
+- [All documentation](https://github.com/isox-sh/isox/blob/main/website/README.md)
 
 [Website](https://isox.sh) · [Source](https://github.com/isox-sh/isox) ·
 [Issues](https://github.com/isox-sh/isox/issues)

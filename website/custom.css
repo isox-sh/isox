@@ -1,0 +1,157 @@
+/* Keep homepage styling separate from Mintlify's documentation layout. */
+.isox-home {
+  --home-bg: #ffffff;
+  --home-surface: #f5f7fb;
+  --home-terminal: #edf2fa;
+  --home-text: #172335;
+  --home-muted: #536176;
+  --home-line: #dce3ed;
+  --home-blue: #255bc4;
+  --home-purple: #7252b7;
+  --home-code: #264e84;
+  --home-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  background: var(--home-bg);
+  color: var(--home-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  padding-bottom: 1px;
+}
+
+.dark .isox-home {
+  --home-bg: #0d1117;
+  --home-surface: #131a24;
+  --home-terminal: #0b1017;
+  --home-text: #edf1f7;
+  --home-muted: #a2aebf;
+  --home-line: #27313e;
+  --home-blue: #8ab6ff;
+  --home-purple: #b8a2ff;
+  --home-code: #b6cdf3;
+}
+
+.isox-home * { box-sizing: border-box; }
+.isox-home :is(h1, h2, h3, p, pre) { margin: 0; }
+.isox-home a { color: inherit; text-decoration: none; }
+.isox-home a:hover { color: var(--home-blue); }
+.isox-home :is(a, pre):focus-visible { outline: 2px solid var(--home-blue); outline-offset: 5px; border-radius: 4px; }
+.isox-home ::selection { color: #fff; background: #335da3; }
+.isox-home .home-container { width: min(1160px, calc(100% - 80px)); margin-inline: auto; }
+.isox-home :is(section, h1, h2) { scroll-margin-top: 100px; }
+.isox-home .home-hero { display: grid; grid-template-columns: 1fr 1fr; gap: 54px; align-items: center; padding-block: 90px; }
+.isox-home .home-eyebrow { display: flex; align-items: center; gap: 9px; color: var(--home-blue); font: 11px/1.6 var(--home-mono); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 24px; }
+.isox-home .home-status { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: var(--home-blue); box-shadow: 0 0 0 4px color-mix(in srgb, var(--home-blue) 10%, transparent); }
+.isox-home h1 { font-size: clamp(44px, 5.1vw, 66px); line-height: 1.08; letter-spacing: -3px; font-weight: 650; margin-bottom: 25px; }
+.isox-home :is(h1, h2) > span { color: var(--home-blue); }
+.isox-home .home-description { max-width: 440px; color: var(--home-muted); font-size: 17px; line-height: 1.8; margin-bottom: 30px; }
+.isox-home .home-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.isox-home .home-button { display: inline-flex; align-items: center; gap: 28px; padding: 14px 21px; border-radius: 6px; font-size: 14px; font-weight: 650; color: #fff; background: #255bc4; border: 1px solid #255bc4; transition: background .15s; }
+.isox-home .home-button:hover { background: #1d479b; color: #fff; }
+.dark .isox-home .home-button { color: #091325; background: #95bcff; border-color: #b0cdff; }
+.dark .isox-home .home-button:hover { color: #091325; background: #b2ceff; }
+.isox-home .home-text-link { display: inline-block; font-size: 13px; font-weight: 550; }
+.isox-home .home-text-link span { margin-left: 6px; color: var(--home-blue); }
+.isox-home .home-note { margin-top: 24px; color: var(--home-muted); font: 11px/1.8 var(--home-mono); }
+.isox-home .home-note span { margin-inline: 8px; }
+.isox-home .home-demo { min-width: 0; }
+.isox-home .home-demo-label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 14px; color: var(--home-muted); font: 9px/1.6 var(--home-mono); letter-spacing: 1px; text-transform: uppercase; }
+.isox-home .home-demo-label > span:last-child { color: var(--home-purple); }
+.isox-home .home-code-window { background: var(--home-surface); border: 1px solid var(--home-line); border-radius: 10px; overflow: hidden; box-shadow: 0 24px 65px #0000000a; }
+.isox-home .home-window-bar { display: flex; align-items: center; gap: 22px; padding: 16px 20px; border-bottom: 1px solid var(--home-line); color: var(--home-muted); font: 10px/1.4 var(--home-mono); }
+.isox-home .home-window-dots { display: flex; gap: 5px; }
+.isox-home .home-window-dots > span { display: block; width: 7px; height: 7px; border-radius: 50%; }
+.isox-home .home-window-dots > span:first-child { background: #b58b9a; }
+.isox-home .home-window-dots > span:nth-child(2) { background: #b9aa7f; }
+.isox-home .home-window-dots > span:last-child { background: #88a993; }
+.isox-home .home-file-type { margin-left: auto; font-size: 9px; }
+.isox-home pre { overflow-x: auto; font: 12px/1.9 var(--home-mono); tab-size: 2; }
+.isox-home code { font-family: var(--home-mono); }
+.isox-home p code { color: var(--home-code); font-size: .9em; overflow-wrap: anywhere; }
+.isox-home .home-project-code { padding: 25px 23px; color: var(--home-code); }
+.isox-home .home-terminal { padding: 20px 23px 24px; background: var(--home-terminal); border-top: 1px solid var(--home-line); }
+.isox-home .home-terminal p { font-size: 14px; }
+.isox-home .home-terminal-label,
+.isox-home .home-terminal .home-terminal-label { margin-bottom: 14px; color: var(--home-muted); font: 10px/1.5 var(--home-mono); letter-spacing: .8px; text-transform: uppercase; }
+.isox-home .home-prompt { color: var(--home-purple); margin-right: 8px; }
+.isox-home .home-cursor { display: inline-block; width: 7px; height: 14px; margin-left: 9px; background: var(--home-blue); vertical-align: -2px; opacity: .7; }
+.isox-home .home-terminal .home-terminal-note { color: var(--home-muted); font: 10px/1.7 var(--home-mono); margin-top: 13px; }
+.isox-home .home-caption { color: var(--home-muted); font: 10px/1.8 var(--home-mono); margin-top: 15px; }
+.isox-home .home-caption span { color: var(--home-purple); margin-right: 8px; }
+.isox-home .home-principles { padding-block: 65px 72px; border-block: 1px solid var(--home-line); }
+.isox-home h2 { font-size: clamp(30px, 3vw, 38px); line-height: 1.2; letter-spacing: -1.3px; font-weight: 600; }
+.isox-home .home-feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 45px; margin-top: 44px; }
+.isox-home .home-feature-number { font: 10px/1.6 var(--home-mono); letter-spacing: 1px; color: var(--home-purple); }
+.isox-home h3 { font-size: 17px; font-weight: 600; letter-spacing: -.3px; margin: 15px 0 12px; }
+.isox-home :is(.home-feature-grid, .home-ci, .home-quickstart-intro, .home-steps) p:not([class]) { color: var(--home-muted); font-size: 14px; line-height: 1.8; }
+.isox-home .home-feature-grid .home-text-link { margin-top: 18px; }
+.isox-home :is(.home-ci, .home-quickstart) { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; padding-block: 80px; }
+.isox-home .home-ci { border-bottom: 1px solid var(--home-line); align-items: center; }
+.isox-home .home-ci > div > p:not([class]),
+.isox-home .home-quickstart-intro > p:not([class]) { margin-top: 22px; max-width: 400px; }
+.isox-home :is(.home-ci, .home-quickstart-intro) .home-text-link { margin-top: 24px; }
+.isox-home .home-ci-commands { min-width: 0; border: 1px solid var(--home-line); border-radius: 10px; background: var(--home-surface); }
+.isox-home .home-ci-commands > div { padding: 25px; }
+.isox-home .home-ci-commands > div + div { border-top: 1px solid var(--home-line); }
+.isox-home .home-ci-commands pre { color: var(--home-code); font-size: 11px; }
+.isox-home .home-quickstart h2 { font-size: 44px; }
+.isox-home .home-requirements { color: var(--home-muted); font: 11px/1.8 var(--home-mono); margin-top: 30px; max-width: 350px; }
+.isox-home .home-steps { margin: 0; padding: 0; list-style: none; min-width: 0; }
+.isox-home .home-steps > li { padding: 0 0 25px 38px; position: relative; }
+.isox-home .home-steps > li:last-child { padding-bottom: 0; }
+.isox-home .home-steps > li:not(:last-child)::before { content: ""; width: 1px; position: absolute; left: 11px; top: 28px; bottom: 5px; background: var(--home-line); }
+.isox-home .home-steps h3 { margin: 0 0 9px; font-size: 15px; line-height: 24px; }
+.isox-home .home-step-number { position: absolute; left: 0; width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid var(--home-line); border-radius: 50%; color: var(--home-blue); font: 10px var(--home-mono); }
+.isox-home .home-steps pre { border: 1px solid var(--home-line); background: var(--home-surface); padding: 13px 16px; border-radius: 5px; margin-top: 12px; color: var(--home-code); }
+.isox-home .home-steps > li > pre + p { margin-top: 12px; font-size: 12px; }
+.isox-home .home-scope { display: flex; align-items: baseline; gap: 26px; padding: 22px 25px; background: var(--home-surface); border-left: 2px solid var(--home-purple); border-radius: 0 5px 5px 0; }
+.isox-home .home-scope > span { color: var(--home-purple); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.isox-home .home-scope p { color: var(--home-muted); font-size: 12px; line-height: 1.8; }
+.isox-home .home-scope a { color: var(--home-text); text-decoration: underline; text-underline-offset: 3px; }
+.isox-home .home-footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-top: 1px solid var(--home-line); margin-top: 70px; padding-block: 30px; }
+.isox-home .home-brand { display: inline-flex; align-items: center; font-size: 25px; font-weight: 750; letter-spacing: -1.3px; }
+.isox-home .home-brand img { margin-right: 9px; }
+.isox-home .home-brand span { color: var(--home-blue); }
+.isox-home .home-footer p { font-size: 12px; color: var(--home-muted); }
+.isox-home .home-footer-links { display: flex; flex-wrap: wrap; gap: 22px; font-size: 12px; }
+
+@media (min-width: 900px) and (max-width: 1100px) {
+  .isox-home .home-hero { gap: 28px; }
+  .isox-home .home-project-code { font-size: 11px; padding-inline: 16px; }
+  .isox-home :is(.home-ci, .home-quickstart) { gap: 40px; }
+}
+
+@media (max-width: 899px) {
+  .isox-home .home-container { width: min(640px, calc(100% - 48px)); }
+  .isox-home .home-hero { grid-template-columns: 1fr; gap: 48px; padding-block: 65px; }
+  .isox-home h1 { font-size: clamp(45px, 8vw, 64px); }
+  .isox-home .home-description { max-width: 520px; }
+  .isox-home .home-feature-grid { grid-template-columns: 1fr; gap: 30px; }
+  .isox-home .home-feature-grid h3 { margin-block: 8px; }
+  .isox-home :is(.home-ci, .home-quickstart) { grid-template-columns: 1fr; gap: 40px; padding-block: 60px; }
+  .isox-home .home-scope { flex-direction: column; gap: 8px; }
+  .isox-home .home-footer { flex-wrap: wrap; }
+  .isox-home .home-footer p { order: 3; flex-basis: 100%; }
+}
+
+@media (max-width: 540px) {
+  .isox-home .home-container { width: calc(100% - 40px); }
+  .isox-home .home-hero { padding-block: 48px; }
+  .isox-home h1 { font-size: clamp(38px, 10.5vw, 54px); letter-spacing: -2px; }
+  .isox-home .home-description { font-size: 16px; }
+  .isox-home .home-actions { gap: 20px; }
+  .isox-home .home-note { font-size: 10px; }
+  .isox-home .home-note span { margin-inline: 4px; }
+  .isox-home .home-demo-label { font-size: 8px; letter-spacing: .5px; }
+  .isox-home .home-window-bar { padding: 14px; gap: 14px; font-size: 9px; }
+  .isox-home .home-file-type { display: none; }
+  .isox-home .home-project-code { font-size: 11px; padding: 20px 14px; }
+  .isox-home .home-terminal { padding-inline: 14px; }
+  .isox-home .home-principles { padding-block: 45px; }
+  .isox-home .home-feature-grid { margin-top: 32px; }
+  .isox-home .home-quickstart h2 { font-size: 38px; }
+  .isox-home .home-steps pre { font-size: 11px; padding-inline: 12px; }
+  .isox-home .home-scope { padding: 18px; }
+  .isox-home .home-footer { margin-top: 45px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .isox-home .home-button { transition: none; }
+}

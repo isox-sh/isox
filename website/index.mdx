@@ -1,0 +1,134 @@
+---
+title: "Isox — Your projects. Your commands."
+description: "A lightweight monorepo command runner with explicit project configuration, affected selection, and no background daemon."
+mode: "custom"
+---
+
+<div className="isox-home">
+  <section className="home-hero home-container" aria-labelledby="home-title">
+    <div>
+      <p className="home-eyebrow"><span className="home-status" aria-hidden="true" /> Small runner. Clear intent.</p>
+      <h1 id="home-title">Your projects.<br />Your commands.<br /><span>Less ceremony.</span></h1>
+      <p className="home-description">A lightweight monorepo command runner that keeps configuration explicit and execution simple. Define a project. Pick a command. Get to work.</p>
+      <div className="home-actions">
+        <a className="home-button" href="/docs/getting-started">Get started <span aria-hidden="true">→</span></a>
+        <a className="home-text-link" href="/docs/introduction">Read the docs <span aria-hidden="true">↗</span></a>
+      </div>
+      <p className="home-note">Open source <span aria-hidden="true">/</span> MIT licensed <span aria-hidden="true">/</span> No daemon</p>
+    </div>
+
+    <div className="home-demo">
+      <div className="home-demo-label"><span>Less config. More doing.</span><span aria-hidden="true">01 / ISOX</span></div>
+      <div className="home-code-window">
+        <div className="home-window-bar">
+          <span className="home-window-dots" aria-hidden="true"><span /><span /><span /></span>
+          <span>apps/web/project.json</span>
+          <span className="home-file-type">JSON</span>
+        </div>
+        <pre className="home-project-code" tabIndex={0} aria-label="Example project configuration"><code>{JSON.stringify({
+          name: "web",
+          executors: {
+            build: {
+              executor: "core:run-command",
+              options: {
+                command: "npm run build",
+                cwd: "apps/web"
+              }
+            }
+          }
+        }, null, 2)}</code></pre>
+        <div className="home-terminal">
+          <p className="home-terminal-label">Then, from your workspace</p>
+          <p><span className="home-prompt" aria-hidden="true">❯</span> <code>npx isox build web</code><span className="home-cursor" aria-hidden="true" /></p>
+          <p className="home-terminal-note">Your build script. Your tools. One entry point.</p>
+        </div>
+      </div>
+      <p className="home-caption"><span aria-hidden="true">↳</span> One project file. A command you can read.</p>
+    </div>
+  </section>
+
+  <section className="home-principles home-container" id="how-it-works" aria-labelledby="principles-title">
+    <p className="home-eyebrow">A little structure goes a long way</p>
+    <h2 id="principles-title">Keep your tools.<br />Bring your commands together.</h2>
+    <div className="home-feature-grid">
+      <div role="article">
+        <span className="home-feature-number">01 / DEFINE</span>
+        <h3>Explicit by design.</h3>
+        <p>Each project has a <code>project.json</code>. Its name, commands, and tags live together, right where the project does.</p>
+        <a className="home-text-link" href="/docs/configuration">Project configuration <span aria-hidden="true">→</span></a>
+      </div>
+      <div role="article">
+        <span className="home-feature-number">02 / DISCOVER</span>
+        <h3>A workspace that stays simple.</h3>
+        <p>An <code>isox.json</code> marks your workspace root. Isox discovers your projects and dependencies, and caches their configuration locally.</p>
+        <a className="home-text-link" href="/docs/concepts">How Isox works <span aria-hidden="true">→</span></a>
+      </div>
+      <div role="article">
+        <span className="home-feature-number">03 / RUN</span>
+        <h3>Your command, your way.</h3>
+        <p>Run existing scripts with the bundled shell executor, or use native plugins for TypeScript, ESLint, and Vitest. No background daemon needed.</p>
+        <a className="home-text-link" href="/docs/shell-commands">Run your tools <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <section className="home-ci home-container" aria-labelledby="ci-title">
+    <div>
+      <p className="home-eyebrow">From your terminal to CI</p>
+      <h2 id="ci-title">Changed projects.<br /><span>Focused work.</span></h2>
+      <p>Use Git changes and project dependencies to select affected projects. Distribute exact project lists across weighted GitHub Actions jobs.</p>
+      <a className="home-text-link" href="/docs/affected-and-ci">Explore affected projects and CI <span aria-hidden="true">→</span></a>
+    </div>
+    <div className="home-ci-commands">
+      <div>
+        <p className="home-terminal-label">Run changed projects and their dependents</p>
+        <pre tabIndex={0} aria-label="Run affected tests"><code>npx isox affected --target=test --base=origin/main</code></pre>
+      </div>
+      <div>
+        <p className="home-terminal-label">Plan work across three CI jobs</p>
+        <pre tabIndex={0} aria-label="Create a CI matrix"><code>npx isox plan --target=test --max-jobs=3</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section className="home-quickstart home-container" id="get-started" aria-labelledby="quickstart-title">
+    <div className="home-quickstart-intro">
+      <p className="home-eyebrow">From install to execution</p>
+      <h2 id="quickstart-title">Make yourself<br />at <span>home.</span></h2>
+      <p>Start in an existing workspace. Add a little configuration, then let your tools do what they do best.</p>
+      <a className="home-text-link" href="/docs/getting-started">Follow the setup guide <span aria-hidden="true">→</span></a>
+      <p className="home-requirements">Requires Node.js 24+. Use Node.js 24 or 26+ with the ESLint and Vitest plugins.</p>
+    </div>
+    <ol className="home-steps">
+      <li>
+        <h3><span className="home-step-number" aria-hidden="true">1</span>Install &amp; initialize</h3>
+        <p>Run these commands at the root of your workspace.</p>
+        <pre tabIndex={0} aria-label="Install and initialize Isox"><code>{"npm install -D isox\nnpx isox init"}</code></pre>
+      </li>
+      <li>
+        <h3><span className="home-step-number" aria-hidden="true">2</span>Define your project</h3>
+        <p>Save the example above as <code>apps/web/project.json</code>, in a project with an existing <code>build</code> npm script.</p>
+      </li>
+      <li>
+        <h3><span className="home-step-number" aria-hidden="true">3</span>Run with Isox</h3>
+        <pre tabIndex={0} aria-label="Build the web project"><code>npx isox build web</code></pre>
+        <p>Changed a project configuration? Run <code>npx isox reset</code> to refresh discovery on the next run.</p>
+      </li>
+    </ol>
+  </section>
+
+  <div className="home-scope home-container" role="note" aria-label="Current capabilities">
+    <span>Small on purpose.</span>
+    <p>Run project commands, select affected projects, and distribute weighted plans across CI workers. Prerequisite scheduling and task output caching remain planned. <a href="https://github.com/isox-sh/isox/blob/main/ROADMAP.md">Follow development <span aria-hidden="true">↗</span></a></p>
+  </div>
+
+  <div className="home-footer home-container" role="contentinfo">
+    <a className="home-brand" href="/" aria-label="Isox home"><img src="/images/favicon.svg" alt="" width="28" height="32" />isox<span>.</span></a>
+    <p>A little less between you and your work.</p>
+    <div className="home-footer-links" role="navigation" aria-label="Homepage footer">
+      <a href="/docs/introduction">Documentation</a>
+      <a href="https://github.com/isox-sh/isox">GitHub</a>
+      <a href="https://github.com/isox-sh/isox/blob/main/LICENSE">MIT License</a>
+    </div>
+  </div>
+</div>

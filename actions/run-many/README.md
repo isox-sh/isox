@@ -16,5 +16,5 @@ Stage arrays are passed as JSON, preserving exact command names such as
 `prepare,assets`; the installed CLI uses core's shared stage validation.
 `head` verifies that the worker checked out the planned commit.
 
-See the [affected and CI guide](../../docs/affected-and-ci.md) for complete workflows
+See the [affected and CI guide](../../website/docs/affected-and-ci.md) for complete workflows
 and prerequisite/artifact handling. [action.yml](action.yml) lists supported inputs.

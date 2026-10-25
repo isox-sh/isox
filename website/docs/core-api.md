@@ -1,6 +1,9 @@
-# Core API and shell commands
-
-[Documentation index](README.md)
+---
+title: "Core API and shell commands"
+description: "Discover workspaces, run executors, plan affected work, and use shared configuration and process APIs."
+sidebarTitle: "Core API"
+icon: "brackets-curly"
+---
 
 Workspace discovery, native command execution, configuration types, and logging
 for [Isox](https://isox.sh). This package also supplies the built-in `run-command`
@@ -79,7 +82,7 @@ caching.
 
 ## Custom executors
 
-See [custom executors and initializers](custom-executors.md) for the native
+See [custom executors and initializers](/docs/custom-executors) for the native
 contract, plugin manifests, continuous results, and cancellation.
 `runExecutor` accepts an optional `AbortSignal` as its seventh argument.
 When that signal is aborted, an executor may stop by throwing its abort reason
@@ -107,7 +110,7 @@ Schemas ship at:
 
 - `@isox-sh/core/schemas/project.schema.json`
 - `@isox-sh/core/schemas/isox.schema.json`
-- `@isox-sh/core/dist/executors/run-command/run-command.schema.json`
+- `@isox-sh/core/executors/run-command/run-command.schema.json`
 
 ## Logging
 
@@ -223,7 +226,7 @@ reads and refresh the saved workspace. `getAffectedProjects` propagates changed
 files through inferred and explicitly declared dependency edges; `createProjectMatrix` applies command
 and tag filters, checks configurations, and distributes project weights. It
 returns the same matrix contract used by the CLI and actions. See the
-[affected and CI guide](affected-and-ci.md) for complete semantics.
+[affected and CI guide](/docs/affected-and-ci) for complete semantics.
 
 Discovery merges import and local package references into each cached project's
 `dependencies`. The source `project.json` retains only manual additions. Core also
@@ -240,5 +243,5 @@ Separate processes do not isolate filesystem access or make execution hermetic.
 The optional Nx adapter lives in the separately installed `@isox-sh/nx` package
 and supports Nx 23 only, for initial migration. Adopt native
 Isox commands before completing migration. See the
-[project documentation](README.md) and
-[roadmap](../ROADMAP.md).
+[project documentation](/docs/introduction) and
+[roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).

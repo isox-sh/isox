@@ -1,6 +1,9 @@
-# Custom executors and initializers
-
-[Documentation index](README.md)
+---
+title: "Custom executors and initializers"
+description: "Build native plugins with executor manifests, project initializers, continuous results, and cancellation."
+sidebarTitle: "Custom plugins"
+icon: "puzzle-piece"
+---
 
 Core exports `Executor`, `ExecutorContext`, and `ExecutorResult`. A native
 executor receives the merged options (or `{}`) and this context:
@@ -53,7 +56,7 @@ layout because Isox loads the paths declared in their manifests.
 ### Building and packaging schemas
 
 TypeScript compilation does not copy standalone JSON schemas. Configure
-[`js:tsc` assets](typescript.md) in the plugin's `project.json` to preserve their
+[`js:tsc` assets](/docs/typescript) in the plugin's `project.json` to preserve their
 paths under `dist`:
 
 ```json
@@ -110,7 +113,7 @@ options schemas.
 
 The layout above describes a plugin with a local `dist` directory. This
 repository builds standalone packages into `<repository>/dist/<package>`; see
-[repository build outputs](contributing.md#build-outputs) for workspace links,
+[repository build outputs](/docs/contributing#build-outputs) for workspace links,
 package generation, and bootstrap behavior. In both layouts, executor schemas
 are copied through the configured assets.
 
@@ -157,11 +160,11 @@ commands do not receive final completion logging. Honor `context.signal` and
 close resources in the iterator's `finally`/`return` path. The CLI cancels active
 commands on SIGINT/SIGTERM; `js:tsc` also cancels its compiler process group.
 
-The native [`js:tsc` executor](typescript.md) supports owned-output cleanup,
+The native [`js:tsc` executor](/docs/typescript) supports owned-output cleanup,
 asset copying, optional package.json/exports generation, and watch configurations.
 Use `isox build <project> --config=watch` with `watch: true` in that configuration.
 The full contract and migration limits are documented in the
-[TypeScript executor guide](typescript.md).
+[TypeScript executor guide](/docs/typescript).
 
 ## Programmatic execution
 
@@ -182,7 +185,7 @@ if the first-party package cannot be found. This selects the Isox executor even
 when the workspace also installs Vitest itself. Invalid manifests or missing
 commands in the resolved package report errors without falling back.
 
-See the [core API](core-api.md) for programmatic use, JSON helpers, logging,
+See the [core API](/docs/core-api) for programmatic use, JSON helpers, logging,
 and the built-in shell-command executor.
 
 ## Project initializers
@@ -197,7 +200,7 @@ The initializer creates the project files and updates any shared configuration.
 
 ## Testing plugins
 
-Use [`@isox-sh/e2e`](../packages/e2e/README.md) to create temporary workspaces with
+Use [`@isox-sh/e2e`](/docs/plugin-testing) to create temporary workspaces with
 your built plugin packages linked in. Its `createWorkspace` API accepts package
 names mapped to local directories and exposes `runIsox`, `runNode`, and `cleanup`.
 It works with any test runner and reuses existing package installations without

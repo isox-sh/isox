@@ -1,9 +1,12 @@
-# Contributing
+---
+title: "Contributing"
+description: "Set up the Isox repository, build packages, run tests, and improve the documentation."
+sidebarTitle: "Contributing"
+icon: "code-pull-request"
+---
 
-[Documentation index](README.md)
-
-We are actively building out the core engine. Start with the
-[active roadmap](../ROADMAP.md), then use [Issues](https://github.com/isox-sh/isox/issues)
+Start with the [active roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md),
+then use [Issues](https://github.com/isox-sh/isox/issues)
 for individual work items or submit a PR.
 
 ## Development setup
@@ -38,7 +41,7 @@ workspace and runs the package suites plus the end-to-end suite; after building,
 `pnpm isox test vitest`, `pnpm isox test nx`, or `pnpm isox test e2e-plugin` for one package suite.
 
 The Vitest end-to-end suite lives in `e2e/` and runs with `pnpm isox test e2e`
-after bootstrap. It uses the public [`@isox-sh/e2e`](../packages/e2e/README.md)
+after bootstrap. It uses the public [`@isox-sh/e2e`](/docs/plugin-testing)
 helper. Each test creates a workspace under `<root>/tmp/isox-e2e-*`, links the locally built
 CLI/core/JS packages, and runs the CLI as a child process. It creates `isox.json`
 using `isox init`, initializes a JS project with `--importPath`, builds it, checks
@@ -54,15 +57,17 @@ Pull requests and merge groups run the `pull-requests` workflow using `.github/a
 Node.js and pnpm, install dependencies, and build core, the CLI, and the
 plugins. Call this action once after checkout in each job that needs Isox; subsequent steps in that job can
 use `pnpm isox`. It defaults to Node.js 24, configurable through `node-version`.
-The planning job runs lint and creates an affected test matrix through our
-`actions/plan` action. Up to three workers bootstrap their prerequisites and use
-`actions/run-many` to execute the exact planned package and end-to-end suites.
-Projects' `plan.weight` values balance expensive suites. Changes propagate through
-inferred and declared dependencies; workspace-wide inputs and unowned paths select all suites.
+The planning job creates an affected matrix for `test`, `build`, and `lint` through
+our `actions/plan` action. Each target gets up to three workers, which bootstrap
+their prerequisites and use `actions/run-many` to execute the exact planned
+projects. The website's `test` target validates Mintlify alongside the package
+and end-to-end tests. Projects' `plan.weight` values balance expensive commands.
+Changes propagate through inferred and declared dependencies; workspace-wide
+inputs and unowned paths select all projects with the requested targets.
 A final required check preserves failures and accepts an empty plan. Pull requests
 use their base SHA; other events use the nearest reachable Git tag, or all
 projects if none exists. This workflow runs only for pull requests and merge groups.
-See [affected projects and CI](affected-and-ci.md) for the public actions.
+See [affected projects and CI](/docs/affected-and-ci) for the public actions.
 
 ```yaml
 steps:
@@ -95,11 +100,11 @@ Any command defined in that project's `executors` object can be used.
 `isox run cli:build` also works. `init`, `run`, `reset`, `affected`, `plan`, and `run-many` are reserved CLI commands;
 use `isox run <project>:<command>` for project commands with those names.
 
-Package builds use [`@isox-sh/js:tsc`](typescript.md), written as `js:tsc`
+Package builds use [`@isox-sh/js:tsc`](/docs/typescript), written as `js:tsc`
 in our project files. Compiler settings stay in each package's `tsconfig.json`;
 there are no `scripts.build` entries. Lint commands use
-[`eslint:lint`](eslint.md); test commands use
-[`vitest:test`](vitest.md).
+[`eslint:lint`](/docs/eslint); test commands use
+[`vitest:test`](/docs/vitest).
 Internal package imports use the root `tsconfig.base.json` paths, which point to
 the original sources in `packages/*/src`. The `js:tsc` executor creates a temporary
 build config that maps dependencies to their compiled declarations. Build
@@ -149,11 +154,13 @@ schemas beside them as `<name>.schema.json`. Put project initializers in
 `src/generators` and reusable helpers in `src/helpers`. Tests belong to the
 package's `tests` directory.
 
-Update `executors.json` to reference the compiled implementation and copied
-schema under `dist/executors/<name>/`. Add executor schemas to the build's
-`assets` option, and include `dist` and `executors.json` in the package's
-published files. See [plugin layout and packaging](custom-executors.md#plugin-layout)
-for a complete example and bootstrap behavior.
+In `packages/<plugin>/executors.json`, reference the compiled implementation and
+copied schema under `../../dist/<plugin>/executors/<name>/`. Add executor schemas
+to the build's `assets` option and enable `generatePackageJson`. Package generation
+copies the manifest and rewrites its paths relative to the output package.
+Publish `dist/<plugin>` using `publishConfig.directory`, as described in
+[build outputs](#build-outputs). See [plugin layout and packaging](/docs/custom-executors#plugin-layout)
+for an alternative layout with a package-local `dist` directory.
 
 ## Trying the local CLI
 
@@ -164,6 +171,36 @@ To try the local CLI, run it from a workspace containing `isox.json`,
 cd /path/to/your/workspace
 node /path/to/isox/dist/cli/index.js build my-app
 ```
+
+## Documentation
+
+The Mintlify site lives in `website/`, with navigation and branding in
+`website/docs.json`, the homepage in `website/index.mdx`, and guides in `website/docs/`.
+Preview it from the repository root:
+
+```sh
+pnpm isox serve website
+```
+
+The preview normally runs at `http://localhost:3000`. Before submitting docs
+changes, run `pnpm isox test website` to validate the build and internal links,
+including heading anchors. These commands live in `website/project.json` and use
+Mintlify through `pnpm dlx`, downloading its tooling on first use. Validation uses
+a pinned CLI version.
+Run `pnpm bootstrap` once after installing repository dependencies to prepare the
+local Isox CLI.
+
+Add new pages to `navigation.groups` in `website/docs.json` using paths such as
+`docs/getting-started`. Include a `title` and
+`description` in each page's YAML frontmatter, use extensionless site paths such
+as `/docs/configuration` for internal links, and keep code examples consistent with
+the source and schemas. Existing Markdown guides and new MDX pages are both
+supported. Use GitHub URLs for source files outside `website/`. The website's
+`test` target is selected automatically by the existing affected CI plan and runs
+in the shared worker. Mintlify handles hosting from this directory.
+
+See the [documentation README](https://github.com/isox-sh/isox/blob/main/website/README.md)
+for direct CLI commands and Mintlify hosting setup.
 
 ## Pull requests
 

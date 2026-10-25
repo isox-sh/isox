@@ -1,4 +1,9 @@
-# AI prompt: migrate an Nx workspace to Isox
+---
+title: "AI migration prompt"
+description: "A reusable prompt for migrating an Nx workspace to Isox while preserving build, test, and CI behavior."
+sidebarTitle: "AI migration prompt"
+icon: "wand-magic-sparkles"
+---
 
 Use the following instructions as a task prompt for an AI coding agent working
 inside the repository to migrate.
@@ -16,9 +21,9 @@ the migration to native Isox commands and underlying tools, including replacing
 Nx executors and config helpers. Retaining the adapter is an intermediate step,
 not a completed migration.
 
-Use the [active roadmap](../../ROADMAP.md) to distinguish implemented Isox behavior
+Use the [active roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md) to distinguish implemented Isox behavior
 from planned prerequisite scheduling, caching, and isolation features. Use the
-[affected and CI guide](../affected-and-ci.md) to replace Nx affected commands and
+[affected and CI guide](/docs/affected-and-ci) to replace Nx affected commands and
 nx-extend matrix actions with native Isox selection and weighted plans.
 
 ## 1. Inspect the existing behavior
@@ -174,18 +179,22 @@ output directory. This executor does not schedule dependency builds.
 Native asset patterns require a workspace-relative `input`, a `glob`, optional
 output-relative `output`, and optional `ignore`. Cleanup removes only stale owned,
 unchanged files and preserves unrelated output. Define `generatePackageJson: true`
-explicitly when a distributable manifest is required; it defaults to false and
-requires a source package.json with name/version. Preserve metadata there rather
-than copying Nx package-generation options verbatim. `generateExportsField` and
+explicitly when a distributable manifest is required; it defaults to false. A
+source package.json is optional, but must include name/version when present.
+Without one, generation uses the Isox project name and workspace version (or
+`0.0.0`). Preserve source metadata rather than copying Nx package-generation
+options verbatim. `generateExportsField` and
 output-relative `additionalEntryPoints` can add exports. Existing exports are
-validated and preserved. Lockfile generation and inferred runtime dependencies
-are not supported.
+validated and preserved. Runtime dependencies are inferred from source imports
+and resolved against project, workspace, and local package versions. Computed
+module names require explicit dependency metadata. Lockfile generation is not
+supported.
 
 For watch mode, add an Isox configuration containing `watch: true` and select it
 with `--config=watch`. There is no standalone forwarded `--watch` CLI flag.
 Rebuilds refresh tsconfig, assets, and package metadata; recoverable errors keep
 the stream alive. Signal/cancellation closes the watcher and compiler children.
-See [the JS executor contract](../typescript.md) for exact defaults,
+See [the JS executor contract](/docs/typescript) for exact defaults,
 workspace version handling, cleanup restrictions, and watch sampling limits.
 
 ### Temporarily retained Nx 23 executors
@@ -292,8 +301,11 @@ command records. Replace imports of Nx execution helpers with actual Isox/tool
 behavior rather than keeping an accidental dependency on Nx scheduling.
 
 An executor returns `{ success: boolean }`, a promise of that result, or an async
-iterable of such results. Every yielded result must succeed; empty iterables,
-missing results, and exceptions fail the command. Export a CommonJS callable
+iterable of such results. Ordinary failed results, empty iterables, missing
+results, and exceptions fail the command. Watch executors can yield
+`{ success, continuous: true }`; failed continuous results are recoverable while
+the stream continues. Honor `context.signal` and close resources on cancellation.
+Export a CommonJS callable
 function or a callable default export. Declare `"executors": "./executors.json"` in the
 package manifest. The command manifest has this shape:
 
@@ -325,14 +337,19 @@ the workspace root works.
 
 Change scripts, documentation, editor tasks, and CI from `nx run project:build`
 to `isox build project` (or `isox run project:build`). The syntax is
-`isox <command> <target>`, where target is a project name. `init`, `run`, and `reset` are
-reserved; use `isox run project:reset` for a project command named `reset`.
+`isox <command> <target>`, where target is a project name. `init`, `run`, `reset`,
+`affected`, `plan`, and `run-many` are reserved; use `isox run project:reset` for
+a project command named `reset`.
 
-Replace `nx affected` and `nx run-many` workflows with explicit, reviewable
-execution using the package manager or CI configuration. Isox has no equivalents
-yet. Preserve required build ordering and coverage; do not silently skip checks.
-Report unresolved needs for remote caching, generators, release tooling,
-module-boundary rules, watch orchestration, or distributed execution.
+Replace `nx affected` and `nx run-many` workflows with `isox affected` and
+`isox run-many`. Use `isox plan` and the native GitHub Actions to distribute exact
+project lists across weighted workers. Follow the [affected and CI guide](/docs/affected-and-ci)
+for Git selection, tags, named configurations, and pre/post stages. Prepare
+prerequisite outputs explicitly in each worker; the graph does not schedule
+dependency builds. Preserve required build ordering and coverage; do not silently
+skip checks. Report unresolved needs for remote caching, generators beyond the
+available project initializers, release tooling, module-boundary rules, watch
+orchestration, or artifact transfer.
 
 Remove unused Nx scripts, configuration, and dependencies only after checking
 remaining imports, retained adapters, and working commands. Do not leave a shell

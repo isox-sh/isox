@@ -1,0 +1,194 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Isox",
+  "description": "Run your monorepo with explicit project configuration. Guides and reference for Isox commands, executors, affected projects, and CI.",
+  "colors": {
+    "primary": "#3B82F6",
+    "light": "#8AB6FF",
+    "dark": "#2563EB"
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "logo": {
+    "light": "/images/logo-light.svg",
+    "dark": "/images/logo-dark.svg",
+    "href": "/"
+  },
+  "favicon": "/images/favicon.svg",
+  "navigation": {
+    "groups": [
+      {
+        "group": "Get started",
+        "pages": [
+          "docs/introduction",
+          "docs/getting-started",
+          "docs/concepts"
+        ]
+      },
+      {
+        "group": "Run your workspace",
+        "pages": [
+          "docs/configuration",
+          "docs/cli",
+          "docs/affected-and-ci",
+          "docs/troubleshooting"
+        ]
+      },
+      {
+        "group": "Executors",
+        "pages": [
+          "docs/shell-commands",
+          "docs/typescript",
+          "docs/eslint",
+          "docs/vitest"
+        ]
+      },
+      {
+        "group": "Extend Isox",
+        "pages": [
+          "docs/core-api",
+          "docs/custom-executors",
+          "docs/plugin-testing"
+        ]
+      },
+      {
+        "group": "Migration",
+        "pages": [
+          "docs/nx-migration",
+          "docs/prompts/migrate-nx-to-isox"
+        ]
+      },
+      {
+        "group": "Contributing",
+        "pages": [
+          "docs/contributing"
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Home",
+        "href": "/"
+      },
+      {
+        "label": "Docs",
+        "href": "/docs/introduction"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/isox-sh/isox"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get started",
+      "href": "/docs/getting-started"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/isox-sh/isox"
+    },
+    "links": [
+      {
+        "header": "Project",
+        "items": [
+          {
+            "label": "npm",
+            "href": "https://www.npmjs.com/package/isox"
+          },
+          {
+            "label": "Issues",
+            "href": "https://github.com/isox-sh/isox/issues"
+          },
+          {
+            "label": "Roadmap",
+            "href": "https://github.com/isox-sh/isox/blob/main/ROADMAP.md"
+          }
+        ]
+      }
+    ]
+  },
+  "redirects": [
+    {
+      "source": "/README",
+      "destination": "/docs/introduction"
+    },
+    {
+      "source": "/docs",
+      "destination": "/docs/introduction"
+    },
+    {
+      "source": "/introduction",
+      "destination": "/docs/introduction"
+    },
+    {
+      "source": "/getting-started",
+      "destination": "/docs/getting-started"
+    },
+    {
+      "source": "/concepts",
+      "destination": "/docs/concepts"
+    },
+    {
+      "source": "/configuration",
+      "destination": "/docs/configuration"
+    },
+    {
+      "source": "/cli",
+      "destination": "/docs/cli"
+    },
+    {
+      "source": "/affected-and-ci",
+      "destination": "/docs/affected-and-ci"
+    },
+    {
+      "source": "/troubleshooting",
+      "destination": "/docs/troubleshooting"
+    },
+    {
+      "source": "/shell-commands",
+      "destination": "/docs/shell-commands"
+    },
+    {
+      "source": "/typescript",
+      "destination": "/docs/typescript"
+    },
+    {
+      "source": "/eslint",
+      "destination": "/docs/eslint"
+    },
+    {
+      "source": "/vitest",
+      "destination": "/docs/vitest"
+    },
+    {
+      "source": "/core-api",
+      "destination": "/docs/core-api"
+    },
+    {
+      "source": "/custom-executors",
+      "destination": "/docs/custom-executors"
+    },
+    {
+      "source": "/plugin-testing",
+      "destination": "/docs/plugin-testing"
+    },
+    {
+      "source": "/nx-migration",
+      "destination": "/docs/nx-migration"
+    },
+    {
+      "source": "/prompts/migrate-nx-to-isox",
+      "destination": "/docs/prompts/migrate-nx-to-isox"
+    },
+    {
+      "source": "/contributing",
+      "destination": "/docs/contributing"
+    }
+  ]
+}

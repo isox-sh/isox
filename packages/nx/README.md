@@ -9,8 +9,8 @@ npm install --save-dev @isox-sh/nx
 
 ## Documentation
 
-- [Nx migration guide](https://github.com/isox-sh/isox/blob/main/docs/nx-migration.md)
-- [All documentation](https://github.com/isox-sh/isox/blob/main/docs/README.md)
+- [Nx migration guide](https://github.com/isox-sh/isox/blob/main/website/docs/nx-migration.md)
+- [All documentation](https://github.com/isox-sh/isox/blob/main/website/README.md)
 
 [Website](https://isox.sh) · [Source](https://github.com/isox-sh/isox) ·
 [Issues](https://github.com/isox-sh/isox/issues)

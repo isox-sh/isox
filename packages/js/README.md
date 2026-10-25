@@ -9,8 +9,8 @@ npm install --save-dev @isox-sh/js
 
 ## Documentation
 
-- [TypeScript executor guide](https://github.com/isox-sh/isox/blob/main/docs/typescript.md)
-- [All documentation](https://github.com/isox-sh/isox/blob/main/docs/README.md)
+- [TypeScript executor guide](https://github.com/isox-sh/isox/blob/main/website/docs/typescript.md)
+- [All documentation](https://github.com/isox-sh/isox/blob/main/website/README.md)
 
 [Website](https://isox.sh) · [Source](https://github.com/isox-sh/isox) ·
 [Issues](https://github.com/isox-sh/isox/issues)

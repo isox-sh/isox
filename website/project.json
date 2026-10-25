@@ -1,0 +1,21 @@
+{
+  "$schema": "../packages/core/schemas/project.schema.json",
+  "name": "website",
+  "executors": {
+    "serve": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "pnpm dlx mintlify dev",
+        "cwd": "website"
+      }
+    },
+    "test": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "pnpm dlx mint@4.2.1125 validate && pnpm dlx mint@4.2.1125 broken-links --check-anchors",
+        "cwd": "website"
+      }
+    }
+  },
+  "tags": []
+}

@@ -1,6 +1,9 @@
-# Migrating from Nx
-
-[Documentation index](README.md)
+---
+title: "Migrating from Nx"
+description: "Convert Nx projects to native Isox commands with temporary adapter support for Nx 23."
+sidebarTitle: "Migrate from Nx"
+icon: "arrow-right-arrow-left"
+---
 
 The adapter is provided by the separate `@isox-sh/nx` plugin. Requires Node.js 24+.
 Install it in the workspace alongside your retained Nx executor packages:
@@ -130,4 +133,4 @@ Keep the original executor reference in `project.json`:
 ```
 
 Run `isox build web` as usual. See the
-[AI migration prompt](prompts/migrate-nx-to-isox.md) for a complete migration checklist.
+[AI migration prompt](/docs/prompts/migrate-nx-to-isox) for a complete migration checklist.

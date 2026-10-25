@@ -1,6 +1,9 @@
-# CLI reference
-
-[Documentation index](README.md)
+---
+title: "CLI reference"
+description: "Run project commands, select named configurations, and manage workspace discovery."
+sidebarTitle: "CLI reference"
+icon: "terminal"
+---
 
 ## Commands
 
@@ -24,7 +27,7 @@ comma- or newline-separated command lists. Use `--pre-targets-json` and
 `--post-targets-json` for exact arrays, including command names that contain
 commas. For example, `--pre-targets-json '["prepare,assets:acc"]'` runs
 `prepare,assets` with its `acc` configuration. Do not combine a list flag with its
-JSON counterpart. See [affected projects and CI](affected-and-ci.md) for stage ordering.
+JSON counterpart. See [affected projects and CI](/docs/affected-and-ci) for stage ordering.
 
 ## Named configurations
 
@@ -76,14 +79,14 @@ renaming, or removing project files, run `isox reset`. The cache stores project
 configuration, not build outputs or task results. `affected`, `plan`, and
 `run-many` always rescan project files and refresh the cache.
 
-See [workspace configuration](configuration.md) for discovery details and
-[Nx migration](nx-migration.md) for temporary adapter support.
+See [workspace configuration](/docs/configuration) for discovery details and
+[Nx migration](/docs/nx-migration) for temporary adapter support.
 
 ## Current scope
 
 Affected selection follows inferred and explicitly declared dependencies. Parallel execution uses
 separate child CLI processes, and the GitHub actions distribute exact weighted
-project lists. See [affected projects and CI](affected-and-ci.md).
+project lists. See [affected projects and CI](/docs/affected-and-ci).
 Declaring `dependencies` does not schedule prerequisite builds; prepare required
 outputs before running workers. Task-result caching, dependency task scheduling,
-and isolation remain on the [roadmap](../ROADMAP.md).
+and isolation remain on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).

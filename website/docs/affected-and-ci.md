@@ -1,6 +1,9 @@
-# Affected projects and GitHub Actions
-
-[Documentation index](README.md)
+---
+title: "Affected projects and GitHub Actions"
+description: "Select changed projects and distribute exact project lists across weighted CI jobs."
+sidebarTitle: "Affected projects and CI"
+icon: "code-branch"
+---
 
 Isox selects changed projects and their transitive dependents using Git and
 dependencies inferred during workspace discovery, plus explicit `dependencies`
@@ -53,7 +56,7 @@ to the children and return exit codes 130/143.
   and explicitly declared project dependencies. Type-only imports and tests count.
   Dynamically selected plugins need explicit dependencies; executor selections
   alone do not add edges. Unknown references and cycles fail with an explanation.
-  See [dependency discovery](configuration.md#project-definitions).
+  See [dependency discovery](/docs/configuration#project-definitions).
 - Projects without the requested command and projects tagged `ci=off` are
   excluded from selection. Explicit `run-many --projects-json` runs exactly its
   list, including a project tagged `ci=off`.

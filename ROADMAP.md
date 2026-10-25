@@ -17,7 +17,7 @@ Nx support is only a temporary path for initial migration and evaluation, limite
 to Nx 23. Projects adopting Isox should replace Nx executors and configuration
 helpers with native Isox executors or direct tool invocations, then remove unused
 Nx dependencies and adapter settings. Full Nx compatibility and support for other
-Nx versions are outside this goal. See the [migration prompt](docs/prompts/migrate-nx-to-isox.md).
+Nx versions are outside this goal. See the [migration prompt](website/docs/prompts/migrate-nx-to-isox.md).
 
 ## Maintaining this checklist
 
@@ -39,7 +39,7 @@ Isox discovers projects, runs individual or multiple commands, and selects
 affected projects through Git changes and inferred or declared reverse dependency edges.
 Weighted plans use `plan.weight` (default 1), exact project lists and bounded
 worker concurrency. Native GitHub actions plan/run these lists and are used in
-our CI. See [affected projects and CI](docs/affected-and-ci.md).
+our CI. See [affected projects and CI](website/docs/affected-and-ci.md).
 
 `dependencies` does not yet schedule prerequisite tasks. `dependsOn`, task
 inputs/outputs, hashing, artifact transfer, and sandboxing are not implemented.
@@ -55,7 +55,7 @@ executors only and do not implement the native roadmap.
 
 - [x] Bootstrap a pnpm workspace with TypeScript 7 builds and separate core/CLI packages.
 - [x] Compile repository packages through `@isox-sh/js:tsc` project commands, with a clean-checkout bootstrap and no package build scripts.
-- [x] Generate distributable TypeScript package manifests, copy assets, safely remove owned stale output, and watch/recover/cancel through the native runner. See the [TypeScript executor guide](docs/typescript.md) for behavior and limits.
+- [x] Generate distributable TypeScript package manifests, copy assets, safely remove owned stale output, and watch/recover/cancel through the native runner. See the [TypeScript executor guide](website/docs/typescript.md) for behavior and limits.
 - [x] Resolve first-party shorthand executor names such as `js:tsc` and `core:run-command`, preferring first-party packages before unscoped fallbacks.
 - [x] Run package suites through `vitest:test`, with package-local Vitest tests and configuration.
 - [x] Require Node.js 24+ for the runtime and Node.js 24 or 26+ for Vitest tooling.

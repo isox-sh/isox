@@ -1,0 +1,83 @@
+---
+title: "Your monorepo. Explicit commands."
+sidebarTitle: "Introduction"
+description: "Isox is a lightweight monorepo command runner with explicit project configuration and no background daemon."
+icon: "cube"
+---
+
+Define commands in each project's `project.json`, then run them from anywhere
+inside your workspace. Keep your package manager and the tools you already use.
+
+```sh
+npx isox build web
+npx isox affected --target=test --base=origin/main
+```
+
+<CardGroup cols={2}>
+  <Card title="Run your first command" icon="terminal" href="/docs/getting-started">
+    Install Isox, define a project, and run a command in a few steps.
+  </Card>
+  <Card title="Understand the workspace" icon="diagram-project" href="/docs/concepts">
+    Learn how projects, executors, configurations, and dependencies fit together.
+  </Card>
+</CardGroup>
+
+## A small configuration surface
+
+An `isox.json` file marks the workspace root. Each `project.json` describes the
+commands available for that project. A command can wrap an existing script or use
+an executor that integrates directly with a tool.
+
+```json apps/web/project.json
+{
+  "name": "web",
+  "executors": {
+    "build": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "npm run build",
+        "cwd": "apps/web"
+      }
+    }
+  }
+}
+```
+
+The example runs the existing `build` script in `apps/web`. Use
+[named configurations](/docs/cli#named-configurations) for different environments.
+
+## From local development to CI
+
+Isox discovers project dependencies from source imports, TypeScript aliases,
+local package references, and explicit declarations. Use that graph to select
+changed projects and their dependents, then distribute work across weighted
+GitHub Actions jobs.
+
+<CardGroup cols={2}>
+  <Card title="Configure your workspace" icon="sliders" href="/docs/configuration">
+    Define projects, metadata, dependencies, and CI weights.
+  </Card>
+  <Card title="Run affected projects" icon="code-branch" href="/docs/affected-and-ci">
+    Select changes with Git and build exact, weighted CI matrices.
+  </Card>
+  <Card title="Build with TypeScript" icon="code" href="/docs/typescript">
+    Scaffold projects, compile packages, copy assets, and watch for changes.
+  </Card>
+  <Card title="Migrate from Nx" icon="arrow-right-arrow-left" href="/docs/nx-migration">
+    Move commands to Isox with temporary adapter support for Nx 23.
+  </Card>
+</CardGroup>
+
+<Note>
+  Project dependencies determine affected selection. Build prerequisite outputs
+  explicitly before running consumers. Dependency task scheduling and task output
+  caching are on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
+</Note>
+
+## Extend your tooling
+
+Use the built-in [shell executor](/docs/shell-commands), or install native executors
+for [TypeScript](/docs/typescript), [ESLint](/docs/eslint), and [Vitest](/docs/vitest).
+Write [custom executors and initializers](/docs/custom-executors) when your workflow
+needs its own integration, and verify them with the
+[plugin testing helper](/docs/plugin-testing).

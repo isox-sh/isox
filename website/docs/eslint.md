@@ -1,4 +1,11 @@
-# ESLint executor
+---
+title: "ESLint executor"
+description: "Lint project files, apply fixes, and enforce warning limits with eslint:lint."
+sidebarTitle: "ESLint"
+icon: "list-check"
+---
+
+## Install
 
 Install the plugin in your workspace:
 
@@ -8,6 +15,8 @@ npm install --save-dev @isox-sh/eslint
 
 The plugin includes ESLint. Keep your ESLint configuration and any parsers or
 rule plugins installed in the workspace.
+
+## Define a lint command
 
 ```json
 {
@@ -26,6 +35,8 @@ rule plugins installed in the workspace.
 Run `isox lint my-app`. The fully scoped executor name is
 `@isox-sh/eslint:lint`.
 
+## Options
+
 | Option | Default | Description |
 | --- | --- | --- |
 | `lintFilePatterns` | Project root | Non-empty array of files, directories, or globs relative to the workspace root. Absolute paths are also accepted. |
@@ -39,5 +50,3 @@ excess warnings, unmatched patterns, and configuration failures fail the command
 Cancellation stops the child process through Isox's shared process runner.
 
 These options use the corresponding [ESLint CLI options](https://eslint.org/docs/latest/use/command-line-interface).
-
-[All documentation](README.md)

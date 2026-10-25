@@ -1,6 +1,9 @@
-# TypeScript executor
-
-[Documentation index](README.md)
+---
+title: "TypeScript executor"
+description: "Scaffold and compile TypeScript projects with assets, package generation, and watch mode."
+sidebarTitle: "TypeScript"
+icon: "code"
+---
 
 Native TypeScript 7 compiler executor for Isox. Requires Node.js 24+.
 
@@ -157,7 +160,7 @@ For command-only plugins, the executor copies and rewrites `executors.json`
 and its schemas, preserving implementation paths without creating a root entry
 point. Package-local README, license, and notice files are included when present.
 `workspace:*`, `workspace:^`, and `workspace:~` become publishable versions using
-package manifests of explicitly declared Isox projects. Workspace aliases and
+package manifests of discovered Isox projects. Workspace aliases and
 relative workspace references are supported; unresolved packages or unsupported
 workspace ranges fail. Projects without manifests use their Isox names and the
 workspace version for these references. Lockfiles are not generated.

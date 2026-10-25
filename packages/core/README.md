@@ -12,9 +12,9 @@ core automatically for built-in commands.
 
 ## Documentation
 
-- [Core API and shell commands](https://github.com/isox-sh/isox/blob/main/docs/core-api.md)
-- [Custom executors and initializers](https://github.com/isox-sh/isox/blob/main/docs/custom-executors.md)
-- [All documentation](https://github.com/isox-sh/isox/blob/main/docs/README.md)
+- [Core API and shell commands](https://github.com/isox-sh/isox/blob/main/website/docs/core-api.md)
+- [Custom executors and initializers](https://github.com/isox-sh/isox/blob/main/website/docs/custom-executors.md)
+- [All documentation](https://github.com/isox-sh/isox/blob/main/website/README.md)
 
 [Website](https://isox.sh) · [Source](https://github.com/isox-sh/isox) ·
 [Issues](https://github.com/isox-sh/isox/issues)

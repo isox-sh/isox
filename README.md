@@ -38,24 +38,24 @@ Define your project's commands in `project.json`, then run:
 npx isox build my-app
 ```
 
-Follow the [getting started guide](docs/getting-started.md) for a complete example.
+Follow the [getting started guide](website/docs/getting-started.md) for a complete example.
 
 ## Documentation
 
-Browse the [documentation](docs/README.md) for configuration, CLI usage, executor
+Browse the [documentation](website/README.md) for configuration, CLI usage, executor
 reference, plugin development, and migration guides.
 
-- [CLI reference](docs/cli.md)
-- [Affected projects and GitHub Actions](docs/affected-and-ci.md)
-- [Workspace and project configuration](docs/configuration.md)
-- [ESLint executor](docs/eslint.md)
-- [TypeScript executor](docs/typescript.md) and [Vitest executor](docs/vitest.md)
-- [Core API](docs/core-api.md) and [custom executors](docs/custom-executors.md)
-- [Migrating from Nx](docs/nx-migration.md) — temporary adapter support for Nx 23
+- [CLI reference](website/docs/cli.md)
+- [Affected projects and GitHub Actions](website/docs/affected-and-ci.md)
+- [Workspace and project configuration](website/docs/configuration.md)
+- [ESLint executor](website/docs/eslint.md)
+- [TypeScript executor](website/docs/typescript.md) and [Vitest executor](website/docs/vitest.md)
+- [Core API](website/docs/core-api.md) and [custom executors](website/docs/custom-executors.md)
+- [Migrating from Nx](website/docs/nx-migration.md) — temporary adapter support for Nx 23
 
 ## Contributing
 
-See the [contributing guide](docs/contributing.md) for development setup, builds,
+See the [contributing guide](website/docs/contributing.mdx) for development setup, builds,
 tests, and CI. Use [Issues](https://github.com/isox-sh/isox/issues) for individual
 work items and the [roadmap](ROADMAP.md) to find planned work.
 

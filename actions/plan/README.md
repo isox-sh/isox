@@ -19,6 +19,6 @@ including lightweight tags, and select all projects when no tag is reachable.
 An explicit `base` overrides this selection. Use checkout's `fetch-depth: 0` to
 fetch complete history and tags.
 
-See the [affected and CI guide](../../docs/affected-and-ci.md) for inputs,
+See the [affected and CI guide](../../website/docs/affected-and-ci.md) for inputs,
 Git ranges, tag filters, weighted distribution, migration, and complete workflows.
 The action metadata in [action.yml](action.yml) lists every supported input/output.
