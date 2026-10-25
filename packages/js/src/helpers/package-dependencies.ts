@@ -4,8 +4,8 @@ import { dirname, isAbsolute, resolve } from 'node:path'
 
 import ts from 'typescript'
 
-import { inside } from './files'
-import { defaultManifest, optionalManifest } from './package-manifest'
+import { canonical, inside } from './files'
+import { defaultManifest, optionalManifest, versionPattern } from './package-manifest'
 import { sourceDependencies } from './source-dependencies'
 
 import type { PackageJsonContext, PackageJsonOptions } from './package-json'
@@ -92,5 +92,73 @@ export async function inferDependencies(
       manifest.dependencies = entries
     }
     entries[name] = version
+  }
+}
+
+/** Replace workspace protocols with publishable versions, preserving aliases. */
+export async function workspaceDependencies(manifest: Manifest, context: PackageJsonContext, root: Manifest): Promise<void> {
+  const packages = new Map<string, Manifest>()
+  const add = async (directory: string) => {
+    const path = resolve(directory, 'package.json')
+    const pkg = await optionalManifest(path) ?? defaultManifest(directory, context, root)
+    if (typeof pkg.name === 'string') {
+      if (packages.has(pkg.name)) {
+        throw new Error(`Duplicate workspace package name: ${pkg.name}`)
+      }
+      packages.set(pkg.name, pkg)
+    }
+  }
+
+  const projectDirectories = Object.values(context.workspace?.projects ?? {})
+    .map(project => resolve(context.workspaceRoot, project.root))
+  const directories = new Set([context.projectRoot, ...projectDirectories])
+  for (const directory of directories) {
+    await add(directory)
+  }
+
+  for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+    const dependencies = manifest[field]
+    if (!dependencies || typeof dependencies !== 'object' || Array.isArray(dependencies)) {
+      continue
+    }
+
+    for (const [name, specifier] of Object.entries(dependencies)) {
+      if (typeof specifier !== 'string' || !specifier.startsWith('workspace:')) {
+        continue
+      }
+
+      let range = specifier.slice(10)
+      let packageName = name
+      const alias = range.lastIndexOf('@')
+      if (!range.startsWith('.') && alias > 0) {
+        packageName = range.slice(0, alias)
+        range = range.slice(alias + 1)
+      }
+
+      let pkg = packages.get(packageName)
+      if (range.startsWith('.')) {
+        const directory = await canonical(resolve(context.projectRoot, range))
+        if (!inside(context.workspaceRoot, directory)) {
+          throw new Error(`Workspace dependency escapes the workspace: ${specifier}`)
+        }
+        pkg = await optionalManifest(resolve(directory, 'package.json')) ?? defaultManifest(directory, context, root)
+        if (typeof pkg.name !== 'string') {
+          throw new Error(`Workspace dependency has no package name: ${specifier}`)
+        }
+        packageName = pkg.name
+        range = '*'
+      }
+
+      if (!pkg || typeof pkg.version !== 'string' || !versionPattern.test(pkg.version)) {
+        throw new Error(`Cannot resolve workspace dependency ${name}: declare its package name and version in an Isox project.`)
+      }
+
+      if (!['*', '^', '~'].includes(range)) {
+        throw new Error(`Unsupported workspace range ${specifier}; use workspace:*, workspace:^, or workspace:~.`)
+      }
+
+      const version = `${range === '*' ? '' : range}${pkg.version}`
+      dependencies[name] = name === packageName ? version : `npm:${packageName}@${version}`
+    }
   }
 }
