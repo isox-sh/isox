@@ -27,6 +27,7 @@ for ESLint's compiler API requirements. This follows the
 ```bash
 pnpm install
 pnpm bootstrap # Builds core, the executors, and CLI from a clean checkout
+pnpm exec tsc --project tsconfig.json # Typechecks all package sources without emitting files
 pnpm lint # Checks JavaScript and TypeScript, including import sorting and no semicolons
 pnpm lint:fix # Automatically fixes supported lint issues
 pnpm test  # Builds and runs the package and end-to-end tests
@@ -101,13 +102,16 @@ Any command defined in that project's `executors` object can be used.
 use `isox run <project>:<command>` for project commands with those names.
 
 Package builds use [`@isox-sh/js:tsc`](/docs/typescript), written as `js:tsc`
-in our project files. Compiler settings stay in each package's `tsconfig.json`;
+in our project files. Compiler settings stay in each package's `tsconfig.build.json`;
 there are no `scripts.build` entries. Lint commands use
 [`eslint:lint`](/docs/eslint); test commands use
 [`vitest:test`](/docs/vitest).
-Internal package imports use the root `tsconfig.base.json` paths, which point to
-the original sources in `packages/*/src`. The `js:tsc` executor creates a temporary
-build config that maps dependencies to their compiled declarations. Build
+The root `tsconfig.json` covers all package sources with `noEmit: true`. Editors
+use this workspace config without a package-level `rootDir` boundary. Internal
+package imports use the root `tsconfig.base.json` paths, which point to the
+original sources in `packages/*/src`. Package build configs keep `rootDir: "./src"`
+so emitted files stay directly under `dist/<package>`. The `js:tsc` executor creates
+a temporary build config that maps dependencies to their compiled declarations. Build
 prerequisites first; editor navigation and workspace discovery use the source
 aliases without needing a build. Root development
 dependencies keep the local plugins available to Node and the CLI; TypeScript
@@ -130,8 +134,8 @@ All repository packages build into `<repository>/dist/<package>`, including
 declarations, rewritten package manifests, executor manifests, and schemas.
 Source files and tests stay under `packages/<package>`.
 
-Each package's tsconfig declares the root output path. Its Isox build enables
-`generatePackageJson`, and executor schemas are copied using `assets`. Generated
+Each package's `tsconfig.build.json` declares the root output path. Its Isox build
+enables `generatePackageJson`, and executor schemas are copied using `assets`. Generated
 manifests use paths within the output package and resolve workspace dependency
 versions. `publishConfig.directory` selects this output for packaging; pnpm's
 `linkDirectory` makes local workspace imports resolve to it after installation.

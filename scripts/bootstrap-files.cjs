@@ -37,7 +37,7 @@ async function recordSeedOwnership(root, seededFiles) {
     const state = {
       version: 1,
       project,
-      config: resolve(project, 'tsconfig.json'),
+      config: resolve(project, 'tsconfig.build.json'),
       roots: [resolve(root, 'dist', name)],
       files: digests,
     }

@@ -5,7 +5,7 @@
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/e2e/tsconfig.json",
+        "tsConfig": "packages/e2e/tsconfig.build.json",
         "generatePackageJson": true
       }
     },

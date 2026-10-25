@@ -5,7 +5,7 @@
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/eslint/tsconfig.json",
+        "tsConfig": "packages/eslint/tsconfig.build.json",
         "assets": [
           {
             "input": "packages/eslint/src",

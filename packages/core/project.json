@@ -6,7 +6,7 @@
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/core/tsconfig.json",
+        "tsConfig": "packages/core/tsconfig.build.json",
         "assets": [
           {
             "input": "packages/core/src",

@@ -6,7 +6,7 @@
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/nx/tsconfig.json",
+        "tsConfig": "packages/nx/tsconfig.build.json",
         "generatePackageJson": true
       }
     },

@@ -318,3 +318,14 @@ Source alias follow-up: 2026-10-25.
   builds, cleanup, and watch updates.
 - ESLint and **156 core/JS/end-to-end tests passed** (115, 39, and 2). Package
   builds and an isolated bootstrap without existing outputs or cache also passed.
+
+Editor configuration follow-up: 2026-10-25.
+
+- Moved package compilation settings into `tsconfig.build.json` files and added a
+  workspace `tsconfig.json` for editor analysis and typechecking without emitting
+  files. Source aliases can cross package boundaries without `rootDir` errors;
+  build configs retain the existing `dist/<package>` layout.
+- Updated build targets, bootstrap ownership metadata, and contributor guidance.
+- TypeScript 6 and 7 workspace typechecks, ESLint, and all **270 tests passed**.
+  An isolated bootstrap without `dist` or `.isox` built all seven packages and
+  verified their entry points, executor manifests, schemas, and CLI startup.

@@ -5,7 +5,7 @@
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/vitest/tsconfig.json",
+        "tsConfig": "packages/vitest/tsconfig.build.json",
         "assets": [
           {
             "input": "packages/vitest/src",

@@ -38,7 +38,7 @@ directory's name. Dependencies and tags are optional. For example:
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/cli/tsconfig.json"
+        "tsConfig": "packages/cli/tsconfig.build.json"
       }
     }
   },
