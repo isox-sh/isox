@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   plan:
-    name: Build, lint, and plan affected tests
+    name: Plan
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -30,21 +30,19 @@ jobs:
       - name: Set up Isox
         uses: ./.github/actions/setup-isox
 
-      - name: Lint
-        run: pnpm lint
-
       - name: Plan affected tests
         id: plan
         uses: ./actions/plan
         with:
           cliPath: dist/cli/index.js
-          targets: test
-          targetOptions: '{"test":{"maxJobs":3,"parallel":1}}'
+          targets: test,build,lint
+          targetOptions: '{"test":{"maxJobs":3,"parallel":1},"build":{"maxJobs":3,"parallel":2},"lint":{"maxJobs":3,"parallel":2}}'
 
-  tests:
-    name: Test shard ${{ matrix.index }}/${{ matrix.count }} (weight ${{ matrix.weight }})
-    needs: plan
+  shards:
     if: needs.plan.outputs.hasPlan == 'true'
+    name: Shard ${{ matrix.target }}
+    needs:
+      - plan
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -67,22 +65,24 @@ jobs:
           plan: ${{ toJSON(matrix) }}
           head: ${{ needs.plan.outputs.head }}
 
-  cli:
-    name: Build, lint, and test
-    needs: [plan, tests]
-    if: always()
+  # So we can add branch protection that this one is required
+  check:
+    name: Distributed check
     runs-on: ubuntu-latest
+    needs:
+      - plan
+      - shards
+    if: |
+      !cancelled()
     steps:
-      - name: Check required jobs
-        env:
-          PLAN_RESULT: ${{ needs.plan.result }}
-          TEST_RESULT: ${{ needs.tests.result }}
-          HAS_PLAN: ${{ needs.plan.outputs.hasPlan }}
-        run: |
-          test "$PLAN_RESULT" = success
-          if [ "$HAS_PLAN" = true ]; then
-            test "$TEST_RESULT" = success
-          else
-            test "$HAS_PLAN" = false
-            test "$TEST_RESULT" = skipped
-          fi
+      - name: Check
+        if: |
+          !contains(needs.*.result, 'failure') &&
+          !contains(needs.*.result, 'cancelled')
+        run: echo "Ok"
+
+      - name: Fail
+        if: |
+          contains(needs.*.result, 'failure') ||
+          contains(needs.*.result, 'cancelled')
+        run: exit 1
