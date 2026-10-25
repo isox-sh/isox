@@ -67,6 +67,7 @@ export async function outputRoots(config: CompilerConfig, tsConfig: string, cont
     const actual = await canonical(root)
     if (
       !inside(workspace, actual)
+      || !inside(workspace, root)
       || inside(actual, project)
       || inside(actual, await canonical(tsConfig))
       || sources.some(file => inside(actual, file))

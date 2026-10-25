@@ -170,3 +170,36 @@ test('accepts output casing differences on case-insensitive filesystems', async 
   assert.deepEqual(await tsc({}, context), { success: true })
   assert.match(await readFile(join(projectRoot, 'BuildOutput/index.js'), 'utf8'), /answer/)
 })
+
+test('rejects external output paths that symlink back into the workspace', async t => {
+  const { root, config, write, context } = await fixture(t)
+  const { mkdtemp } = await import('node:fs/promises')
+  const { tmpdir } = await import('node:os')
+  const outside = await mkdtemp(join(tmpdir(), 'isox-output-link-'))
+  t.onTestFinished(() => rm(outside, { recursive: true, force: true }))
+  await mkdir(join(root, 'output'))
+  await symlink(join(root, 'output'), join(outside, 'back'), 'junction')
+  config.compilerOptions.outDir = join(outside, 'back/nested')
+  await write('tsconfig.json', config)
+  await assert.rejects(tsc({}, context), /Unsafe output directory/)
+  await assert.rejects(readFile(join(root, 'output/nested/index.js')), { code: 'ENOENT' })
+})
+
+test('failed packaging retains ownership of previous output roots until publication succeeds', async t => {
+  const { root, config, write, context } = await fixture(t)
+  config.compilerOptions.outDir = '../../dist/old'
+  await write('tsconfig.json', config)
+  await tsc({}, context)
+  config.compilerOptions.outDir = '../../dist/new'
+  await write('tsconfig.json', config)
+  await write('package.json', { name: 'demo', version: 'invalid' })
+  await assert.rejects(tsc({ generatePackageJson: true }, context), /valid version/)
+
+  await write('../other/src/index.ts', 'export const other = true')
+  await write('../other/tsconfig.json', { ...config, compilerOptions: { ...config.compilerOptions, outDir: '../../dist/old' } })
+  const other = { ...context, projectName: 'other', projectRoot: join(root, 'packages/other') }
+  await assert.rejects(tsc({}, other), /output owned by/)
+  await write('package.json', { name: 'demo', version: '1.0.0' })
+  assert.deepEqual(await tsc({ generatePackageJson: true }, context), { success: true })
+  assert.deepEqual(await tsc({}, other), { success: true })
+})

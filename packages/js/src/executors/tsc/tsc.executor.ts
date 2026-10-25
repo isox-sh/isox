@@ -107,7 +107,11 @@ async function build(options: TscOptions, context: ExecutorContext, tsConfig: st
     for (const file of emitted) {
       pendingFiles[file] = hash(await readFile(file))
     }
-    await atomicWrite(stateFile, JSON.stringify({ ...claim, files: pendingFiles }))
+    await atomicWrite(stateFile, JSON.stringify({
+      ...claim,
+      roots: [...new Set([...(previous?.roots ?? []), ...roots])],
+      files: pendingFiles,
+    }))
 
     const declarationDir = config.compilerOptions.declarationDir
       ? resolve(dirname(tsConfig), config.compilerOptions.declarationDir)
