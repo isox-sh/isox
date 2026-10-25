@@ -1,7 +1,7 @@
 {
   "$schema": "../core/schemas/project.schema.json",
   "name": "nx",
-  "plan": { "weight": 3 },
+  "plan": { "weight": 1 },
   "executors": {
     "build": {
       "executor": "js:tsc",
