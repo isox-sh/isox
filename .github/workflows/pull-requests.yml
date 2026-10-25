@@ -30,7 +30,7 @@ jobs:
       - name: Set up Isox
         uses: ./.github/actions/setup-isox
 
-      - name: Plan affected tests
+      - name: Create plan
         id: plan
         uses: ./actions/plan
         with:
@@ -43,11 +43,11 @@ jobs:
     name: Shard ${{ matrix.target }}
     needs:
       - plan
-    if: needs.setup.outputs.hasPlan == 'true'
+    if: needs.plan.outputs.hasPlan == 'true'
     secrets: inherit
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
     with:
       target: ${{ matrix.target }}
       index: ${{ matrix.index }}
