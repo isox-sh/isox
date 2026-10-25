@@ -1,0 +1,478 @@
+packages/cli/src/shared/cancellation.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 8,16
+e2e/tests/js-init.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,18,28,31,38,47,55,60
+packages/core/src/workspace/graph.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 54-55,57
+  s_51871bdcdb3b4c::t_6d3dce603c1415 56
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 13,24,36,40,46,51,53,62,69
+scripts/bootstrap-files.cjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 7,28,31,36,42,55
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 60-61,63
+  s_51871bdcdb3b4c::t_6d3dce603c1415 62
+scripts/bootstrap.cjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 109,114
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 107-108,110,112-113,115
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,36,39,44,49,58,66,70,74,77,85,93,97,100,117,140
+packages/core/src/utils/write-json.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 81
+  s_51871bdcdb3b4c::t_b19ee8ff5bd272 19
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 37,40,50,59,62,64,68,77,83,87,101
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 79-80,82
+packages/cli/tests/helpers/affected-fixture.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 11-12,14,20-22,24,32-33,35,40-41,43,56-58,60-66,68,70,81-86
+  s_51871bdcdb3b4c::t_6d3dce603c1415 13,23,34,42,59,67,69,87
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 10,19,28,31,36,72,77,79-80,88
+packages/nx/src/executor/nx-workspace-graph.ts
+  s_51871bdcdb3b4c::t_3de238cc74802b 9,11-13,15,17,19
+  s_51871bdcdb3b4c::t_24eb14be783462 10,14,18
+  s_51871bdcdb3b4c::t_2128893dd07346 16,20-21,44
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 31,38,40,45,51,73
+packages/cli/src/actions/init/project.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 11,20,24,30,32,36,43,49,61,68,76
+  h_b13471b77746e9 38,91
+  s_51871bdcdb3b4c::t_8e3b7d33b8c7c9 82-90
+packages/core/src/workspace/root.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,22,26
+packages/cli/tests/actions.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,21,42,88,101,131,140,143,180,184,187,190,194,197,199,205,209,217,239-248,250-251,256,278,281,285,289,310,315
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 34-35,37-38,40,43-45,47-48,50-52,54-55,57-60,62-63,65-67,69-71,73,80-81,83,89-90,92,107-108,110-112,114-115,117,121-123,125-127,129,132-133,135,144-146,149,160-163,166,171-174,176,178,201-202,204,213-214,216,226-227,229,232-235,238,252-254,269-272,274,276,296-299,303-306,309,321-322,324
+  s_51871bdcdb3b4c::t_6d3dce603c1415 36,39,46,49,53,56,61,64,68,72,82,91,109,113,116,124,128,134,147-148,164-165,175,177,203,215,228,236-237,249,255,273,275,300-302,307-308,323
+packages/cli/src/shared/run-project-command.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 19,24
+packages/js/src/executors/tsc/compiler.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 73,79,86,93,96,99,111,129,133
+  s_51871bdcdb3b4c::t_2128893dd07346 10,21
+  s_51871bdcdb3b4c::t_6d3dce603c1415 57,103,114
+  s_51871bdcdb3b4c::t_d3d151d4ef6a16 20
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 54-56,58,100-102,104,112-113,115
+  s_51871bdcdb3b4c::t_24eb14be783462 11-19,23
+packages/cli/tests/affected.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 109-110,119-120,150,242-244,284-286,290,296,315,333,344,364,387,406,425
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 106-108,111,114-118,121,147-149,238-241,245,280-283,287-289,291,294-295,297,313-314,316,331-332,334,342-343,345,362-363,365,385-386,388,404-405,407,423-424,426
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,19,25,35,44,47,56,58,61,66,73,77,87,92,101,113,125,128,131,136,146,151,154,173,182,187,192,203,207,214,230,237,247,255,258,265,268,272,279,292,298,307,310,323,335,338,347,355,359,373,390,393,408,416,420
+packages/core/tests/add-deps-to-package-json.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,20,25-26,32,38-40,45-46,48,79,89,98,104,110,122,129
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 15-16,18,27-30,41-42,44,51-53,55-57,59,63-65,67-69,71,115-116,118
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,31,43,54,58,66,70,117
+packages/core/src/workspace/cache.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 87,118
+  s_51871bdcdb3b4c::t_f2462cdc8f5bb5 13-16,23
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 85-86,88,116-117,119
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 33,35,43,50,55,61,67,72,81,83,89,93,102,108,115
+  h_b13471b77746e9 58
+packages/core/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,22,26,28,42,50,75,81,115,130,139,152,213-214,219-220,225,229,237,241,250,258,261,269,279,295,305,311
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 16-17,19,29-31,33,62-63,65,67-70,73,83-84,86,106-108,110,118-122,126,157-158,160-165,169-174,178-183,187-194,198-204,208-210,212,216-218,221,280-281,283,286-289,292
+  s_51871bdcdb3b4c::t_6d3dce603c1415 18,32,64,71-72,85,109,123-125,159,166-168,175-177,184-186,195-197,205-207,211,215,222-224,282,290-291
+packages/js/src/executors/tsc/assets.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 13,17,27,51,61,63,67
+packages/core/tests/command-configuration.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 12,18-20,26,30,33,39,56,74,78
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,24-25,38,53,81,87
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 13-16,21-23,34-37,50-52,54,58-59,62-63,79-80,82-83,85-86,88-91
+packages/js/src/executors/tsc/watch.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 73,212
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 35,43,45,48,57,61,64,67,69,79,90,110,127,131,134,139,151,183,187,190,201,209,226,239,244,249
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 71-72,74,210-211,213
+  s_51871bdcdb3b4c::t_2128893dd07346 18,27
+  s_51871bdcdb3b4c::t_24eb14be783462 19-25,30
+  s_51871bdcdb3b4c::t_d3d151d4ef6a16 26
+packages/cli/src/actions/plan/index.ts
+  h_b13471b77746e9 23,27,30
+  s_51871bdcdb3b4c::t_2128893dd07346 12
+  s_51871bdcdb3b4c::t_24eb14be783462 10
+  s_51871bdcdb3b4c::t_3de238cc74802b 9,11,17
+packages/cli/src/actions/affected/index.ts
+  s_51871bdcdb3b4c::t_2128893dd07346 13
+  s_51871bdcdb3b4c::t_24eb14be783462 11
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 10
+  s_51871bdcdb3b4c::t_3de238cc74802b 12
+  s_51871bdcdb3b4c::t_7a0b6917f4bd5f 18,22,24,27
+packages/core/src/utils/json.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 4
+packages/core/tests/source-dependencies.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 41,64,79,99,112
+packages/core/src/affected/plan.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 37-38,40
+  s_51871bdcdb3b4c::t_6d3dce603c1415 39
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,23,28,32,36,44,48,61,64,67,72,76,79
+packages/core/src/workspace/parser.ts
+  s_51871bdcdb3b4c::t_3de238cc74802b 14,17-18
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 34,49,60,68,77,80
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 69-71,73
+  s_51871bdcdb3b4c::t_6d3dce603c1415 72
+  s_51871bdcdb3b4c::t_2128893dd07346 30
+  s_51871bdcdb3b4c::t_24eb14be783462 15-16
+packages/js/tests/package-json.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,17-24,32,44-46,54,82,104,111,119,135,149,164,168,179,182,191,194,196-197,202,204,215,221-224,242,259,265-266,274,287,295,307,311-316,321-325,332-334,338,341,346,354,366,378,382,392,400,412,419,425,438
+  s_51871bdcdb3b4c::t_6d3dce603c1415 28,36,41,49,60,64,70,87,93-95,101,125,131,139,153,157,172,189,201,203,207,228,232,239,246,250,262,269,277,285,320,328-329,337,358,363,370,372,396,404,416,428,433
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 25-27,29,34-35,37,39-40,42,47-48,50,58-59,61-63,65-69,84-86,88-92,96,99-100,102,122-124,126,128-130,132,136-138,140,150-152,154-156,158,160-162,170-171,173,175-177,187-188,190,198-200,205-206,208,226-227,229-231,233,237-238,240,244-245,247-249,251,260-261,263,267-268,270,275-276,278,283-284,286,317-319,326-327,335-336,355-357,359-362,364,367-369,371,373,394-395,397,402-403,405,413-415,417,426-427,429-432,434
+packages/nx/src/executor/nx.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,25,71,80,86,90,94,97
+packages/js/tests/fixture.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 8,13,20,27,32,36,41-45,60-61,69
+  s_51871bdcdb3b4c::t_6d3dce603c1415 16,26,48,54-56,68
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 14-15,17,21-25,46-47,49-53,57,62-67
+packages/cli/tests/init.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 18,23,36,42,49,55,58,73,85,88,97,107,118,123,130,133,140,144,154,159,163
+  s_51871bdcdb3b4c::t_6d3dce603c1415 21,30,39,62,81-82
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 19-20,22,28-29,31,37-38,40,60-61,63,76-80,83
+packages/core/src/executor/cancellation.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 21,37,39,47
+packages/js/src/helpers/files.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 6,9,19,22,34
+packages/cli/src/shared/options.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 70,74,80,84,92,100,104,112,129,132,137,143,149,155,159,161
+packages/core/src/executor/configuration.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 14,36
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 12-13,15,34-35,37
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 10,27
+packages/cli/src/index.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,34,37
+packages/core/tests/workspace-dependencies.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,30,41,126,179-180,200-201
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,21,25,32,37,47,52,55,69,73,83,87,109,121,135,141,152,159,170,174-178,181,192,196,209
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 15-16,18,28-29,31,38-40,42,101-102,124-125,127,197-199,202
+packages/vitest/src/executors/test/test.executor.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 30
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 28-29,31
+  s_51871bdcdb3b4c::t_b19ee8ff5bd272 9
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 21,27
+packages/js/tests/init.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 18,28,41,44
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 20-22,24,46-48,50
+  s_51871bdcdb3b4c::t_6d3dce603c1415 23,49
+packages/cli/tests/cli.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,24,28,38,60,66,72,80,97,105,124,133,145,153,158,199,207,216,239
+  s_51871bdcdb3b4c::t_6d3dce603c1415 20,31,48-49,70,87-88,113,122,131,151,205,237,262
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 18-19,21,29-30,32,44-47,50,68-69,71,84-86,89,94-95,108-112,120-121,123,129-130,132,149-150,152,203-204,206,238,263,265
+  s_51871bdcdb3b4c::t_643b0dd1d1a9b3 240-241
+  s_51871bdcdb3b4c::t_89fd5dfb26610a 264
+  s_51871bdcdb3b4c::t_e952b84ff2fc71 258,272,281
+packages/core/src/utils/publish-new-file.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 12
+packages/core/src/utils/project-path.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 8
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 13-15,17
+  s_51871bdcdb3b4c::t_6d3dce603c1415 16
+packages/e2e/src/create-workspace.ts
+  s_51871bdcdb3b4c::t_3de238cc74802b 11,14-15
+  s_51871bdcdb3b4c::t_2128893dd07346 125
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 27,39,43,45,55,63,78,84,91,102,112,117,123,126
+  s_51871bdcdb3b4c::t_24eb14be783462 12-13
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 87-88,90,93-94,96-98,118-121
+  s_51871bdcdb3b4c::t_6d3dce603c1415 89,95,122
+packages/js/src/executors/tsc/watch-sources.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 29,71
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 27-28,30,66-70
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 32,35,37,40,43,45,48,51,53,56,59,62,64-65,72
+packages/core/src/executor/process.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 29
+packages/cli/src/actions/run-many/index.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 31-32
+  h_b13471b77746e9 34-35
+  s_51871bdcdb3b4c::t_24eb14be783462 10-11
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 9
+  s_51871bdcdb3b4c::t_d3d151d4ef6a16 12
+  s_51871bdcdb3b4c::t_2128893dd07346 13
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 28-30,33
+  s_51871bdcdb3b4c::t_8e31b1ae5c0dd0 18,22,26,38,41,44,47
+packages/core/tests/write-json.test.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 15-16,18,26-28,38-39,41-43,45,53-54,56
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,20,24-25,30,35,52,62,66,75,84,94,105,116,121,129
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,29,40,44,55
+packages/eslint/src/executors/lint/lint.executor.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 63-64,66
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 50,58,62
+  s_51871bdcdb3b4c::t_6d3dce603c1415 65
+  s_51871bdcdb3b4c::t_b19ee8ff5bd272 10
+packages/nx/tests/nx-runner.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,46-47,53,63,240,331,335
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,21,25,29,33,59,88,112,127,132,142,163,169,175,242,265,287,296,326,344,361,367,371
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 15-16,18,42-45,48,51-52,54,60-62,64,238-239,241,328-330,332-334,336
+packages/cli/src/shared/parse-options.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 28-31
+  s_51871bdcdb3b4c::t_6d3dce603c1415 32
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 11,17,20,27,33,35,40,42,46,51,55,57
+packages/cli/src/actions/init/index.ts
+  h_b13471b77746e9 40,54
+  s_51871bdcdb3b4c::t_2128893dd07346 14,34
+  s_51871bdcdb3b4c::t_3de238cc74802b 11,13
+  s_51871bdcdb3b4c::t_24eb14be783462 12
+  s_51871bdcdb3b4c::t_6d3dce603c1415 49
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 47-48,50,66-68
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 26,37,51,59,76
+packages/cli/tests/init-project.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 16,28,34,36,40,43,60,68,74,82,87,95,99,110,112,116-123,127,130,133,140,145,151,154,158,165,174,185,188,199,207,213,217,224,234,244,259,267,276,285,295,303,307
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 20-21,23,29-30,32,48-49,51,62-63,65,271-272,274,287-288,290
+  s_51871bdcdb3b4c::t_6d3dce603c1415 22,31,50,64,273,289
+packages/js/src/executors/tsc/build-config.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 23,52,157
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 50-51,53,155-156,158
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15-22,24,26,30,38,44,63,78,80,84,86,91,94,100,103,105,141,147,150,152
+packages/js/src/executors/tsc/files.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 160
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 19,31,35,56,70,73,88,105,127,149,157,170,179,191,198
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 158-159,161
+actions/plan/index.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 28-29,31
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,20,23,27,48,51,55,61
+  s_51871bdcdb3b4c::t_6d3dce603c1415 30
+packages/core/src/utils/source-dependencies.ts
+  s_51871bdcdb3b4c::t_3de238cc74802b 5,7
+  s_51871bdcdb3b4c::t_24eb14be783462 6
+  s_51871bdcdb3b4c::t_2128893dd07346 8,63
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,18,32,40-43,47,52,55,58,65,73,78,81,84,93,99,104,109,112,117,122,127,132,136,138,149,153,160,169,172,176,183,185,201,206,214,221,224,226
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 227-228,230
+  s_51871bdcdb3b4c::t_6d3dce603c1415 229
+packages/cli/src/shared/run-projects.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 45,47
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 48-50,60
+  s_51871bdcdb3b4c::t_6d3dce603c1415 38,42,46
+  s_51871bdcdb3b4c::t_5ada619c0b8b87 10,12,15,24,31,34,62
+packages/js/src/executors/tsc/tsc.executor.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 34,50,57,64,70,76-77,81,87,90,96,110,120,128,132,150,155,161,172,176,179,189,192,195,199,211,217-218,220,243
+  s_51871bdcdb3b4c::t_6d3dce603c1415 75,95,216
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 71-74,91-94,144-146,212-215
+packages/core/src/executor/runner.ts
+  s_51871bdcdb3b4c::t_24eb14be783462 13,17-18
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 31,37,44,83,86,90,96,98,103,105,127,135,138,148,155,172,180,186,190,203,214,222,226
+  s_51871bdcdb3b4c::t_2128893dd07346 12,15,20,159,198
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 206-207,209,217-218,220
+  s_51871bdcdb3b4c::t_d3d151d4ef6a16 14
+  s_51871bdcdb3b4c::t_6d3dce603c1415 208,219
+  s_51871bdcdb3b4c::t_3de238cc74802b 16,19
+packages/core/src/logger.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 84,91,97,102
+  s_51871bdcdb3b4c::t_6d3dce603c1415 101
+  s_51871bdcdb3b4c::t_24eb14be783462 4
+  s_51871bdcdb3b4c::t_3de238cc74802b 3,5-6
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 98-100
+packages/core/src/utils/resolve-package-json.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 8,16,19,24
+packages/core/src/affected/git.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 32-34,36,83-85
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 37,41,50,53,70,73,78,81-82
+  s_51871bdcdb3b4c::t_3de238cc74802b 6,8
+  s_51871bdcdb3b4c::t_2128893dd07346 9,40
+  s_51871bdcdb3b4c::t_24eb14be783462 7
+  s_51871bdcdb3b4c::t_6d3dce603c1415 35,86
+  s_51871bdcdb3b4c::t_fd75b5c45b7b45 87
+packages/core/src/workspace/schema.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 7,11
+packages/core/src/workspace/settings.ts
+  s_51871bdcdb3b4c::t_52df4a1871481c 31
+  s_51871bdcdb3b4c::t_947d4b25328d9c 47
+  s_51871bdcdb3b4c::t_b19ee8ff5bd272 10-11,15,20-21
+  s_51871bdcdb3b4c::t_2128893dd07346 9,13-14,17
+  s_51871bdcdb3b4c::t_d3d151d4ef6a16 12,16
+  h_b13471b77746e9 19
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 39,44
+packages/core/tests/project-configuration.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 44-46,52-54,60-62,68-70,76-78,84-86,106,121,176,190,206,212,232,237,244,247
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 40-43,47-51,55-59,63-67,71-75,79-83,87,103-105,107,119-120,122,174-175,177,188-189,191,203-205,207,210-211,213,230-231,233,235-236,238-239,242-243,245-246,248
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 26,117,159,185,208,219,241
+packages/js/src/helpers/package-manifest.ts
+  s_51871bdcdb3b4c::t_24eb14be783462 8
+  s_51871bdcdb3b4c::t_2128893dd07346 10-11
+  s_51871bdcdb3b4c::t_3de238cc74802b 7,9
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,21,32,40
+packages/core/tests/json.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 9
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 19
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 7-8,10
+packages/js/tests/watch.test.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 31-33,35,42-44,46,48-49,51,57-58,60,64-65,67,71-73,75,98-99,101,117-123,128,150-151,153,244-247,250,267-268,270-271,273
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,26,38-41,53,62,91,103,107,115,130,136,148-149,157,167,174,180,184,187,191,196,210,213,221,230,237,242,257,275
+  s_51871bdcdb3b4c::t_6d3dce603c1415 34,45,50,59,66,74,100,124-127,152,248-249,269,272
+packages/vitest/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 20,33,56,64,128
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 18-19,21,31-32,34,49-51,53-55,57,60-63,126-127,129
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,25,29,43,47,58-59,65,71,79,82,88,95,109,113,121,125
+packages/js/src/helpers/package-dependencies.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 18,23,40,43,47,49,53,57,61,66,68,75,77,82,86,88,92,96,102,105,109,111,116,127,132,141,148,161,168,171,175,178,182,186,190,204
+packages/js/tests/compiler.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,20,36,39,52,61,66,71,79,82,85
+packages/core/src/utils/read-json.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,22,27,36,40,44,47,52,57
+  s_51871bdcdb3b4c::t_6d3dce603c1415 25
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 23-24,26
+packages/core/tests/read-json.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,29,37
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,20,24-25,30,39,49,58,65,73,80,89,102,105,115,122,125,135,144,147
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 15-16,18,26-28,35-36,38
+packages/core/src/workspace/dependencies.ts
+  s_51871bdcdb3b4c::t_24eb14be783462 13-14
+  s_51871bdcdb3b4c::t_6d3dce603c1415 68,110,116,139,147
+  s_51871bdcdb3b4c::t_2128893dd07346 90
+  s_51871bdcdb3b4c::t_3de238cc74802b 12,15-16
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 66-67,69,106-109,114-115,117,137-138,140,145-146,148
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 27,33,40,43,46,53,61,65,72,76,91,96,100,104-105,111,129,132,136,161,165,169,186,189,193,195,200,205,211,216,219,228,240
+packages/core/tests/executor-lifecycle.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,21,25,44-45,50,58,73,84,99,118,132,141,148,155,163,171,181,196,204,213,216,219
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 15-16,18,30-34,38,40-41,43,46-48,157-158,160,198-199,201
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,35-37,42,49,159,200
+eslint.config.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 14-15,17,25-27,29-32,39,47-48,51-53,55-57,59-61,63,67-69,71,99-100,102
+  s_51871bdcdb3b4c::t_fe954e1d19be15 65
+  s_51871bdcdb3b4c::t_7c8db4e7be4a54 28,38
+  s_51871bdcdb3b4c::t_9295371c6208da 23-24,45-46,64,66
+  h_b13471b77746e9 49
+  s_51871bdcdb3b4c::t_c9c365045011db 88-92
+  s_51871bdcdb3b4c::t_69c7cbde135488 40-44
+  s_51871bdcdb3b4c::t_ba1c8e7b2c7520 22
+  s_51871bdcdb3b4c::t_941fe38f75d7a4 34-37
+  s_51871bdcdb3b4c::t_6d3dce603c1415 16,33,50,54,58,62,70,101
+packages/js/tests/bootstrap.test.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 43-44,46
+  s_51871bdcdb3b4c::t_6d3dce603c1415 45
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 18,35,42,58
+actions/shared/runtime.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,19,34,41,43,49,52,56,82,85,89,91,104,107,110,134,136,140,156
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 36-37,39,57-58,60,73-74,76,95-96,98
+  s_51871bdcdb3b4c::t_6d3dce603c1415 38,59,75,97
+packages/js/src/helpers/package-json.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 230-232,234,334-335,337
+  s_51871bdcdb3b4c::t_6d3dce603c1415 233,336
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 37,41,44,56,59,63,70,82,103,107,110,119,121,145,149,153,169,185,192,198,205,209,212,217,223,228,236,243,250,255,263,301,307,322,330,333,347,376,378
+  s_51871bdcdb3b4c::t_b19ee8ff5bd272 15
+packages/cli/src/shared/selection.ts
+  s_51871bdcdb3b4c::t_6d3dce603c1415 14,18,27,39
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 9,20,23,30,33,35
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 12-13,15-17,19,24-26,28,36-38,40
+packages/js/tests/build-config.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 21,40,58,60,72,84,90,105-106,125,143,148,163,178,197
+  s_51871bdcdb3b4c::t_6d3dce603c1415 38,56,64,157,160,182,188,195
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 36-37,39,53-55,57,61-63,65,111-112,155-156,158-159,161,180-181,183,186-187,189,193-194,196
+packages/nx/src/executor/nx-graph.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 52-53,55,78-80,82,90-92
+  s_51871bdcdb3b4c::t_6d3dce603c1415 54,81,93
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 46,57,68,71,85,89,94,100
+  s_51871bdcdb3b4c::t_24eb14be783462 4-6,10-12,16-18,22-24,37-39
+  s_51871bdcdb3b4c::t_d3d151d4ef6a16 7,13,19,25
+  s_51871bdcdb3b4c::t_2128893dd07346 3,8-9,14-15,20-21,26
+packages/core/src/affected/tags.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 18-19,21,31-32,34
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 8,16,26,46
+  s_51871bdcdb3b4c::t_6d3dce603c1415 20,33
+packages/eslint/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 20,33,52-53,58,65,74,108,128,147
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 18-19,21,31-32,34,43-45,49-51,54-55,57,59,62-64,66,69-73,107,109,112,130,145-146,148
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,25,29,39,61,67-68,75,123-127,129
+  s_51871bdcdb3b4c::t_6f23b30ca30a55 60,82,89,96,104,110,119,134,140,149
+packages/core/src/utils/add-deps-to-package-json.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 27,46,53,69,73,79
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 80-81,83
+  s_51871bdcdb3b4c::t_6d3dce603c1415 82
+packages/core/tests/logger.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 35,96,101,132,153,172,192,197,201,215,231
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 33-34,36,98-100,102,129-131,133,156-159,169-171,173,199-200,202,213-214,216,228-230,232
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 13,18,37,41,53,66,76,80,93-95,97,103,107,112,122,124-125,127-128,134,150-152,154,161,167,180,183-185,188-191,193-196,198,203,222-224,233,242-245
+actions/run-many/index.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 12,14,18,22,27,30,37,46,50
+packages/js/tests/tsc.test.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 19-20,22,35-39,47-49,82-83,101-102,104,109-110,112
+  s_51871bdcdb3b4c::t_6d3dce603c1415 21,40,50,103,111
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 18,24,32,34,41,45-46,51,56,64,72,80,97,105,113
+packages/core/src/workspace/configuration.ts
+  s_51871bdcdb3b4c::t_d3d151d4ef6a16 12-13
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 38
+  s_51871bdcdb3b4c::t_24eb14be783462 10-11,32
+  s_51871bdcdb3b4c::t_2128893dd07346 9,14
+packages/cli/tests/action-runtime.test.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 9-10,12,15-16,18,28-31,47-49,60-61,63,106-107,109
+  s_51871bdcdb3b4c::t_6d3dce603c1415 11,17,50,62,108
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 33,45-46,56,80,97,101,119,126
+  s_51871bdcdb3b4c::t_c875d9da3378bf 51
+packages/nx/src/executor/nx-graph-worker.ts
+  s_51871bdcdb3b4c::t_3de238cc74802b 11,13
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 25-27,30
+  s_51871bdcdb3b4c::t_2128893dd07346 7,10,14,20
+  s_51871bdcdb3b4c::t_24eb14be783462 8,12
+  s_51871bdcdb3b4c::t_6d3dce603c1415 28-29
+  s_51871bdcdb3b4c::t_d3d151d4ef6a16 9
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,21,34
+packages/core/src/workspace/nx.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 33-34,36
+  s_51871bdcdb3b4c::t_6d3dce603c1415 35
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 8,15,23,37,42,48,55
+packages/cli/tests/configurations.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,24,28,33,38,44,48,53,65,84,102,124,127,135,138,148,150,158,172,176
+  s_51871bdcdb3b4c::t_6d3dce603c1415 20,43,52,88,95,131,143
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 18-19,21,39-42,49-51,85-87,89,93-94,96,129-130,132,140-142,144
+packages/core/src/affected/targets.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,27,29,33,42,56,63
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 34-35,37,45-46,48
+  s_51871bdcdb3b4c::t_6d3dce603c1415 36,47
+  s_51871bdcdb3b4c::t_3de238cc74802b 6,9,40
+  s_51871bdcdb3b4c::t_2128893dd07346 10,25
+  s_51871bdcdb3b4c::t_24eb14be783462 7-8
+packages/js/tests/output.test.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 36-38,74-77,79,81,95-98,101-103,105,113-115,118-122,125,127-129,132,144-146,148,183-184,186,190-191,193,206-209,212-215,217,226-229,232,267-268,270,287-288,290,294-297,300-303,305,308-309,311
+  s_51871bdcdb3b4c::t_6d3dce603c1415 39-40,78,80,99-100,104,116-117,123-124,130-131,147,185,192,210-211,216,230-231,269,289,298-299,304,310
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 12,21,30,34-35,41-42,59,71,84,92,111,139,151,160,165,167,181,201,222,233,242,244,251,254,266,281,306
+packages/cli/src/actions/reset/index.ts
+  h_b13471b77746e9 10
+packages/nx/tests/nx-workspace-graph.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,35-36,42,51,58,140,149-151,169
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,21,25,30-31,54,88,121,134,141,156,166,183,191,198,203,212,217
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 15-16,18,32-34,37,40-41,43,47-50,52,55-57,59,135-139,143-148,152,167-168,170
+packages/e2e/tests/workspace.test.mjs
+  s_51871bdcdb3b4c::t_6d3dce603c1415 21,36,82,95,99,118,123,148,174,182,212
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 15,18,25,31,43,50,70,85,112,125,129,135,151,158,165,176,189,204,207
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 19-20,22,33-35,37,55-56,80-81,83,93-94,96-98,100,115-117,119,121-122,124,146-147,149,172-173,175,180-181,183,210-211,213
+packages/js/src/generators/init.ts
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 87-90,93,135-136,138,154-155,157
+  s_51871bdcdb3b4c::t_6d3dce603c1415 91-92,137,156
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 18,28,31,35,38,48,52-57,64,71,74,84,98,130,133,139,143
+packages/core/tests/affected.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14-15,21,26,36,42,46,49-50,55,59,65-66,84,89-90,120,127,162,186,192,199,220-223,228,231,238,245,253,266,270,277,286,294,299,318,322,339,342,346,357,370,385,403,408,410
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 16-19,27-28,30-33,35,51-53,60-63,75-77,79,85-87,97-98,100,102-103,105,121-125,129-131,133-136,138-140,142-144,146,148-150,152,158-159,161,165-166,168,173-176,178,180,182-183,185,194-195,197,200-201,203-205,207-209,211,224-225,227,232-234,236,247-248,250,254-257,260,282-283,285,306-307,309-311,313,329-330,332,347-348,350,358-359,361-363,365-367,369,376-378,380-382,384,399-400,402,404-406
+  s_51871bdcdb3b4c::t_6d3dce603c1415 20,29,34,54,64,78,88,99,104,126,132,137,141,145,151,160,167,177,179,184,196,202,206,210,226,229-230,235,249,258-259,284,308,312,331,349,360,364,368,379,383,401,407
+packages/core/tests/bootstrap.test.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 15-16,18,26-27,29,39-41,44,55-56,58,128-129,131,310-311
+  s_51871bdcdb3b4c::t_6d3dce603c1415 17,28,42-43,57,130
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14,21,25,35,54,63,92,101,110,118,125,135,146,154,163,169,184,200,210,232,246,252,259,266,288,298,307,321
+packages/cli/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 18-19,21,31-33,35,42-44,47,57-58,60,91-92,94,100-101,103
+  s_51871bdcdb3b4c::t_6d3dce603c1415 20,34,45-46,59,93,102
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 17,24,28,30,49,63,83,89,95,104
+packages/core/src/affected/projects.ts
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 26,36,40,42,47,59,64,66
+actions/shared/git.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 12,28,39,45,51,54,59
+  s_51871bdcdb3b4c::t_6d3dce603c1415 66
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 64-65,67
+packages/core/tests/run-command.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 16,21,29,37,45,53,59,77
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 30-31,33,41-42,44,60-61,63,65-66,68,79-80,82
+  s_51871bdcdb3b4c::t_6d3dce603c1415 32,43,62,67,81
+packages/js/tests/dependencies.test.mjs
+  s_51871bdcdb3b4c::t_de0c3a8e55ebea 14-23,25-28,30-31,33,36-38,42,63,77,95,103,111,122,130,137,150,156,160,164
+  s_51871bdcdb3b4c::t_4eef3eda5492cb 39-40,64-65,67,78-79,81,113-114,116,138-139,141-143,145
+  s_51871bdcdb3b4c::t_6d3dce603c1415 24,41,66,80,115,140,144
+packages/cli/src/actions/run/index.ts
+  s_51871bdcdb3b4c::t_43a7633f71edea 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "31036b51a71d3f74987ed6bdde219693c028c0a0",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
