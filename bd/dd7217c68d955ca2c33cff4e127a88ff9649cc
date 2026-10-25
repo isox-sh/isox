@@ -1,0 +1,26 @@
+website/project.json
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 8
+website/docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 175-177
+  s_51871bdcdb3b4c::t_d16b35d554ac5a 178
+website/docs/contributing.mdx
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 42
+ROADMAP.md
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bddd7217c68d955ca2c33cff4e127a88ff9649cc",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
