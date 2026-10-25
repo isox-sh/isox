@@ -66,7 +66,7 @@ paths under `dist`:
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/my-plugin/tsconfig.json",
+        "tsConfig": "packages/my-plugin/tsconfig.build.json",
         "assets": [
           {
             "input": "packages/my-plugin/src",

@@ -31,9 +31,11 @@ The optional `--importPath` adds `compilerOptions.paths["@org/test"]` pointing t
 the new entry point, preserving existing settings, aliases, and JSONC comments.
 An existing `baseUrl` is respected when computing the mapping.
 
-Run `tsc --project packages/test/tsconfig.json` to typecheck the generated project
-without emitting files. Use `isox build test` to compile it; build any dependencies
-first so the executor can use their declarations.
+If TypeScript is installed and `tsc` is available on your `PATH`, run
+`tsc --project packages/test/tsconfig.json` to typecheck without emitting files.
+The executor's private compiler does not provide a shell-level `tsc` command.
+Use `isox build test` to compile it; build any dependencies first so the executor
+can use their declarations.
 
 The workspace must already contain `isox.json` (created by plain `isox init`).
 Relative project paths resolve from the current directory; absolute paths must
@@ -50,7 +52,7 @@ Install `@isox-sh/js` in your workspace, then define a project command:
     "build": {
       "executor": "@isox-sh/js:tsc",
       "options": {
-        "tsConfig": "apps/web/tsconfig.json"
+        "tsConfig": "apps/web/tsconfig.build.json"
       }
     }
   }
@@ -130,7 +132,7 @@ asset discovery. `noEmit` cannot be combined with assets or package generation.
 {
   "executor": "js:tsc",
   "options": {
-    "tsConfig": "packages/web/tsconfig.json",
+    "tsConfig": "packages/web/tsconfig.build.json",
     "assets": [
       { "input": "packages/web/assets", "glob": "**/*", "output": "assets", "ignore": ["**/*.draft"] }
     ],
