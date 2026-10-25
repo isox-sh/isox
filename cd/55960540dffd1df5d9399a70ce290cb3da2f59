@@ -1,0 +1,25 @@
+website/custom.css
+  s_5d3ad8740834ec::t_b42480dda06b5e 152-154,205,217,225
+  s_5d3ad8740834ec::t_143b483db19d75 1,3-9,18-23,26-27,30-31,33-37,39-120,122-150,157,161-162,164-169,172-193,197-204,206-216,218-224,226-227
+  s_5d3ad8740834ec::t_dd822dedbf8f91 121,151,155-156,230
+website/index.mdx
+  s_5d3ad8740834ec::t_e642cc4325ec11 2-3,9-12,15,17-20,24,27,29,31,33-35,38,42-52,55-58,61-64,67-70,75-82,84,86-95,98-99,104-113,115-119,121-123,126,128,130,133-135,140-141,145
+  s_5d3ad8740834ec::t_356eea12de5e39 114
+  s_5d3ad8740834ec::t_dd822dedbf8f91 54,60,66,85,96-97,127,136-139,146
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cd55960540dffd1df5d9399a70ce290cb3da2f59",
+  "prompts": {},
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
