@@ -1,0 +1,24 @@
+# Isox plan action
+
+Select affected projects and distribute their exact names into weighted matrix
+shards. Install the workspace's Isox CLI first and check out full Git history.
+
+```yaml
+- uses: isox-sh/isox/actions/plan@main
+  id: plan
+  with:
+    targets: test
+    targetOptions: '{"test":{"maxJobs":3,"parallel":2}}'
+```
+
+Use the `matrix` output as `strategy.matrix` and gate the worker job with
+`hasPlan == 'true'`. Projects can declare `plan.weight` (default `1`).
+
+Pull requests use their base SHA. Other events use the nearest reachable Git tag,
+including lightweight tags, and select all projects when no tag is reachable.
+An explicit `base` overrides this selection. Use checkout's `fetch-depth: 0` to
+fetch complete history and tags.
+
+See the [affected and CI guide](../../website/docs/affected-and-ci.md) for inputs,
+Git ranges, tag filters, weighted distribution, migration, and complete workflows.
+The action metadata in [action.yml](action.yml) lists every supported input/output.

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Isox workspace",
+  "type": "object",
+  "properties": {
+    "affected": {
+      "type": "object",
+      "properties": {
+        "globalFiles": {
+          "description": "Additional workspace-relative glob patterns whose changes affect every project, including shared tools owned by a project.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "nx": {
+      "type": "object",
+      "properties": {
+        "executors": {
+          "description": "Npm scopes or package names whose executors use the separately installed @isox-sh/nx plugin. Init includes @nx when the workspace root contains nx.json.",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^(?:@[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)?|[a-z0-9][a-z0-9._-]*)(?![\\s\\S])"
+          }
+        }
+      }
+    }
+  }
+}

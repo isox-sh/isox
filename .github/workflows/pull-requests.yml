@@ -1,0 +1,80 @@
+name: pull-requests
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pull-requests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    name: Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      hasPlan: ${{ steps.plan.outputs.hasPlan }}
+      head: ${{ steps.plan.outputs.head }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Isox
+        uses: ./.github/actions/setup-isox
+
+      - name: Create plan
+        id: plan
+        uses: ./actions/plan
+        with:
+          cliPath: dist/cli/index.js
+          targets: test,build,lint
+          targetOptions: '{"test":{"maxJobs":3,"parallel":1},"build":{"maxJobs":3,"parallel":2},"lint":{"maxJobs":3,"parallel":2}}'
+
+  shards:
+    uses: $/.github/workflows/shard.yml
+    name: Shard ${{ matrix.target }}
+    needs:
+      - plan
+    if: needs.plan.outputs.hasPlan == 'true'
+    secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    with:
+      target: ${{ matrix.target }}
+      index: ${{ matrix.index }}
+      count: ${{ matrix.count }}
+      weight: ${{ matrix.weight }}
+      plan: ${{ toJSON(matrix) }}
+      head: ${{ needs.plan.outputs.head }}
+      timeoutMinutes: 15
+
+  # So we can add branch protection that this one is required
+  check:
+    name: Shard check
+    runs-on: ubuntu-latest
+    needs:
+      - plan
+      - shards
+    if: |
+      !cancelled()
+    steps:
+      - name: Check
+        if: |
+          !contains(needs.*.result, 'failure') &&
+          !contains(needs.*.result, 'cancelled')
+        run: echo "Ok"
+
+      - name: Fail
+        if: |
+          contains(needs.*.result, 'failure') ||
+          contains(needs.*.result, 'cancelled')
+        run: exit 1

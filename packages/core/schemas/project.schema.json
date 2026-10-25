@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Isox project",
+  "description": "Configuration for an Isox project. Its root is the directory containing this file.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path or URL to this JSON Schema."
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[^\\s:]+$",
+      "description": "Unique project name. Defaults to the containing directory name."
+    },
+    "dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[^\\s:]+$" },
+      "description": "Additional project dependencies, merged with imports and local package references during discovery. Used to propagate affected changes; prerequisite scheduling is not yet implemented."
+    },
+    "targets": {
+      "type": "object",
+      "propertyNames": { "pattern": "^[^\\s:]+$" },
+      "additionalProperties": { "$ref": "#/definitions/executor" },
+      "description": "Commands available through isox <command> <target>, where target is the project name."
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "weight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 1,
+          "description": "Relative cost of this project when balancing CI shards. A higher weight represents more work."
+        }
+      }
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Labels for organizing projects."
+    }
+  },
+  "definitions": {
+    "executor": {
+      "type": "object",
+      "required": ["executor"],
+      "properties": {
+        "executor": {
+          "type": "string",
+          "pattern": "^[^\\s:]+:[^\\s:]+$",
+          "description": "Executor reference in package:executor format."
+        },
+        "options": {
+          "type": "object",
+          "description": "Options passed to the executor."
+        },
+        "configurations": {
+          "type": "object",
+          "propertyNames": { "pattern": "^[^\\s:,]+$" },
+          "additionalProperties": { "type": "object" },
+          "description": "Named overrides merged over options. Nested objects and arrays are replaced."
+        },
+        "defaultConfiguration": {
+          "type": "string",
+          "pattern": "^[^\\s:,]+$",
+          "description": "Configuration selected when no configuration is specified on the command line."
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

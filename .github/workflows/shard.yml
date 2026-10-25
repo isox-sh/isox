@@ -1,0 +1,54 @@
+name: Distributed Task
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        type: string
+        required: true
+
+      index:
+        type: string
+        required: true
+
+      count:
+        type: string
+        required: true
+
+      weight:
+        type: string
+        required: true
+
+      plan:
+        type: string
+        required: true
+
+      timeoutMinutes:
+        type: number
+        required: false
+
+      head:
+        type: string
+        required: false
+
+jobs:
+  shard:
+    name: Shard ${{ inputs.target }} ${{ inputs.index }}/${{ inputs.count }} (weight ${{ inputs.weight }})
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeoutMinutes || 360 }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Each isolated worker needs compiled plugins and package dependencies before testing.
+      - name: Set up Isox
+        uses: ./.github/actions/setup-isox
+
+      - name: Run planned ${{ inputs.target }}
+        uses: ./actions/run-many
+        with:
+          cliPath: dist/cli/index.js
+          plan: ${{ inputs.plan }}
+          head: ${{ inputs.head }}

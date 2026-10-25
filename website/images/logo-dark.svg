@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="156" height="48" viewBox="0 0 156 48" fill="none" role="img" aria-label="Isox">
+  <g transform="translate(22 24) scale(.5)">
+  <path d="M0-40 34.64-20 0 0-34.64-20Z" fill="#3b82f6" fill-opacity=".2"/>
+  <path d="m0 0 34.64-20v40L0 40Z" fill="#8b5cf6" fill-opacity=".2"/>
+  <path d="m0 0-34.64-20v40L0 40Z" fill="#1e1b4b" fill-opacity=".4"/>
+  <path d="m0-40 34.64 20v40L0 40l-34.64-20v-40Z" stroke="#3b82f6" stroke-width="4"/>
+  <path d="m-15 0 30-15v30Z" stroke="#a5b4fc" stroke-width="2"/>
+  <g fill="#fff"><circle cx="-15" r="4"/><circle cx="15" cy="-15" r="4"/><circle cx="15" cy="15" r="4"/></g>
+  </g>
+  <text x="52" y="36" fill="#EDF1F7" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="38" font-weight="750" letter-spacing="-2">isox<tspan fill="#3B82F6">.</tspan></text>
+</svg>

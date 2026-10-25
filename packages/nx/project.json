@@ -1,0 +1,21 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "nx",
+  "plan": { "weight": 1 },
+  "targets": {
+    "build": {
+      "executor": "js:tsc",
+      "options": {
+        "tsConfig": "packages/nx/tsconfig.build.json",
+        "generatePackageJson": true
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    },
+    "lint": {
+      "executor": "eslint:lint"
+    }
+  },
+  "tags": []
+}

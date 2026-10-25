@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["node"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "paths": {
+      "isox": ["./packages/cli/src/index.ts"],
+      "isox/*": ["./packages/cli/src/*"],
+      "@isox-sh/core": ["./packages/core/src/index.ts"],
+      "@isox-sh/core/*": ["./packages/core/src/*"],
+      "@isox-sh/e2e": ["./packages/e2e/src/index.ts"],
+      "@isox-sh/e2e/*": ["./packages/e2e/src/*"],
+      "@isox-sh/eslint": ["./packages/eslint/src"],
+      "@isox-sh/eslint/*": ["./packages/eslint/src/*"],
+      "@isox-sh/js": ["./packages/js/src"],
+      "@isox-sh/js/*": ["./packages/js/src/*"],
+      "@isox-sh/nx": ["./packages/nx/src/index.ts"],
+      "@isox-sh/nx/*": ["./packages/nx/src/*"],
+      "@isox-sh/vitest": ["./packages/vitest/src"],
+      "@isox-sh/vitest/*": ["./packages/vitest/src/*"]
+    }
+  }
+}

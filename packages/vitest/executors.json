@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "test": {
+      "implementation": "../../dist/vitest/executors/test/test.executor.js",
+      "schema": "../../dist/vitest/executors/test/test.schema.json",
+      "description": "Run a project's Vitest suite once."
+    }
+  }
+}

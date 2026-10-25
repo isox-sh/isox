@@ -1,0 +1,27 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "js",
+  "plan": { "weight": 2 },
+  "targets": {
+    "build": {
+      "executor": "js:tsc",
+      "options": {
+        "tsConfig": "packages/js/tsconfig.build.json",
+        "assets": [
+          {
+            "input": "packages/js/src",
+            "glob": "executors/**/*.schema.json"
+          }
+        ],
+        "generatePackageJson": true
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    },
+    "lint": {
+      "executor": "eslint:lint"
+    }
+  },
+  "tags": []
+}

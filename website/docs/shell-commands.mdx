@@ -1,0 +1,75 @@
+---
+title: "Shell commands"
+description: "Run existing tools and package scripts with the built-in core:run-command executor."
+icon: "terminal"
+---
+
+`core:run-command` runs a shell command and streams its output to your terminal.
+It is included with the `isox` CLI; no separate executor installation is needed.
+The fully scoped reference is `@isox-sh/core:run-command`.
+
+## Wrap an existing script
+
+For a project that already has a `build` script in `apps/web/package.json`, create
+`apps/web/project.json`:
+
+```json apps/web/project.json
+{
+  "name": "web",
+  "targets": {
+    "build": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "npm run build",
+        "cwd": "apps/web"
+      }
+    }
+  }
+}
+```
+
+```sh
+npx isox build web
+```
+
+Replace the command with your package manager or underlying tool invocation.
+Make sure the wrapped script does not call the same Isox command recursively.
+
+## Options
+
+| Option | Required | Behavior |
+| --- | --- | --- |
+| `command` | Yes | Nonempty shell command string |
+| `cwd` | No | Working directory, relative to the workspace root or absolute; defaults to the workspace root |
+
+Commands inherit the environment and standard input, output, and error streams.
+A nonzero exit code or signal termination fails the Isox command. Cancellation
+propagates to the child process tree.
+
+## Configure tool flags
+
+Put tool flags in `command`. Use named configurations for repeatable variants:
+
+```json
+{
+  "executor": "core:run-command",
+  "options": {
+    "command": "node scripts/check.mjs"
+  },
+  "configurations": {
+    "strict": {
+      "command": "node scripts/check.mjs --strict"
+    }
+  }
+}
+```
+
+If this definition is stored under `targets.check`, run
+`isox check web --config=strict`. The example assumes your workspace provides
+`scripts/check.mjs` and that it accepts `--strict`.
+
+The executor does not load `.env` files, expand Nx workspace tokens, or schedule
+dependency builds. Environment loading and required build ordering belong in the
+invoked tool, script, or CI workflow.
+
+For programmatic execution and cancellation helpers, see the [core API](/docs/core-api).

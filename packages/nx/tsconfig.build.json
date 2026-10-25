@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../../dist/nx",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

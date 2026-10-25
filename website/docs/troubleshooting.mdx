@@ -1,0 +1,118 @@
+---
+title: "Troubleshooting"
+description: "Resolve workspace discovery, executor loading, build, configuration, and CI selection problems."
+icon: "wrench"
+---
+
+## Start with verbose output
+
+Repeat the failing command with `--verbose` to include debug logs and error stacks:
+
+```sh
+npx isox build web --verbose
+```
+
+Check the runtime with `node --version`. Use Node.js 24 or 26+ when running the
+repository and Vitest plugin; Vitest 5 excludes Node.js 25.
+
+## Workspace not found
+
+Isox searches from the current directory upward for `isox.json`. Run
+`npx isox init` at the intended workspace root, then run commands from that
+directory or its descendants. A marker in a nested directory creates a separate
+workspace boundary.
+
+`init` refuses to overwrite an existing marker. Edit that file directly when
+changing settings in an initialized workspace.
+
+## Project or command not found
+
+Check that the project has a `project.json` with a unique name and that the
+command is defined under `targets`. After editing or moving project files,
+refresh discovery:
+
+```sh
+npx isox reset
+npx isox build web
+```
+
+Names are case-sensitive. The directory name is used when `name` is omitted.
+For a command named `init`, `run`, `reset`, `affected`, `plan`, or `run-many`, use
+`isox run web:reset` (substituting your command) to avoid the CLI's reserved names.
+
+## Executor package cannot be loaded
+
+Install executor packages where they resolve from the workspace root. For
+example, `js:tsc` requires `@isox-sh/js`:
+
+```sh
+npm install --save-dev @isox-sh/js
+```
+
+Under pnpm, use `pnpm add -Dw @isox-sh/js` from the workspace root. Build local
+plugins before using them and verify that `executors.json` points to compiled
+JavaScript. The [plugin layout guide](/docs/custom-executors#plugin-layout) shows the
+manifest structure.
+
+The built-in `core:run-command` falls back to the CLI's core dependency. A directly
+installed workspace copy takes precedence, including when that copy is invalid.
+
+## An option or configuration is rejected
+
+The CLI accepts its own flags and does not forward arbitrary executor options.
+For TypeScript watch mode, put `watch: true` in a named configuration and run
+`isox build web --config=watch`.
+
+Configuration names must exist on the selected command. Overrides replace nested
+objects and arrays rather than merging them recursively. See
+[named configurations](/docs/cli#named-configurations).
+
+## TypeScript cannot resolve a workspace dependency
+
+Build the dependency with declarations enabled before building its consumer.
+The TypeScript executor remaps cross-project source aliases to built declarations
+using the dependency's compiler configuration. Verify its `rootDir`, `outDir`,
+and any `declarationDir` match the files it emits.
+
+If imports or package relationships have changed, run `isox reset` before a
+single-project build. For the Isox repository itself, `pnpm bootstrap` prepares
+the CLI, executors, and prerequisite outputs from a clean checkout.
+
+## Affected selection is larger than expected
+
+Changes to root manifests, lockfiles, shared TypeScript configuration, `.github`,
+and files outside every project affect all projects. Dependencies propagate
+changes to their transitive dependents before command and tag filtering.
+
+Inspect the selection without running tasks:
+
+```sh
+npx isox affected --target=test --base=origin/main --print-matrix
+```
+
+Use narrow `affected.globalFiles` globs for additional shared tooling. See
+[what counts as affected](/docs/affected-and-ci#what-counts-as-affected).
+
+## Affected selection is empty or Git history is missing
+
+Local unstaged and staged changes require `--uncommitted`; non-ignored untracked
+files require `--untracked`. Projects must have the requested command and pass
+the tag filters. A `ci=off` tag excludes a project from normal selection.
+
+For CI, use a checkout with `fetch-depth: 0` in the planning job. Missing revisions
+are errors. On non-PR events the actions compare against the nearest reachable
+Git tag; a tag on HEAD produces an empty plan. Supply an earlier `base` or set
+`affectedOnly: false` when rebuilding that release.
+
+## A TypeScript output lock remains after a forced stop
+
+Once no builds are running, use `isox reset` to remove stale build locks and
+reservations. This removes the whole `.isox` directory, including output ownership
+records; previously untracked output is then preserved rather than cleaned up.
+
+## Report a reproducible issue
+
+Include the command, verbose output, Node.js and package versions, the relevant
+`project.json` and tool configuration, and a small reproduction in a
+[GitHub issue](https://github.com/isox-sh/isox/issues). Remove credentials and
+private environment values from logs before sharing them.

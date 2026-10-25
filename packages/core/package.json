@@ -1,0 +1,43 @@
+{
+  "name": "@isox-sh/core",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "../../dist/core/index.js",
+  "types": "../../dist/core/index.d.ts",
+  "executors": "./executors.json",
+  "files": [
+    "dist",
+    "executors.json",
+    "schemas"
+  ],
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "fast-glob": "^3.3.3",
+    "typescript": "npm:@typescript/typescript6@^6.0.2"
+  },
+  "description": "Workspace discovery, command execution, and logging for Isox.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "keywords": [
+    "monorepo",
+    "workspace",
+    "executor",
+    "isox"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/core",
+    "linkDirectory": true
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

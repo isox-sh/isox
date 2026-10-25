@@ -1,8 +1,8 @@
 {
-  "name": "isox",
+  "name": "isox-monorepo",
   "version": "0.0.0",
   "private": true,
-  "description": "A lean, hermetic monorepo task orchestrator executor runner.",
+  "description": "A lightweight monorepo command runner with explicit project configuration.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,5 +12,34 @@
   "bugs": {
     "url": "https://github.com/isox-sh/isox/issues"
   },
-  "packageManager": "pnpm@12.15.0"
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": "^24.0.0 || >=26.0.0"
+  },
+  "scripts": {
+    "isox": "node dist/cli/index.js",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix --max-warnings 0",
+    "test": "pnpm bootstrap && pnpm isox test core && pnpm isox test cli && pnpm isox test js && pnpm isox test eslint && pnpm isox test vitest && pnpm isox test nx && pnpm isox test e2e-plugin && pnpm isox test e2e",
+    "test:e2e": "pnpm bootstrap && pnpm isox test e2e",
+    "bootstrap": "node scripts/bootstrap.cjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@isox-sh/core": "workspace:*",
+    "@isox-sh/e2e": "workspace:*",
+    "@isox-sh/js": "workspace:*",
+    "@isox-sh/nx": "workspace:*",
+    "@isox-sh/vitest": "workspace:*",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/node": "^26.6.5",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "eslint": "^10.13.0",
+    "eslint-plugin-simple-import-sort": "^14.0.0",
+    "globals": "^17.13.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5",
+    "@isox-sh/eslint": "workspace:*"
+  }
 }

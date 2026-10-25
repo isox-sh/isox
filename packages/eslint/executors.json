@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "lint": {
+      "implementation": "../../dist/eslint/executors/lint/lint.executor.js",
+      "schema": "../../dist/eslint/executors/lint/lint.schema.json",
+      "description": "Lint a project with ESLint."
+    }
+  }
+}

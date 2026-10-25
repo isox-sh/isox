@@ -1,0 +1,26 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "eslint",
+  "targets": {
+    "build": {
+      "executor": "js:tsc",
+      "options": {
+        "tsConfig": "packages/eslint/tsconfig.build.json",
+        "assets": [
+          {
+            "input": "packages/eslint/src",
+            "glob": "executors/**/*.schema.json"
+          }
+        ],
+        "generatePackageJson": true
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    },
+    "lint": {
+      "executor": "eslint:lint"
+    }
+  },
+  "tags": []
+}

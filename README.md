@@ -2,119 +2,63 @@
   <img src="./.github/assets/banner.svg" alt="Isox Banner" width="100%" />
 
   <br />
-  <p><b>A lean, hermetic monorepo task orchestrator and drop-in Nx executor runner.</b></p>
-  
-  [![npm version](https://img.shields.io/npm/v/@isox-sh/cli.svg?style=flat-square&color=3b82f6)](https://npmjs.com/package/@isox-sh/cli)
+  <p><b>A lightweight monorepo command runner with explicit project configuration.</b></p>
+
+  [![npm version](https://img.shields.io/npm/v/isox.svg?style=flat-square&color=3b82f6)](https://npmjs.com/package/isox)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
   [![Website](https://img.shields.io/badge/Website-isox.sh-blue.svg?style=flat-square)](https://isox.sh)
-  [![CI](https://img.shields.io/github/actions/workflow/status/isox-sh/isox/ci.yml?style=flat-square&logo=github)](https://github.com/isox-sh/isox/actions)
+  [![Pull requests](https://img.shields.io/github/actions/workflow/status/isox-sh/isox/pull-requests.yml?style=flat-square&logo=github)](https://github.com/isox-sh/isox/actions/workflows/pull-requests.yml)
 </div>
 
 <hr />
 
-## ⚡ What is Isox?
+## What is Isox?
 
-Isox is an ultra-lightweight, high-performance monorepo task orchestrator. It was built to solve a specific problem: **We wanted the power of Nx's `project.json`, plugin ecosystem, and executors, but without the heavy background daemons, bloated dependencies, and aggressive caching wrappers.**
+Isox is a lightweight monorepo command runner. Each project defines its commands
+in `project.json`, and an `isox.json` marker identifies the workspace root.
+A local discovery cache keeps subsequent runs fast, with no background daemon.
 
-Isox acts as a **drop-in replacement** for the core execution engine of Nx. It evaluates your dependency graph, computes affected projects based on pure `git` diffs, and orchestrates tasks in a hermetic, distributed manner.
+Run individual projects or select affected projects and their dependents from
+Git changes. Native GitHub Actions distribute exact project lists across weighted
+CI jobs. Prerequisite scheduling and task output caching remain on the
+[roadmap](ROADMAP.md).
 
----
+## Get started
 
-## 🎯 Core Pillars
+Requires Node.js 24+.
 
-- **Drop-in Nx Compatibility (`project.json`)**: You don't need to rewrite your workspace. Isox natively parses `project.json` and supplies a compatible `ExecutorContext` to run existing Nx plugins (like `@nx/js:tsc` or `@nx/vite:build`).
-- **Hermetic by Default (`Iso-`)**: Strict I/O boundaries. Tasks run in isolated environments without leaking undeclared global environment variables or rogue file reads.
-- **Affected Detection**: Trims away untouched packages by calculating `git merge-base` diffs. Splices together only the active targets to save CI time.
-- **Distributed Execution**: Instead of paying for a proprietary cloud, Isox natively integrates with GitHub Actions matrixes (via `@isox-sh/actions`) for effortless horizontal scaling.
-- **Distributed Computation Caching**: Deterministic caching via `xxhash-wasm`. Push and pull artifacts directly to/from S3 (via `@isox-sh/cache-s3`).
-- **Zero Daemons**: No background AST-parsing daemons eating up your RAM. Just pure, on-demand execution (`-ox`).
-
----
-
-## 🚀 Quick Start
-
-### Installation
-
-Install Isox globally via npm:
-```bash
-npm install -g @isox-sh/cli
+```sh
+npm install --save-dev isox
+npx isox init
 ```
 
-Or use our standalone installer:
-```bash
-curl -fsSL https://isox.sh/install | bash
+Define your project's commands in `project.json`, then run:
+
+```sh
+npx isox build my-app
 ```
 
-### Basic Commands
+Follow the [getting started guide](website/docs/getting-started.md) for a complete example.
 
-```bash
-# Run a specific target on a specific project
-isox run my-app:build
+## Documentation
 
-# Run a target on all projects
-isox run-many --target=lint
+Browse the [documentation](website/README.md) for configuration, CLI usage, executor
+reference, plugin development, and migration guides.
 
-# Run affected projects based on the current Git diff
-isox affected --target=test --base=origin/main
-```
+- [CLI reference](website/docs/cli.md)
+- [Affected projects and GitHub Actions](website/docs/affected-and-ci.md)
+- [Workspace and project configuration](website/docs/configuration.md)
+- [ESLint executor](website/docs/eslint.md)
+- [TypeScript executor](website/docs/typescript.md) and [Vitest executor](website/docs/vitest.md)
+- [Core API](website/docs/core-api.md) and [custom executors](website/docs/custom-executors.md)
+- [Migrating from Nx](website/docs/nx-migration.md) — temporary adapter support for Nx 23
 
----
+## Contributing
 
-## 🏗️ Architecture & Roadmap (What We Are Building)
+See the [contributing guide](website/docs/contributing.mdx) for development setup, builds,
+tests, and CI. Use [Issues](https://github.com/isox-sh/isox/issues) for individual
+work items and the [roadmap](ROADMAP.md) to find planned work.
 
-Isox is structured as a monorepo itself, dogfooding its own execution engine.
+## License
 
-### 1. The Core Engine (`@isox-sh/core`)
-Unlike heavy orchestrators, Isox relies purely on `fast-glob` to index `project.json` files and `package.json` dependencies. It builds a Directed Acyclic Graph (DAG) in milliseconds.
-
-### 2. The Executor Bridge
-To maintain backward compatibility with Nx, Isox mocks the Nx `ExecutorContext`. It locates the executor implementation via `executors.json` and runs it natively.
-
-```typescript
-// How Isox runs an Nx Executor under the hood
-const executorFn = require(executorPath).default;
-const context = createIsoxContext(projectName, workspaceGraph);
-await executorFn(options, context);
-```
-
-### 3. Distributed Task Execution (DTE)
-Using `@isox-sh/actions`, you can pipe the output of `isox affected --print-matrix` directly into GitHub Actions:
-
-```yaml
-jobs:
-  calculate-matrix:
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - run: echo "matrix=$(isox affected --target=build --print-matrix)" >> $GITHUB_OUTPUT
-
-  build:
-    needs: calculate-matrix
-    strategy:
-      matrix:
-        project: ${{ fromJson(needs.calculate-matrix.outputs.matrix) }}
-    steps:
-      - run: isox run ${{ matrix.project }}:build
-```
-
----
-
-## 🤝 Contributing
-
-We are actively building out the core engine. Check out the [Issues](https://github.com/isox-sh/isox/issues) page to see the roadmap, or submit a PR! 
-
-The repository uses pnpm workspaces, with packages under `packages/`. Install
-[pnpm](https://pnpm.io/installation) using the version pinned in `package.json`,
-then run `pnpm install` from the repository root. Commit changes to
-`pnpm-lock.yaml` alongside dependency updates; use `pnpm install --frozen-lockfile`
-in CI. Build and test scripts will be added alongside the implementation.
-
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-Distributed under the [MIT License](https://opensource.org/licenses/MIT). See `LICENSE` for more information.
+Distributed under the [MIT License](LICENSE).

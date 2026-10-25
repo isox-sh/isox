@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "TypeScript compiler",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "tsConfig": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Workspace-relative or absolute config path; defaults to the project tsconfig.json."
+    },
+    "clean": {
+      "type": "boolean",
+      "default": true,
+      "description": "Remove stale owned output files after a successful build, preserving unrelated or modified files."
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "input",
+          "glob"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "glob": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string"
+          },
+          "ignore": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "generatePackageJson": {
+      "type": "boolean",
+      "default": false
+    },
+    "generateExportsField": {
+      "type": "boolean",
+      "default": false
+    },
+    "additionalEntryPoints": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^\\./.+$"
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string",
+            "pattern": "^\\./"
+          },
+          {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "type": "string",
+              "pattern": "^\\./"
+            }
+          }
+        ]
+      }
+    },
+    "watch": {
+      "type": "boolean",
+      "default": false
+    },
+    "pollInterval": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 60000,
+      "default": 500,
+      "description": "Milliseconds between watch input snapshots."
+    }
+  }
+}
