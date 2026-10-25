@@ -1,0 +1,28 @@
+packages/js/src/executors/tsc/watch.ts
+  s_51871bdcdb3b4c::t_8f0407f516f447 16-23,25-28,30-97,100-102,146-147,179
+  s_51871bdcdb3b4c::t_c9941b830f15f2 29
+  s_51871bdcdb3b4c::t_9cbaf8908a4f85 2
+  s_51871bdcdb3b4c::t_8ffa348fb864f1 6,10
+packages/js/src/executors/tsc/build-config.ts
+  s_51871bdcdb3b4c::t_c9941b830f15f2 63
+  s_51871bdcdb3b4c::t_f3b1b38b66611b 11,15-18,27,42,69
+packages/js/tests/watch.test.mjs
+  s_51871bdcdb3b4c::t_78a5d9f806af64 170-171
+  s_51871bdcdb3b4c::t_ea3f5ef31a175d 162-169,172-180
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "643fe33a2aa8c59aea3dae17b4d04fefc7927050",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
