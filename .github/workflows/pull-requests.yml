@@ -42,7 +42,7 @@ jobs:
     uses: .github/workflows/shard.yml
     name: Shard ${{ matrix.target }}
     needs:
-      - setup
+      - plan
     if: needs.setup.outputs.hasPlan == 'true'
     secrets: inherit
     strategy:
