@@ -1,0 +1,88 @@
+name: pull-requests
+
+on:
+  pull_request:
+  merge_group:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pull-requests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plan:
+    name: Build, lint, and plan affected tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      hasPlan: ${{ steps.plan.outputs.hasPlan }}
+      head: ${{ steps.plan.outputs.head }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Set up Isox
+        uses: ./.github/actions/setup-isox
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Plan affected tests
+        id: plan
+        uses: ./actions/plan
+        with:
+          cliPath: dist/cli/index.js
+          targets: test
+          targetOptions: '{"test":{"maxJobs":3,"parallel":1}}'
+
+  tests:
+    name: Test shard ${{ matrix.index }}/${{ matrix.count }} (weight ${{ matrix.weight }})
+    needs: plan
+    if: needs.plan.outputs.hasPlan == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # Each isolated worker needs compiled plugins and package dependencies before testing.
+      - name: Set up Isox
+        uses: ./.github/actions/setup-isox
+
+      - name: Run planned tests
+        uses: ./actions/run-many
+        with:
+          cliPath: dist/cli/index.js
+          plan: ${{ toJSON(matrix) }}
+          head: ${{ needs.plan.outputs.head }}
+
+  cli:
+    name: Build, lint, and test
+    needs: [plan, tests]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check required jobs
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          TEST_RESULT: ${{ needs.tests.result }}
+          HAS_PLAN: ${{ needs.plan.outputs.hasPlan }}
+        run: |
+          test "$PLAN_RESULT" = success
+          if [ "$HAS_PLAN" = true ]; then
+            test "$TEST_RESULT" = success
+          else
+            test "$HAS_PLAN" = false
+            test "$TEST_RESULT" = skipped
+          fi

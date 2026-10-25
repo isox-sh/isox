@@ -28,21 +28,27 @@ items unchecked and describe the remaining work. Link implementation/tests or
 issues when useful; do not mark features complete solely because their
 configuration is accepted as custom metadata.
 
-Priority follows the numbered milestones. The next implementation milestone is
-**1: explicit dependency and task graphs**. Follow-up robustness work in milestone
-0 can proceed alongside it. New command names and configuration fields below are
-proposals until their schemas and behavior are implemented.
+Project dependency graphs, affected selection and weighted CI plans are now
+implemented. The next orchestration milestone is **1: prerequisite task graphs**;
+follow-up robustness work in milestone 0 can proceed alongside it. Unchecked
+command/configuration proposals below are not implemented contracts.
 
 ## Current capability boundary
 
-Isox currently discovers projects and executes one selected project command.
-`dependencies` is metadata, not a native scheduling graph. Configuration merging
-is supported, but `dependsOn`, task inputs/outputs, hashing, affected selection,
-parallel execution, and sandboxing are not implemented.
+Isox discovers projects, runs individual or multiple commands, and selects
+affected projects through Git changes and explicit reverse dependency edges.
+Weighted plans use `plan.weight` (default 1), exact project lists and bounded
+worker concurrency. Native GitHub actions plan/run these lists and are used in
+our CI. See [affected projects and CI](docs/affected-and-ci.md).
+
+`dependencies` does not yet schedule prerequisite tasks. `dependsOn`, task
+inputs/outputs, hashing, artifact transfer, and sandboxing are not implemented.
+Build prerequisites must be prepared explicitly before workers run.
 
 `.isox/workspace.json` caches project configuration only. It does not cache task
-results or automatically detect project-file changes; use `isox reset` to refresh
-it. The Nx adapter's inferred graph and separate Nx file-map cache serve migration
+results. Single-project commands require `isox reset` after project changes;
+affected selection, planning and run-many always scan fresh project definitions.
+The Nx adapter's inferred graph and separate Nx file-map cache serve migration
 executors only and do not implement the native roadmap.
 
 ## 0. Foundation and current implementation
@@ -67,7 +73,7 @@ executors only and do not implement the native roadmap.
 - [x] Migrate recognized Nx project schemas in memory and cache the converted definitions without rewriting source files.
 - [x] Select temporary Nx adapters through `nx.executors`, supply dependency metadata, and reject installed Nx runtimes outside version 23.
 - [x] Add regression coverage for graph metadata, external npm nodes, cache reuse, unsupported Nx versions, and configuration errors.
-- [x] Configure CI to build, lint, and run all package test suites through the bootstrapped CLI.
+- [x] Configure CI to build, lint, and run affected package suites through our weighted plan/run-many actions, with per-worker bootstrapping and an aggregate required check.
 - [ ] Define automatic discovery-cache invalidation for added, changed, renamed, and removed project files, with a cache format/version strategy.
 - [ ] Define discovery boundaries for nested workspaces, generated output directories, ignored projects, and symlinks.
 - [ ] Test cancellation and signal propagation through shell children, executor streams, and the Nx graph worker; avoid leaving running children behind.
@@ -85,8 +91,8 @@ Build a native graph from declarations. Do not depend on the Nx adapter or sourc
 AST inference. Start with project names in `dependencies`; decide separately
 whether to opt into package-manifest dependency mapping.
 
-- [ ] Validate dependency references and report cycles with the complete cycle path.
-- [ ] Build forward and reverse project edges with deterministic ordering and safe handling of isolated projects.
+- [x] Validate dependency references and report cycles with the complete cycle path during affected selection/planning.
+- [x] Build forward and reverse project edges with deterministic ordering and safe handling of isolated projects.
 - [ ] Decide whether/how package names map to project names, including conflicting declarations and dependency types.
 - [ ] Specify and validate native command prerequisites, including the proposed `dependsOn: ['^build']` dependency-command syntax.
 - [ ] Define missing prerequisite commands, self-project prerequisites, and configuration propagation explicitly.
@@ -103,14 +109,15 @@ Use Git changes plus the native reverse dependency graph. Avoid shell-interpolat
 Git commands: pass revisions and arguments through an argument-vector API and
 use NUL-delimited paths.
 
-- [ ] Define base/head selection and use their merge base for committed changes; report missing refs and shallow-history failures clearly.
-- [ ] Decide how staged, unstaged, and untracked changes participate, with explicit local/CI behavior.
-- [ ] Map changed paths to the most specific project root; handle root-level projects, deletions, renames, spaces, and unusual filenames.
-- [ ] Define workspace-wide inputs such as root configuration and lockfiles, and how unmatched files affect selection.
-- [ ] Include transitive dependents and filter for the requested command without losing required prerequisite tasks.
-- [ ] Add affected execution and a planning-only JSON interface, tentatively `isox print-affected --command=build --base=origin/main`.
-- [ ] Keep JSON stdout free of logs, including cache diagnostics; return a stable empty result when nothing is affected.
-- [ ] Test using temporary Git repositories with branching history, nested project roots, and renamed/deleted files.
+- [x] Define base/head selection and use their merge base for committed changes; report missing refs and shallow-history failures clearly.
+- [x] Include staged/unstaged and untracked changes only through explicit local flags; actions compare committed changes.
+- [x] Map changed paths to the most specific project root; handle root projects, deletions, renames, unusual filenames, symlinked roots and nested workspaces.
+- [x] Define built-in workspace-wide inputs, configurable `affected.globalFiles`, and conservative all-project selection for unowned paths.
+- [x] Include transitive dependents before filtering by command, tag expressions and `ci=off`.
+- [ ] Expand required prerequisite tasks after affected selection once milestone 1's task contract exists.
+- [x] Add `isox affected --target=...`, `--print-matrix` for project arrays, and `isox plan` for weighted matrix JSON.
+- [x] Keep JSON stdout free of logs, including verbose cache diagnostics; return stable empty results.
+- [x] Test with temporary Git repositories containing branching history, nested roots, local changes, renamed/deleted files and shallow clones.
 
 Completion criterion: a shared-library edit selects its dependents, unrelated
 projects are excluded, and CI can parse the planner output directly.
@@ -151,15 +158,19 @@ failure behavior.
 
 ## 5. CI task distribution
 
-The original GitHub Actions matrix idea remains a goal. A JSON project list
-supports fan-out, but dependency ordering and artifact transfer still need an
-explicit design; a matrix alone is not a distributed scheduler.
+The initial GitHub Actions matrix workflow is implemented. Dependency task
+ordering and artifact transfer still need an explicit design; a matrix alone is
+not a distributed scheduler.
 
-- [ ] Define stable task-plan JSON suitable for matrix consumers, including selected configurations and task prerequisites.
-- [ ] Add examples for GitHub Actions and evaluate integration with existing `nx-extend/actions` workflows without requiring Nx at runtime.
+- [x] Define matrix JSON with exact project lists, configuration, pre/post stages, worker concurrency, shard indices and weights.
+- [x] Balance projects with positive `plan.weight` values (default 1), deterministic heavy-first assignment and no empty shards.
+- [x] Add native plan/run-many actions and document migration from `nx-extend/actions`, without requiring Nx at runtime.
+- [x] Use the PR base SHA for pull requests and the nearest reachable Git tag for other events; select all projects when no tag is reachable. Honor explicit refs, reject shallow tag discovery, and verify planned/worker heads.
+- [ ] Extend matrix plans with native prerequisite task relationships once that contract is implemented.
 - [ ] Define execution waves or worker-side prerequisite handling so dependent builds do not race.
 - [ ] Integrate remote results or artifact transfer between jobs, with deterministic retry/failure aggregation.
-- [ ] Handle empty task sets, matrix limits, cancellation, and worker concurrency.
+- [x] Handle empty plans, the 256-job matrix limit, cancellation, bounded worker concurrency and failure aggregation.
+- [x] Dogfood weighted affected test jobs in our CI; test action output files and worker handoff locally. A hosted workflow run remains to be observed after push.
 - [ ] Demonstrate a multi-job build that matches the equivalent local task plan and outputs.
 
 Completion criterion: CI executes the same valid task plan as local orchestration,
@@ -203,3 +214,77 @@ Review date: 2026-10-24.
 - Broader guarantees remain unchecked above: the current suite does not prove
   hermeticity, remote-cache correctness, distributed scheduling, or full Nx
   compatibility. CI configuration still needs an actual hosted run.
+
+Affected and CI implementation: 2026-10-25.
+
+- Added explicit project graphs, Git-based affected selection, clean JSON output,
+  weighted plans, isolated concurrent workers and native plan/run-many actions.
+- Built all packages through `node scripts/bootstrap.cjs`; ESLint passed.
+- Replayed our CI action entry points locally with all eight suites split across
+  three weighted shards: **235 tests passed** (core 98, CLI 44, JS 34, Nx 41,
+  ESLint 5, Vitest 4, E2E plugin 7, end-to-end 2).
+- Added real Git fixtures for branching, renames/deletions, local changes,
+  symlinked/nested workspaces and shallow clones; covered weight balancing,
+  filtering, exact action outputs, empty plans, cancellation and worker failure.
+- `actionlint` 1.7.12 validated `.github/workflows/pull-requests.yml`; `git diff --check`
+  passed. The hosted GitHub workflow remains unobserved until this change is pushed.
+- Prerequisite task scheduling and artifact transfer remain unchecked. Our CI
+  workers bootstrap all required package outputs before running affected tests.
+
+Code review and tag-based planning: 2026-10-25.
+
+- Separated tag filters, command validation, and weighted distribution; parse tag
+  expressions once per selection. Shared CLI configuration parsing and signal
+  handling, and reused process-tree cancellation in the compiler.
+- Grouped package dependency rewriting with dependency inference, centralized
+  schema discovery, and used explicit workspace refreshes instead of deleting
+  cache files before discovery.
+- Non-PR actions select the nearest reachable annotated or lightweight tag.
+  Real Git fixtures cover unrelated branches, explicit overrides, tags on HEAD,
+  no reachable tags, and shallow checkouts. PR selection still uses its base SHA.
+- Fixed cancellation of failed executor streams without suppressing ordinary
+  failures; verified iterator cleanup and compiler descendant termination.
+- All **237 tests passed** (core 99, CLI 45, JS 34, Nx 41, ESLint 5, Vitest 4,
+  E2E plugin 7, end-to-end 2). Built all packages and exercised the CI actions
+  locally. ESLint, workflow lint, local documentation links, and whitespace checks
+  passed. A hosted workflow run remains unobserved.
+
+Second review: 2026-10-25.
+
+- Fixed numeric-looking CLI values being coerced to numbers: Git tags, project
+  and command names, tag filters, and configuration names now retain their exact
+  spelling. Covered leading zeros, aliases, numeric pre/post commands, and Git refs.
+- Added early stage validation. The later contract fix below replaces the initial
+  comma restriction with exact JSON transport for all schema-valid command names.
+- Reproduced and fixed worker cancellation leaving a stubborn executor process
+  alive. Workers now allow five seconds for executor cleanup before forced
+  termination, exceeding the executor subprocess grace period of two seconds.
+- All **239 tests passed** through the local plan/run-many actions (core 99,
+  CLI 47, JS 34, Nx 41, ESLint 5, Vitest 4, E2E plugin 7, end-to-end 2).
+  Package builds, ESLint, and workflow lint passed. The `pull-requests` workflow
+  remains limited to pull requests and merge groups.
+
+Planner/worker stage contract fix: 2026-10-25.
+
+- Removed the worker's separate stage-name rules and comma-delimited transport.
+  Stages now travel as JSON arrays and use core's shared parser during planning
+  and execution. Comma-containing command names remain valid under the project
+  schema and are preserved exactly, including their selected configurations.
+- Added CLI JSON stage flags with conflict checks against their list counterparts.
+  Regression tests execute actual planner/worker actions with comma-containing
+  names and verify that both paths reject malformed stages before any task runs.
+- Package builds, ESLint, workflow lint, and **148 core/CLI tests passed**
+  (core 100, CLI 48). Other package suites were unchanged in this fix.
+
+Follow-up review: 2026-10-25.
+
+- Fixed short option assignments such as `-c=acc` and `-t=01`: the string-value
+  recovery parser now removes the assignment separator while preserving leading
+  zeros and literal leading equals signs in option values.
+- Fixed abort-aware executor promises and streams being reported as task failures
+  on cancellation. Abort errors and the signal's own reason now preserve signal
+  exit codes and cleanup; unrelated failures still propagate.
+- Added regression coverage for native/Nx configuration aliases, exact planner
+  values, executor cleanup, and SIGINT/SIGTERM exit statuses.
+- Package builds, ESLint, workflow lint, and **156 core/CLI tests passed**
+  (core 106, CLI 50). Other package suites were unchanged in this review.

@@ -50,12 +50,19 @@ registry access and exercise local builds; they do not test published tarballs.
 
 ## Continuous integration
 
-Pull requests run the `CI` workflow using `.github/actions/setup-isox` to set up
+Pull requests and merge groups run the `pull-requests` workflow using `.github/actions/setup-isox` to set up
 Node.js and pnpm, install dependencies, and build core, the CLI, and the
 plugins. Call this action once after checkout in each job that needs Isox; subsequent steps in that job can
 use `pnpm isox`. It defaults to Node.js 24, configurable through `node-version`.
-The CI workflow then runs lint, the package test suites, and the end-to-end
-suite through Isox.
+The planning job runs lint and creates an affected test matrix through our
+`actions/plan` action. Up to three workers bootstrap their prerequisites and use
+`actions/run-many` to execute the exact planned package and end-to-end suites.
+Projects' `plan.weight` values balance expensive suites. Changes propagate through
+declared dependencies; workspace-wide inputs and unowned paths select all suites.
+A final required check preserves failures and accepts an empty plan. Pull requests
+use their base SHA; other events use the nearest reachable Git tag, or all
+projects if none exists. This workflow runs only for pull requests and merge groups.
+See [affected projects and CI](affected-and-ci.md) for the public actions.
 
 ```yaml
 steps:
@@ -85,7 +92,7 @@ pnpm isox test nx
 
 The syntax is `isox <command> <target>`, where target is the project's name.
 Any command defined in that project's `executors` object can be used.
-`isox run cli:build` also works. `init`, `run`, and `reset` are reserved CLI commands;
+`isox run cli:build` also works. `init`, `run`, `reset`, `affected`, `plan`, and `run-many` are reserved CLI commands;
 use `isox run <project>:<command>` for project commands with those names.
 
 Package builds use [`@isox-sh/js:tsc`](typescript.md), written as `js:tsc`
@@ -93,7 +100,7 @@ in our project files. Compiler settings stay in each package's `tsconfig.json`;
 there are no `scripts.build` entries. Lint commands use
 [`eslint:lint`](eslint.md); test commands use
 [`vitest:test`](vitest.md).
-Isox records `dependencies` but does not schedule them yet: build core before JS
+Isox uses `dependencies` for affected selection but does not schedule prerequisite builds yet: build core before JS
 and the other packages when rebuilding manually. `pnpm bootstrap` seeds core and the JS executor
 with TypeScript, then runs the package build commands through Isox. It also
 refreshes discovery. After editing a `project.json`, use `pnpm isox reset` to

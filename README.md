@@ -7,7 +7,7 @@
   [![npm version](https://img.shields.io/npm/v/isox.svg?style=flat-square&color=3b82f6)](https://npmjs.com/package/isox)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
   [![Website](https://img.shields.io/badge/Website-isox.sh-blue.svg?style=flat-square)](https://isox.sh)
-  [![CI](https://img.shields.io/github/actions/workflow/status/isox-sh/isox/ci.yml?style=flat-square&logo=github)](https://github.com/isox-sh/isox/actions)
+  [![Pull requests](https://img.shields.io/github/actions/workflow/status/isox-sh/isox/pull-requests.yml?style=flat-square&logo=github)](https://github.com/isox-sh/isox/actions/workflows/pull-requests.yml)
 </div>
 
 <hr />
@@ -18,9 +18,10 @@ Isox is a lightweight monorepo command runner. Each project defines its commands
 in `project.json`, and an `isox.json` marker identifies the workspace root.
 A local discovery cache keeps subsequent runs fast, with no background daemon.
 
-Isox currently runs one project's command at a time. Dependency scheduling,
-affected detection, task output caching, and distributed execution are planned;
-see the [roadmap](ROADMAP.md) for current capabilities and upcoming work.
+Run individual projects or select affected projects and their dependents from
+Git changes. Native GitHub Actions distribute exact project lists across weighted
+CI jobs. Prerequisite scheduling and task output caching remain on the
+[roadmap](ROADMAP.md).
 
 ## Get started
 
@@ -45,6 +46,7 @@ Browse the [documentation](docs/README.md) for configuration, CLI usage, executo
 reference, plugin development, and migration guides.
 
 - [CLI reference](docs/cli.md)
+- [Affected projects and GitHub Actions](docs/affected-and-ci.md)
 - [Workspace and project configuration](docs/configuration.md)
 - [ESLint executor](docs/eslint.md)
 - [TypeScript executor](docs/typescript.md) and [Vitest executor](docs/vitest.md)

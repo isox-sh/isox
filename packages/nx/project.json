@@ -1,6 +1,7 @@
 {
   "$schema": "../core/schemas/project.schema.json",
   "name": "nx",
+  "plan": { "weight": 3 },
   "dependencies": [
     "core"
   ],
