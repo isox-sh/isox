@@ -1,0 +1,32 @@
+packages/core/tests/workspace-cache.test.mjs
+  s_5d3ad8740834ec::t_cf9a54b97ebe96 82,189,200,214,218,231,298
+packages/core/tests/workspace-dependencies.test.mjs
+  s_5d3ad8740834ec::t_ec97cf20bdaec0 10,119-125,132-134,140-142,147-161,177-191,209-212,220,237-241
+  s_5d3ad8740834ec::t_afbd01c1a19f63 192-208,242
+  s_5d3ad8740834ec::t_3a57174d66ea81 126-131,135-139,143-146,162-176,213-219,221-236
+  s_5d3ad8740834ec::t_b89ee923e6726c 243
+website/docs/configuration.md
+  s_5d3ad8740834ec::t_6aecab6131d7b0 95-96,98
+  s_5d3ad8740834ec::t_c7f7c139776a07 97
+packages/core/src/workspace/cache.ts
+  s_5d3ad8740834ec::t_6aecab6131d7b0 17
+packages/core/src/workspace/dependencies.ts
+  s_5d3ad8740834ec::t_c7f7c139776a07 109,111-113
+  s_5d3ad8740834ec::t_6aecab6131d7b0 8,16-17,104-108,110,114,120,122-123,127-129,143,145,151
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "531c2df3fb1b30a38a93c6df565169e6ecec6f9e",
+  "prompts": {},
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
