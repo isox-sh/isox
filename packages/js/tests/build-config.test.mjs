@@ -141,3 +141,19 @@ test('watch rebuilds when a dependency publishes new declarations without a sour
   assert.equal((await iterator.next()).value.success, true)
   assert.match(await read('dist/index.d.ts'), /literal = 43/)
 })
+
+test('inherited target names use the dependency build configuration', async t => {
+  const { root, projectRoot, write, context } = await linkedProjects(t)
+  const { buildConfiguration } = require('../../../dist/js/executors/tsc/build-config')
+  context.workspace.projects.lib.targets = {
+    build: { executor: 'js:tsc', options: { tsConfig: 'packages/lib/tsconfig.build.json' } },
+  }
+  await write(join(root, 'packages/lib/tsconfig.build.json'), {
+    compilerOptions: { rootDir: 'src', outDir: '../../dist/custom-lib' },
+    include: ['src/**/*'],
+  })
+  for (const commandName of ['toString', '__proto__', 'constructor']) {
+    const plan = buildConfiguration(join(projectRoot, 'tsconfig.json'), { ...context, commandName })
+    assert.deepEqual(plan.outputs, [join(root, 'dist/custom-lib')])
+  }
+})
