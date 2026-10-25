@@ -64,7 +64,9 @@ their prerequisites and use `actions/run-many` to execute the exact planned
 projects. The website's `test` target validates Mintlify alongside the package
 and end-to-end tests. Projects' `plan.weight` values balance expensive commands.
 Changes propagate through inferred and declared dependencies; workspace-wide
-inputs and unowned paths select all projects with the requested targets.
+inputs select all projects with the requested targets. Unowned paths are ignored
+unless matched by `affected.globalFiles`; `affected.ignoreFiles` excludes matching
+files before selection.
 A final required check preserves failures and accepts an empty plan. Pull requests
 use their base SHA; other events use the nearest reachable Git tag, or all
 projects if none exists. This workflow runs only for pull requests and merge groups.

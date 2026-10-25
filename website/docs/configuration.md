@@ -89,8 +89,10 @@ reports dependency cycles.
 `plan.weight` is a positive number that estimates a project's relative CI cost.
 It defaults to `1`; increasing it gives the project more weight when balancing
 shards. Fractional weights are supported. See [affected and CI](/docs/affected-and-ci)
-for tag filters, distribution, and the optional `affected.globalFiles` globs in
-`isox.json` for shared tooling changes.
+for tag filters, distribution, and workspace-relative `affected.globalFiles` and
+`affected.ignoreFiles` globs in `isox.json`. Global files select every project;
+ignored files are excluded first. Other files outside any project do not affect
+selection by default.
 
 ## Discovery cache
 

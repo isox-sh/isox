@@ -5,6 +5,7 @@ import { createTagFilter } from './tags'
 import { validateName } from './targets'
 
 import type { WorkspaceGraph } from '../workspace/parser'
+import type { WorkspaceSettings } from '../workspace/settings'
 
 // These affect the whole workspace even when a root project owns their paths.
 const workspaceFiles = [
@@ -13,8 +14,8 @@ const workspaceFiles = [
   'tsconfig*.json', 'eslint.config.*', '.github/**',
 ]
 
-/** Unowned files conservatively affect every project, including removed project roots. */
-export function getAffectedProjects(workspace: WorkspaceGraph, files: string[], options: { globalFiles?: string[] } = {}): string[] {
+/** Ignore excluded files before matching workspace inputs and project ownership. */
+export function getAffectedProjects(workspace: WorkspaceGraph, files: string[], options: NonNullable<WorkspaceSettings['affected']> = {}): string[] {
   const graph = createProjectGraph(workspace)
   const projects = Object.values(workspace.projects).map(project => ({
     name: project.name,
@@ -28,16 +29,16 @@ export function getAffectedProjects(workspace: WorkspaceGraph, files: string[], 
   const globalFiles = [...workspaceFiles, ...(options.globalFiles ?? [])]
 
   for (const file of files) {
+    if (options.ignoreFiles?.some(pattern => posix.matchesGlob(file, pattern))) {
+      continue
+    }
     if (globalFiles.some(pattern => posix.matchesGlob(file, pattern))) {
       return Object.keys(workspace.projects).sort()
     }
     const owner = projects.find(project => project.root === '.' || file === project.root || file.startsWith(`${project.root}/`))
-    const removedProject = posix.basename(file) === 'project.json'
-      && !projects.some(project => project.root === posix.dirname(file))
-    if (!owner || removedProject) {
-      return Object.keys(workspace.projects).sort()
+    if (owner) {
+      directlyAffected.add(owner.name)
     }
-    directlyAffected.add(owner.name)
   }
   return collectDependents(graph, directlyAffected)
 }

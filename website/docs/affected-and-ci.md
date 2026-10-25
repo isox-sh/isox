@@ -49,8 +49,11 @@ to the children and return exit codes 130/143.
   outside a nested Isox workspace are ignored.
 - Changes to root manifests, lockfiles, `isox.json`, root `tsconfig*.json`,
   `eslint.config.*`, or `.github/**` affect every project, even with a root project.
-  Files outside every known project also affect all projects. This conservatively
-  handles shared scripts, documentation and deleted project directories.
+  Other files outside every known project do not affect any projects by default,
+  including files from deleted projects. Add shared scripts or other unowned inputs
+  to `affected.globalFiles` when their changes should affect every project.
+- `affected.ignoreFiles` excludes matching files before checking global patterns
+  or project ownership. Ignored changes do not select projects or their dependents.
 - All transitive dependents are included **before** command and tag filtering.
   Discovery combines source imports, TypeScript aliases, local package references,
   and explicitly declared project dependencies. Type-only imports and tests count.
@@ -67,7 +70,8 @@ For shared tools inside a project, add workspace-relative globs to `isox.json`:
 {
   "version": "0.0.1",
   "affected": {
-    "globalFiles": ["packages/build-tools/**", "config/**"]
+    "globalFiles": ["packages/build-tools/**", "config/**"],
+    "ignoreFiles": ["**/*.md", "**/*.mdx"]
   }
 }
 ```
@@ -75,6 +79,12 @@ For shared tools inside a project, add workspace-relative globs to `isox.json`:
 These extend the built-in global files. Use them for shared tools or configuration
 that affect multiple projects but are not represented by project dependencies.
 Choose patterns narrowly: every matching change selects all projects.
+
+`ignoreFiles` also uses workspace-relative globs and defaults to an empty list.
+It takes precedence over both built-in global files and `globalFiles`.
+Only exclude files whose changes do not need to trigger your targets; for example,
+omit the Markdown exclusions above if your documentation needs building or testing.
+Projects can still be selected through other changed files or dependencies.
 
 Affected selection, planning and `run-many` scan current `project.json` files and
 refresh the discovery cache. They do not require `isox reset` after project

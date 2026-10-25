@@ -55,7 +55,7 @@ test('ownership uses path boundaries and the deepest root, including a root proj
   assert.deepEqual(getAffectedProjects(graph, ['nx.json']), ['root'])
   assert.deepEqual(getAffectedProjects(graph, ['pnpm-lock.yaml']), ['nested', 'other', 'parent', 'root'])
   assert.deepEqual(getAffectedProjects(graph, ['tsconfig.base.json']), ['nested', 'other', 'parent', 'root'])
-  assert.deepEqual(getAffectedProjects(workspace({ app: {}, lib: {} }), ['removed-project/source.ts']), ['app', 'lib'])
+  assert.deepEqual(getAffectedProjects(workspace({ app: {}, lib: {} }), ['removed-project/source.ts']), [])
   assert.deepEqual(getAffectedProjects(graph, ['libs/ui/a.ts'], { globalFiles: ['libs/ui/**'] }), ['nested', 'other', 'parent', 'root'])
   assert.deepEqual(getAffectedProjects(workspace({ a: { root: '.' }, b: { root: 'b' } }), ['b/file.ts']), ['b'])
 })
@@ -201,9 +201,23 @@ test('shallow history failures explain how to fetch the missing base', async t =
   await assert.rejects(getGitChanges(clone, { base }), /fetch full history.*fetch-depth: 0/)
 })
 
-test('removed project definitions affect all projects even with a root project', () => {
+test('unowned files and removed projects do not affect unrelated projects', () => {
+  const files = ['NEXT_ON.md', 'packages/deleted/project.json', 'packages/deleted/index.ts']
+  assert.deepEqual(getAffectedProjects(workspace({ app: {}, lib: {} }), files), [])
+  assert.deepEqual(getAffectedProjects(workspace({ app: {}, lib: {} }), [...files, 'packages/lib/index.ts']), ['lib'])
   const graph = workspace({ root: { root: '.' }, app: {} })
-  assert.deepEqual(getAffectedProjects(graph, ['packages/deleted/project.json', 'packages/deleted/index.ts']), ['app', 'root'])
+  assert.deepEqual(getAffectedProjects(graph, files), ['root'])
+  assert.deepEqual(getAffectedProjects(graph, files, { globalFiles: ['packages/deleted/**'] }), ['app', 'root'])
+})
+
+test('ignored files take precedence over ownership and all global file patterns', () => {
+  const graph = workspace({ lib: {}, app: { dependencies: ['lib'] }, other: {} })
+  const options = { ignoreFiles: ['**/*.md', 'pnpm-lock.yaml', 'tools/docs/**'], globalFiles: ['tools/**'] }
+  assert.deepEqual(getAffectedProjects(graph, ['packages/lib/README.md', 'pnpm-lock.yaml', 'tools/docs/index.ts'], options), [])
+  assert.deepEqual(getAffectedProjects(graph, ['packages/lib/README.md', 'packages/other/index.ts'], options), ['other'])
+  assert.deepEqual(getAffectedProjects(graph, ['packages/lib/index.ts'], options), ['app', 'lib'])
+  assert.deepEqual(getAffectedProjects(graph, ['tools/build.ts'], options), ['app', 'lib', 'other'])
+  assert.deepEqual(getAffectedProjects(graph, ['package.json'], options), ['app', 'lib', 'other'])
 })
 
 test('tag equality can contain inequality text in its value', () => {
