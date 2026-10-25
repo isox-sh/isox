@@ -1,0 +1,89 @@
+packages/core/src/utils/json.ts
+  s_51871bdcdb3b4c::t_839df6300cf19f 7
+  s_47454cea8c60f4::t_55231544792f46 1-6,8-9
+packages/core/src/index.ts
+  s_d5597821d8055a::t_e98bddb3e73583 8
+  s_47454cea8c60f4::t_55231544792f46 9
+  s_d5597821d8055a::t_6c02b70531b83c 10
+  s_d5597821d8055a::t_a2cf71573ab0c0 7
+packages/core/tests/add-deps-to-package-json.test.mjs
+  s_51871bdcdb3b4c::t_63410460eacd72 10
+  s_d5597821d8055a::t_f19f676a7a6ce5 1,3-9,11-40,42-90
+  s_d5597821d8055a::t_2f3cb6337b0a79 2
+  s_51871bdcdb3b4c::t_189a6ae1cf8d66 41
+packages/core/src/utils/write-json.ts
+  s_47454cea8c60f4::t_55231544792f46 6,30,67
+  s_51871bdcdb3b4c::t_c2afbd61e4f435 22,53,58,81
+  s_d5597821d8055a::t_a2cf71573ab0c0 1-2,4-5,8-21,23-28,31-44,46-50,52,54-57,59-66,68-77,79,82
+  s_d5597821d8055a::t_e98bddb3e73583 3,7,29
+  s_d5597821d8055a::t_53f0babbd34af6 80
+  s_51871bdcdb3b4c::t_839df6300cf19f 45,51,78
+docs/core-api.md
+  s_8aa3c3c8370b9b::t_3d5c2d579d1e02 1-2,16-29,33-61,63-65
+  s_47454cea8c60f4::t_55231544792f46 3-15
+  s_51871bdcdb3b4c::t_c2afbd61e4f435 30-32,62
+packages/core/tests/write-json.test.mjs
+  s_d5597821d8055a::t_9194ed4a701616 1,3-9,11-21,23-26,28-34,36-72,74-94
+  s_d5597821d8055a::t_a7ac3936c77eee 2
+  s_51871bdcdb3b4c::t_c2afbd61e4f435 22,27,35,73
+  s_51871bdcdb3b4c::t_63410460eacd72 10
+packages/core/tests/read-json.test.mjs
+  s_d5597821d8055a::t_f51b4d93cc55a9 1-9,11-85
+  s_51871bdcdb3b4c::t_63410460eacd72 10
+packages/core/src/utils/read-json.ts
+  s_d5597821d8055a::t_e98bddb3e73583 1-20,22-28
+  s_51871bdcdb3b4c::t_839df6300cf19f 21
+packages/core/tests/json.test.mjs
+  s_47454cea8c60f4::t_55231544792f46 1-20
+packages/core/src/utils/project-path.ts
+  s_d5597821d8055a::t_e98bddb3e73583 1-10,12-13
+  s_51871bdcdb3b4c::t_839df6300cf19f 11
+packages/core/src/utils/add-deps-to-package-json.ts
+  s_d5597821d8055a::t_6c02b70531b83c 1-30,32-36,38-52,54-56,58-75,77-81,83-86
+  s_51871bdcdb3b4c::t_839df6300cf19f 31,37,53,57,76,82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b330c26a8ef5b771c4df5fe14235985f8a692151",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_47454cea8c60f4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1729d-e4df-7cb2-b4f3-a0accef8a34b",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_8aa3c3c8370b9b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a172b3-29ff-7940-8e52-c64307ebdfed",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_d5597821d8055a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a172a1-cd17-7410-99ba-f7cf9a9cee6e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
