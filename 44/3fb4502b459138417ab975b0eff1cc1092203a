@@ -1,0 +1,50 @@
+packages/js/tests/package-json.test.mjs
+  s_51871bdcdb3b4c::t_86d71a24f1ac60 145-176
+  s_51871bdcdb3b4c::t_14413e92f323c3 80,89-101,124-137
+packages/cli/tests/add.test.mjs
+  s_51871bdcdb3b4c::t_14413e92f323c3 35,37,143,146
+  s_51871bdcdb3b4c::t_4fb2110749ccec 172-184
+website/docs/typescript.md
+  s_51871bdcdb3b4c::t_6d5ca1e3a75791 192,203-205
+packages/cli/src/shared/generators.ts
+  s_51871bdcdb3b4c::t_a7802e81c17561 1-47
+packages/js/generators.json
+  s_51871bdcdb3b4c::t_a7802e81c17561 1-8
+packages/semver/package.json
+  s_51871bdcdb3b4c::t_a7802e81c17561 7,10-11
+packages/js/src/helpers/package-json.ts
+  s_51871bdcdb3b4c::t_2251c9b0f07eda 183-194,197,200-201,204,207,210-211,229,254-255,280
+  s_51871bdcdb3b4c::t_6d5ca1e3a75791 315,323
+packages/semver/generators.json
+  s_51871bdcdb3b4c::t_a7802e81c17561 1-8
+scripts/bootstrap.cjs
+  s_51871bdcdb3b4c::t_a7802e81c17561 41
+packages/cli/src/actions/init/project.ts
+  s_51871bdcdb3b4c::t_a7802e81c17561 4,6-8,59
+packages/cli/src/actions/add/index.ts
+  s_51871bdcdb3b4c::t_a7802e81c17561 2,4-6,39
+packages/cli/tests/init-project.test.mjs
+  s_51871bdcdb3b4c::t_14413e92f323c3 289,291-292
+website/docs/custom-executors.md
+  s_51871bdcdb3b4c::t_6d5ca1e3a75791 31,106-107,111,201-226,235,261-263
+packages/core/src/initializer/types.ts
+  s_51871bdcdb3b4c::t_a7802e81c17561 14,17
+packages/js/package.json
+  s_51871bdcdb3b4c::t_a7802e81c17561 7,10-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "443fb4502b459138417ab975b0eff1cc1092203a",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
