@@ -49,7 +49,7 @@ executors only and do not implement the native roadmap.
 
 - [x] Bootstrap a pnpm workspace with TypeScript 7 builds and separate core/CLI packages.
 - [x] Compile repository packages through `@isox-sh/js:tsc` project commands, with a clean-checkout bootstrap and no package build scripts.
-- [x] Generate distributable TypeScript package manifests, copy assets, safely remove owned stale output, and watch/recover/cancel through the native runner. See [NEXT_ON.md](NEXT_ON.md) for the implementation checklist and limits.
+- [x] Generate distributable TypeScript package manifests, copy assets, safely remove owned stale output, and watch/recover/cancel through the native runner. See the [TypeScript executor guide](docs/typescript.md) for behavior and limits.
 - [x] Resolve first-party shorthand executor names such as `js:tsc` and `core:run-command`, preferring first-party packages before unscoped fallbacks.
 - [x] Run package suites through `vitest:test`, with package-local Vitest tests and configuration.
 - [x] Require Node.js 24+ for the runtime and Node.js 24 or 26+ for Vitest tooling.

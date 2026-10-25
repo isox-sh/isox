@@ -160,8 +160,8 @@ commands on SIGINT/SIGTERM; `js:tsc` also cancels its compiler process group.
 The native [`js:tsc` executor](typescript.md) supports owned-output cleanup,
 asset copying, optional package.json/exports generation, and watch configurations.
 Use `isox build <project> --config=watch` with `watch: true` in that configuration.
-The full contract and migration limits are documented in the TypeScript guide and
-[NEXT_ON.md](../NEXT_ON.md).
+The full contract and migration limits are documented in the
+[TypeScript executor guide](typescript.md).
 
 ## Programmatic execution
 

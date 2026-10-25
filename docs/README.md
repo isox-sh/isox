@@ -21,6 +21,5 @@ Start with the setup guide, then use the topic references for your workspace.
 
 - [Contributing](contributing.md) — local setup, builds, tests, and CI.
 - [Roadmap](../ROADMAP.md) — capability boundaries, planned work, and validation records.
-- [TypeScript implementation checklist](../NEXT_ON.md) — implementation decisions and migration limits.
 
 [Project overview](../README.md)
