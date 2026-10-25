@@ -91,6 +91,7 @@ for (const nx of [false, true]) {
       [['build', 'demo', '--config==acc'], '=acc'],
       [['build', 'demo'], 'development'],
     ]) {
+      await rm(join(root, 'result.json'), { force: true })
       const result = run(root, args)
       assert.equal(result.status, 0, `${args.join(' ')}: ${result.stderr}`)
       const output = JSON.parse(await readFile(join(root, 'result.json'), 'utf8'))

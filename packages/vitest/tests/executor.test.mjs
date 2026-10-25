@@ -24,6 +24,7 @@ async function fixture(t) {
   await write('isox.json', {})
   await write('apps/demo project/project.json', { name: 'demo', targets: { test: { executor: 'vitest:test' } } })
   await write('apps/demo project/tests/example.test.mjs', "import { test, expect } from 'vitest'\ntest('passes', () => expect(1).toBe(1))")
+  await write('unrelated/project.json', { name: 'sibling' })
   await write('unrelated/failure.test.mjs', "throw new Error('must not scan sibling projects')")
   for (const [name, target] of [
     ['vitest', dirname(require.resolve('vitest/package.json'))],
