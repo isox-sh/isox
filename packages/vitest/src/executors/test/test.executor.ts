@@ -6,7 +6,7 @@ import { runProcess } from '@isox-sh/core'
 import type { ExecutorContext, ExecutorResult } from '@isox-sh/core'
 
 export interface VitestOptions {
-/** Optional Vitest config path, relative to the workspace root. */
+  /** Optional Vitest config path, relative to the workspace root. */
   configFile?: string
 }
 
