@@ -3,6 +3,8 @@ import { realpath } from 'node:fs/promises'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { promisify } from 'node:util'
 
+import { readWorkspaceSettings } from '../workspace/settings'
+
 interface GitFailureDetails {
   stderr?: string
 }
@@ -27,6 +29,7 @@ export interface GitChanges {
 export async function getGitChanges(workspaceRoot: string, options: GitChangesOptions = {}): Promise<GitChanges> {
   // Git reports physical paths; callers may reach the same workspace through a symlink.
   workspaceRoot = await realpath(workspaceRoot)
+  const settings = await readWorkspaceSettings(workspaceRoot)
   const git = async (args: string[], cwd = workspaceRoot): Promise<string> => {
     try {
       const result = await exec('git', args, {
@@ -53,7 +56,7 @@ export async function getGitChanges(workspaceRoot: string, options: GitChangesOp
 
   const [repository, base, head] = await Promise.all([
     git(['rev-parse', '--show-toplevel']),
-    revision(options.base ?? process.env.ISOX_BASE ?? 'origin/main'),
+    revision(options.base ?? process.env.ISOX_BASE ?? settings.affected?.defaultBase ?? 'origin/main'),
     revision(options.head ?? process.env.ISOX_HEAD ?? 'HEAD'),
   ])
   const repositoryRoot = repository.replace(/\r?\n$/, '')

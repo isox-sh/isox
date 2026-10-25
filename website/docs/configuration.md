@@ -20,6 +20,27 @@ so commands work from nested project directories too. A missing marker produces
 an error. The file also supports `nx.executors` to select additional packages
 that use the Nx executor adapter.
 
+## Default base branch
+
+Set `affected.defaultBase` in `isox.json` to choose the default comparison branch
+for `isox affected` and `isox plan`:
+
+```json
+{
+  "affected": {
+    "defaultBase": "origin/develop"
+  }
+}
+```
+
+The base revision is selected from `--base`, then `ISOX_BASE`, then
+`affected.defaultBase`, falling back to `origin/main`. The value can be any Git
+revision, including a branch, tag, or commit. It must be a non-empty string.
+The head still defaults to `ISOX_HEAD` or `HEAD`. `--all` bypasses Git selection.
+The core `getGitChanges` API uses the same workspace setting and precedence for
+its `base` option. GitHub Actions that supply an event-specific base keep using
+that explicit revision.
+
 ## Project definitions
 
 Existing Isox projects using the former `executors` field should rename it to

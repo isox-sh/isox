@@ -39,8 +39,9 @@ to the children and return exit codes 130/143.
 ## What counts as affected?
 
 - Committed changes are `git diff <merge-base(base, head)> <head>`. Defaults are
-  `ISOX_BASE` or `origin/main`, and `ISOX_HEAD` or `HEAD`. Use `--base` and `--head`
-  to override them. Isox uses the currently checked-out project definitions.
+  `ISOX_BASE`, then `affected.defaultBase` in `isox.json`, then `origin/main` for
+  the base; `ISOX_HEAD` or `HEAD` for the head. Use `--base` and `--head` to override
+  them. Isox uses the currently checked-out project definitions.
 - Staged and unstaged files are included only with `--uncommitted`; non-ignored
   untracked files only with `--untracked`. `--all` bypasses Git and cannot be
   combined with Git selection flags. The actions compare committed changes only.

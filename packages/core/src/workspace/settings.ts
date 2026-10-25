@@ -7,6 +7,7 @@ import { Ajv } from 'ajv'
 import { workspaceSchemaPath } from './schema'
 
 interface AffectedSettings {
+  defaultBase?: string
   globalFiles?: string[]
   ignoreFiles?: string[]
 }

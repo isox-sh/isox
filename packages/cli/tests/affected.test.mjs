@@ -39,6 +39,30 @@ test('affected defaults to committed changes, supports local opt-ins and empty m
   assert.deepEqual(JSON.parse(run('plan', '--target=build').stdout), { include: [] })
 })
 
+test('affected and plan use the configured default base and allow explicit overrides', async t => {
+  const { write, git, commit, run, base } = await affectedFixture(t)
+
+  await write('packages/lib/changed.ts', 'change')
+  const release = commit()
+
+  git('branch', 'release', release)
+  await write('packages/other/changed.ts', 'change')
+  commit()
+  await write('isox.json', { affected: { defaultBase: 'release' } })
+  const affected = run('affected', '--target=build', '--print-matrix')
+
+  assert.equal(affected.status, 0, affected.stderr)
+  assert.deepEqual(JSON.parse(affected.stdout), ['other'])
+  const plan = run('plan', '--target=build')
+
+  assert.equal(plan.status, 0, plan.stderr)
+  assert.deepEqual(JSON.parse(plan.stdout).include.flatMap(row => row.projects), ['other'])
+  const override = run('affected', '--target=build', '--print-matrix', `--base=${base}`)
+
+  assert.equal(override.status, 0, override.stderr)
+  assert.deepEqual(JSON.parse(override.stdout), ['app', 'lib', 'other'])
+})
+
 test('affected and plan ignore unowned files and configured exclusions from local changes', async t => {
   const { write, git, commit, run } = await affectedFixture(t)
 

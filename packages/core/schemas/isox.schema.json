@@ -6,6 +6,13 @@
     "affected": {
       "type": "object",
       "properties": {
+        "defaultBase": {
+          "description": "Default Git base revision for affected selection, overridden by an explicit base option or ISOX_BASE.",
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S",
+          "default": "origin/main"
+        },
         "ignoreFiles": {
           "description": "Workspace-relative glob patterns excluded from affected selection, taking precedence over built-in and additional global files.",
           "type": "array",

@@ -31,7 +31,7 @@ type Command = ReturnType<CAC['command']>
 
 export function selectionOptions(command: Command): Command {
   return command
-    .option('--base <ref>', 'Compare from this merge base (default: ISOX_BASE or origin/main)')
+    .option('--base <ref>', 'Compare from this merge base (default: ISOX_BASE, affected.defaultBase, or origin/main)')
     .option('--head <ref>', 'Compare committed changes up to this ref (default: ISOX_HEAD or HEAD)')
     .option('--uncommitted', 'Also include staged and unstaged changes')
     .option('--untracked', 'Also include untracked, non-ignored files')

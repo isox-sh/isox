@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const { createProjectGraph, getAffectedProjects, getGitChanges, createProjectMatrix, matchesTags, parseWorkspace } = require('../../../dist/core')
@@ -311,6 +311,47 @@ test('Git local changes are opt-in and ignored files are excluded', async t => {
     base,
     untracked: true
   })).files, ['untracked.txt'])
+})
+
+test('Git base defaults follow explicit options, environment, workspace settings and origin/main', async t => {
+  const { root, git, write, commit } = await repository(t)
+
+  vi.stubEnv('ISOX_BASE', undefined)
+  vi.stubEnv('ISOX_HEAD', undefined)
+  t.onTestFinished(() => vi.unstubAllEnvs())
+  await write('isox.json', { affected: { defaultBase: 'release' } })
+  await write('first.txt')
+  const first = commit()
+
+  git('update-ref', 'refs/remotes/origin/main', first)
+  await write('second.txt')
+  const second = commit()
+
+  git('branch', 'release', second)
+  await write('third.txt')
+  const head = commit()
+
+  assert.equal((await getGitChanges(root)).base, second)
+  assert.deepEqual((await getGitChanges(root)).files, ['third.txt'])
+  vi.stubEnv('ISOX_BASE', 'origin/main')
+  assert.equal((await getGitChanges(root)).base, first)
+  assert.deepEqual((await getGitChanges(root)).files, ['second.txt', 'third.txt'])
+  assert.equal((await getGitChanges(root, { base: 'HEAD' })).base, head)
+  assert.deepEqual((await getGitChanges(root, { base: 'HEAD' })).files, [])
+  vi.stubEnv('ISOX_BASE', undefined)
+  await write('isox.json', {})
+  assert.equal((await getGitChanges(root)).base, first)
+  await rm(join(root, 'isox.json'))
+  assert.equal((await getGitChanges(root)).base, first)
+})
+
+test('Git rejects invalid configured default base revisions', async t => {
+  const { root, write } = await repository(t)
+
+  for (const defaultBase of ['', '   ', null, 42, [], {}]) {
+    await write('isox.json', { affected: { defaultBase } })
+    await assert.rejects(getGitChanges(root), /Invalid workspace configuration.*defaultBase/)
+  }
 })
 
 test('Git supports a workspace inside a repository and reports missing refs without interpreting shell syntax', async t => {
