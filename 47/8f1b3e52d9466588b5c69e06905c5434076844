@@ -1,0 +1,114 @@
+packages/semver/src/executors/version/version.ts
+  s_51871bdcdb3b4c::t_d15cf454d98594 1-20
+packages/semver/tsconfig.build.json
+  s_51871bdcdb3b4c::t_3249390e31177b 1-10
+tsconfig.base.json
+  s_51871bdcdb3b4c::t_3249390e31177b 25-26
+packages/semver/src/executors/version/version.schema.json
+  s_51871bdcdb3b4c::t_d15cf454d98594 1-92
+packages/semver/tests/fixture.mjs
+  s_51871bdcdb3b4c::t_3249390e31177b 1-99
+project.json
+  h_b13471b77746e9 1-30
+package.json
+  s_51871bdcdb3b4c::t_b7016548558391 43
+  s_51871bdcdb3b4c::t_3249390e31177b 44
+packages/semver/tests/add.test.mjs
+  s_51871bdcdb3b4c::t_2ec0716ce50a1e 41
+  s_51871bdcdb3b4c::t_3249390e31177b 1-40,42-95
+packages/semver/tests/version.test.mjs
+  s_51871bdcdb3b4c::t_de5a31958e94a0 13-14,41-75
+  s_51871bdcdb3b4c::t_3249390e31177b 1-12,15-36,76-349
+  s_51871bdcdb3b4c::t_b31b02b8eeee4f 40
+  s_51871bdcdb3b4c::t_9ed0944e630844 37-39
+packages/semver/src/executors/github/github.executor.ts
+  s_51871bdcdb3b4c::t_3249390e31177b 1-67
+packages/semver/package.json
+  s_51871bdcdb3b4c::t_55bcaae024cf67 16
+  s_51871bdcdb3b4c::t_21d9f91b453dad 14-15,17
+  s_51871bdcdb3b4c::t_3249390e31177b 1-13,18-41
+scripts/bootstrap.cjs
+  s_51871bdcdb3b4c::t_3249390e31177b 9,143
+packages/semver/src/helpers/post-targets.ts
+  s_51871bdcdb3b4c::t_3249390e31177b 1-10,14-27,29-33,35-86
+  s_51871bdcdb3b4c::t_0b993d18769f42 11-13,28,34
+packages/semver/src/generators/add.ts
+  s_51871bdcdb3b4c::t_3249390e31177b 1-33,35-39
+  s_51871bdcdb3b4c::t_2ec0716ce50a1e 34
+packages/semver/src/executors/version/plan.ts
+  s_51871bdcdb3b4c::t_0b993d18769f42 3,122-136
+  s_51871bdcdb3b4c::t_d15cf454d98594 9-80
+  s_51871bdcdb3b4c::t_03b74204802ada 1-2,4-8,81-121,137-142
+packages/semver/tests/github.test.mjs
+  s_51871bdcdb3b4c::t_3249390e31177b 1-97
+packages/semver/tests/prerelease.test.mjs
+  s_51871bdcdb3b4c::t_0b993d18769f42 123-140
+  s_51871bdcdb3b4c::t_a06f394262446b 1-122
+packages/semver/src/executors/version/options.ts
+  s_51871bdcdb3b4c::t_d15cf454d98594 3-4,20,27,30-37
+  s_51871bdcdb3b4c::t_3249390e31177b 1-2,5-19,21-26,28-29
+README.md
+  s_51871bdcdb3b4c::t_3249390e31177b 51
+website/docs.json
+  s_51871bdcdb3b4c::t_baa98fc6d67661 45
+  s_51871bdcdb3b4c::t_3249390e31177b 46
+packages/semver/README.md
+  s_51871bdcdb3b4c::t_46d1f371be5189 11-12
+  s_51871bdcdb3b4c::t_3249390e31177b 1-10,13,16-22,24,26-27,34-37,40-43,58-59,64-67,71,73-80,95-105
+  s_51871bdcdb3b4c::t_8e36aa73255f39 81-89,94
+  s_51871bdcdb3b4c::t_e38e29c9905459 90-93
+  s_51871bdcdb3b4c::t_ad4a59e807f058 14-15,23,25,28-33,38-39,44-57,60-63
+  s_51871bdcdb3b4c::t_de5a31958e94a0 68-70,72
+packages/semver/project.json
+  s_51871bdcdb3b4c::t_3249390e31177b 1-26
+packages/semver/tests/version-options.test.mjs
+  s_51871bdcdb3b4c::t_3249390e31177b 1-266
+packages/semver/executors.json
+  s_51871bdcdb3b4c::t_3249390e31177b 1-14
+packages/semver/tests/post-targets.test.mjs
+  s_51871bdcdb3b4c::t_0b993d18769f42 1-186
+website/docs/semver.md
+  s_51871bdcdb3b4c::t_e38e29c9905459 160-161,163,179-180,252,264-269,271-277,290,294,433-435,466
+  s_51871bdcdb3b4c::t_3249390e31177b 1-20,22-98,101-102,110,112-116,119,295-304,306-371,373-432,436-465,467-507
+  s_51871bdcdb3b4c::t_de5a31958e94a0 99-100,103-109,111,372
+  s_51871bdcdb3b4c::t_2ec0716ce50a1e 21
+  s_51871bdcdb3b4c::t_8e36aa73255f39 117-118,120-152,154,305
+  s_51871bdcdb3b4c::t_ad4a59e807f058 153,155-159,162,164-178,181-251,253-263,270,278-289,291-293
+packages/semver/src/executors/github/github.schema.json
+  s_51871bdcdb3b4c::t_bef46216408d08 1-44
+packages/semver/src/executors/version/projects.ts
+  s_51871bdcdb3b4c::t_241881e73940c3 1-78
+packages/semver/src/executors/version/version.executor.ts
+  s_51871bdcdb3b4c::t_974722b75f44e4 1-132
+packages/semver/src/helpers/commits.ts
+  s_51871bdcdb3b4c::t_3460605340e3a5 1-67
+packages/semver/src/helpers/files.ts
+  s_51871bdcdb3b4c::t_a83f2ac5b38b84 1-23
+packages/semver/src/helpers/git.ts
+  s_51871bdcdb3b4c::t_e910f7a6b2d533 1-31
+packages/semver/src/helpers/validation.ts
+  s_51871bdcdb3b4c::t_f9a3b0578df57f 1-15
+pnpm-lock.yaml
+  s_51871bdcdb3b4c::t_976306e1a79171 187-189,271-296,312-315,508-511,536-538,752-755,783-800,1251-1254,1371-1372,1501-1502,1530-1531,1718-1719,1744-1762,2185-2186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "478f1b3e52d9466588b5c69e06905c5434076844",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
