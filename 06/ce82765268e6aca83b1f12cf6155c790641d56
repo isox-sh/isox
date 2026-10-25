@@ -1,0 +1,54 @@
+docs/contributing.md
+  s_51871bdcdb3b4c::t_7acd0bf707c3a8 53,64
+  s_51871bdcdb3b4c::t_bc7b54580c232b 60-63
+  s_51871bdcdb3b4c::t_d0131cb38a813c 57-59,65,95,103
+ROADMAP.md
+  s_51871bdcdb3b4c::t_7acd0bf707c3a8 229
+  s_51871bdcdb3b4c::t_979c68be706632 217-228,230-232
+  s_51871bdcdb3b4c::t_5bde2f997b9143 251-256,259-265
+  s_51871bdcdb3b4c::t_fa61b2f29541bd 266-277
+  s_51871bdcdb3b4c::t_c9b6dabab79483 233-250
+  s_51871bdcdb3b4c::t_bc7b54580c232b 168
+  s_51871bdcdb3b4c::t_0d643fb419ecf2 278-290
+  s_51871bdcdb3b4c::t_3832c039b6e5d0 257-258
+  s_51871bdcdb3b4c::t_9ca980a586ac38 31-34,38-46,49-51,76,94-95,112-120,161-163,165-167,169,172-173
+packages/nx/project.json
+  s_51871bdcdb3b4c::t_e011853fbc3409 4
+packages/js/project.json
+  s_51871bdcdb3b4c::t_e011853fbc3409 4
+isox.json
+  h_b13471b77746e9 4
+  s_51871bdcdb3b4c::t_f06991df1717a0 2-3,5
+packages/core/project.json
+  s_51871bdcdb3b4c::t_e011853fbc3409 4
+.github/workflows/pull-requests.yml
+  s_51871bdcdb3b4c::t_7acd0bf707c3a8 1-88
+e2e/project.json
+  s_51871bdcdb3b4c::t_e011853fbc3409 4
+packages/cli/project.json
+  s_51871bdcdb3b4c::t_e011853fbc3409 4
+README.md
+  s_51871bdcdb3b4c::t_d0131cb38a813c 21-24,49
+  s_51871bdcdb3b4c::t_7acd0bf707c3a8 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "06ce82765268e6aca83b1f12cf6155c790641d56",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
