@@ -14,13 +14,14 @@ on:
           - beta
           - stable
       dry_run:
-        description: Preview the release without changing files, pushing, or creating a GitHub release
+        description: Preview the release without changing files, pushing, or publishing to npm or GitHub
         type: boolean
         required: true
         default: true
 
 permissions:
   contents: write
+  id-token: write
 
 # All channels share synchronized versions and tags across the repository.
 concurrency:
@@ -47,8 +48,26 @@ jobs:
           fetch-depth: 0
           persist-credentials: ${{ !inputs.dry_run }}
 
-      - name: Set up Isox
-        uses: ./.github/actions/setup-isox
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          cache: false
+
+      - name: Install current npm with trusted publishing support
+        run: npm install --global npm@latest
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Bootstrap Isox packages
+        run: pnpm bootstrap
 
       - name: Configure Git author
         if: ${{ !inputs.dry_run }}
@@ -56,12 +75,18 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-      - name: Run workspace release
+      - name: Release workspace
         env:
           RELEASE_CHANNEL: ${{ inputs.channel }}
           RELEASE_DRY_RUN: ${{ inputs.dry_run }}
           GH_TOKEN: ${{ github.token }}
         run: |
+          node --input-type=module <<'NODE'
+          import { assertReleaseAllowed } from './scripts/release.mjs'
+          const tag = process.env.RELEASE_CHANNEL === 'stable' ? 'latest' : process.env.RELEASE_CHANNEL
+          assertReleaseAllowed(tag, process.env.RELEASE_DRY_RUN === 'true')
+          NODE
+
           release_args=()
           if [ "$RELEASE_CHANNEL" != stable ]; then
             release_args+=("--preid=$RELEASE_CHANNEL")
@@ -69,4 +94,4 @@ jobs:
 
           pnpm isox version workspace --config=production \
             "${release_args[@]}" \
-            --options "{\"dryRun\":$RELEASE_DRY_RUN,\"skipCommit\":true,\"push\":true}"
+            --options "{\"dryRun\":$RELEASE_DRY_RUN}"

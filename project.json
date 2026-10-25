@@ -5,6 +5,7 @@
     "version": {
       "executor": "semver:version",
       "options": {
+        "push": false,
         "skipCommit": true,
         "syncVersions": true,
         "skipProjectChangelog": true
@@ -12,9 +13,26 @@
       "configurations": {
         "production": {
           "postTargets": [
+            "workspace:npm",
+            "workspace:push-tag",
             "workspace:github"
           ]
         }
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    },
+    "npm": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "node scripts/release.mjs --version={version} --tag={npmTag}"
+      }
+    },
+    "push-tag": {
+      "executor": "core:run-command",
+      "options": {
+        "command": "git push origin \"refs/tags/{tag}:refs/tags/{tag}\""
       }
     },
     "github": {
@@ -24,9 +42,6 @@
         "notes": "{notes}",
         "prerelease": "{prerelease}"
       }
-    },
-    "test": {
-      "executor": "vitest:test"
     }
   },
   "tags": []
