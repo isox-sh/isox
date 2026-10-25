@@ -1,0 +1,14 @@
+packages/nx/project.json
+  h_b13471b77746e9 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8a15be26d0168899a56e1a258093aa6f43b9553c",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
