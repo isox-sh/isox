@@ -65,7 +65,8 @@ schema or another schema are treated as Isox definitions with optional extra
 metadata. A file defining both `implicitDependencies` and `dependencies` must be
 resolved before automatic conversion. This does not resolve
 inferred targets, target defaults, or targets using only shell-command shorthand;
-commands still need explicit executor references and effective options.
+targets without an `executor` are skipped in memory and in the workspace cache.
+Commands still need explicit executor references and effective options.
 
 Use this conversion to test existing executor-based projects before rewriting
 their source files. For the final explicit Isox format, follow the steps below.

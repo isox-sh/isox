@@ -71,7 +71,7 @@ even when `.isox/workspace.json` is cached, so source and lockfile changes are
 checked. `isox reset` still removes only `.isox`.
 Cancelling during graph generation stops the worker without starting the executor.
 
-Without an installed Nx runtime, only explicit Isox nodes and dependencies are
+Without an installed Nx runtime, only Isox-discovered nodes and dependencies are
 available. An installed Nx runtime outside version 23 is rejected before graph
 construction. If graph construction fails, Isox reports the
 failure before running the executor rather than supplying an incomplete graph.
@@ -107,6 +107,7 @@ reports an error instead of discarding either value.
 
 This conversion covers explicitly configured targets with an `executor`;
 inferred targets, target defaults, and shell-command shorthand are not resolved.
+Targets without an `executor` are skipped in memory and in the workspace cache.
 Commands execute through the resulting `targets` field. Extra metadata
 does not automatically enable `dependsOn` scheduling, `inputs`, or `outputs`
 processing. The resolved `name` and file-derived `root`

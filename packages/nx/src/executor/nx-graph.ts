@@ -37,7 +37,11 @@ export function createNxProjectGraph(projects: Record<string, NxProjectConfigura
   const nodes: NxProjectGraph['nodes'] = Object.assign(Object.create(null), inferred?.nodes)
   for (const [name, project] of Object.entries(projects)) {
     const inferredNode = nodes[name]
-    const data = { ...inferredNode?.data, ...project }
+    const data: NxProjectConfiguration = {
+      ...inferredNode?.data,
+      ...project,
+      targets: { ...inferredNode?.data.targets, ...project.targets },
+    }
     nodes[name] = {
       name,
       type: data.projectType === 'application' ? 'app'

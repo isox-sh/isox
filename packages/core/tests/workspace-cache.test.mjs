@@ -75,7 +75,10 @@ test('migrates Nx projects into the cache without modifying project files and re
     projectType: 'application',
     implicitDependencies: ['shared'],
     custom: { owner: 'dashboard-team' },
-    targets: { build: { executor: '@nx/js:tsc', options: { outputPath: 'dist/dashboard' }, custom: true } },
+    targets: {
+      build: { executor: '@nx/js:tsc', options: { outputPath: 'dist/dashboard' }, custom: true },
+      'extract-translations': { options: { outputPath: 'locales' } },
+    },
   }
   const source = `${JSON.stringify(project, null, 4)}\n`
   await write(file, source)
@@ -84,7 +87,7 @@ test('migrates Nx projects into the cache without modifying project files and re
 
   const workspace = await parseWorkspace(root)
   const migrated = workspace.projects.dashboard
-  assert.deepEqual(migrated.targets, project.targets)
+  assert.deepEqual(migrated.targets, { build: project.targets.build })
   assert.deepEqual(migrated.dependencies, project.implicitDependencies)
   assert.deepEqual(migrated.custom, project.custom)
   assert.equal(migrated.sourceRoot, project.sourceRoot)

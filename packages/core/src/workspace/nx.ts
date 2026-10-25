@@ -5,7 +5,7 @@ export function isNxProjectSchema(schema: unknown): boolean {
   }
 
   const normalized = schema.replaceAll('\\', '/')
-  if (/^https?:\/\//.test(normalized)) {
+  if (/^https?:\/\//i.test(normalized)) {
     if (!URL.canParse(normalized)) {
       return false
     }
@@ -21,7 +21,7 @@ export function isNxProjectSchema(schema: unknown): boolean {
   return /(?:^|\/)(?:nx|@nrwl\/workspace)\/schemas\/project-schema\.json$/.test(path)
 }
 
-/** Rename Nx fields without mutating the source object or its additional metadata. */
+/** Normalize Nx dependencies and explicit targets without mutating the source definition. */
 export function migrateNxProject(
   project: Record<string, unknown>,
   file: string,
@@ -34,6 +34,17 @@ export function migrateNxProject(
     }
     migrated.dependencies = project.implicitDependencies
     delete migrated.implicitDependencies
+  }
+
+  const targets = project.targets
+  if (targets !== null && typeof targets === 'object' && !Array.isArray(targets)) {
+    migrated.targets = Object.fromEntries(Object.entries(targets).filter(([, target]) => {
+      // Skip Nx target overrides without an executor; malformed targets still need validation.
+      if (target === null || typeof target !== 'object' || Array.isArray(target)) {
+        return true
+      }
+      return Object.hasOwn(target, 'executor')
+    }))
   }
 
   return migrated

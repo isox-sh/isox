@@ -81,6 +81,7 @@ test('migrates recognized Nx schemas in memory and preserves options and metadat
     'https://nx.dev/reference/project-configuration',
     'https://nx.dev/docs/reference/project-configuration/#definition',
     'https://raw.githubusercontent.com/nrwl/nx/master/packages/nx/schemas/project-schema.json',
+    'HTTPS://NX.DEV/reference/project-configuration',
   ]) {
     const project = {
       $schema,
@@ -114,6 +115,23 @@ test('migrates recognized Nx schemas in memory and preserves options and metadat
   }
 })
 
+test('skips Nx targets without executors without changing the source definition', () => {
+  const project = {
+    $schema: '../../node_modules/nx/schemas/project-schema.json',
+    targets: {
+      build: { executor: '@nx/js:tsc', options: { tsConfig: 'tsconfig.json' } },
+      'extract-translations': { options: { outputPath: 'locales' } },
+      prepare: { dependsOn: ['build'] },
+      inferred: {},
+      script: { command: 'node script.js' },
+    },
+  }
+  const original = structuredClone(project)
+  assert.deepEqual(parseProjectDefinition(project, 'libs/emails/project.json').targets, { build: project.targets.build })
+  assert.deepEqual(project, original)
+  assert.deepEqual(parseProjectDefinition({ $schema: project.$schema, targets: { inferred: {} } }, 'project.json').targets, {})
+})
+
 test('uses the schema rather than field names to select Nx migration', () => {
   for (const $schema of [
     undefined,
@@ -133,6 +151,12 @@ test('validates migrated fields and rejects ambiguous mappings with file-specifi
   const $schema = '../../node_modules/nx/schemas/project-schema.json'
   for (const fields of [
     { targets: [] },
+    { targets: null },
+    { targets: { build: null } },
+    { targets: { build: [] } },
+    { targets: { build: 'command' } },
+    { targets: { build: { executor: null } } },
+    { targets: { build: { executor: '' } } },
     { targets: { build: { executor: 'invalid' } } },
     { implicitDependencies: 'shared' },
     { implicitDependencies: [], dependencies: [] },

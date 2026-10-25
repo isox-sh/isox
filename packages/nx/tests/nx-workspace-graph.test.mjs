@@ -53,6 +53,7 @@ test('Nx graph supplies external packages, inferred projects and file dependenci
     assert.equal(graph.nodes.demo.data.sourceRoot, 'apps/demo/src')
     assert.equal(graph.nodes.demo.type, 'app')
     assert.equal(graph.nodes.demo.data.targets.build, context.target)
+    assert.deepEqual(graph.nodes.demo.data.targets.inferred, { command: 'echo inferred' })
     assert.deepEqual(options, { answer: 42 })
     const map = JSON.parse(fs.readFileSync(path.join(context.root, '.nx/workspace-data/file-map.json'), 'utf8'))
     assert.equal(map.version, version)
@@ -74,7 +75,7 @@ test('Nx graph supplies external packages, inferred projects and file dependenci
     }))
     return {
       nodes: {
-        demo: { name: 'demo', type: 'app', data: { name: 'demo', root: 'apps/demo', sourceRoot: 'apps/demo/src', targets: { build: { options: { answer: 0 } } } } },
+        demo: { name: 'demo', type: 'app', data: { name: 'demo', root: 'apps/demo', sourceRoot: 'apps/demo/src', targets: { build: { options: { answer: 0 } }, inferred: { command: 'echo inferred' } } } },
         inferred: { name: 'inferred', type: 'lib', data: { name: 'inferred', root: 'packages/inferred', targets: {} } },
       },
       dependencies: {
