@@ -11,22 +11,37 @@ const { createLogger, findWorkspaceRoot, LogLevels, parseWorkspace, runExecutor 
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-test-'))
-  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
+
+  t.onTestFinished(() => rm(root, {
+    recursive: true,
+    force: true
+  }))
   const write = async (file, content) => {
     const path = join(root, file)
+
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, typeof content === 'string' ? content : JSON.stringify(content))
   }
-  return { root, write }
+
+  return {
+    root,
+    write
+  }
 }
 
 async function executorFixture(t, source, manifestKey = 'executors') {
   const fixtureData = await fixture(t)
   const { root, write } = fixtureData
+
   await write('isox.json', {})
   await write('apps/demo/project.json', {
     name: 'demo',
-    targets: { build: { executor: '@fixture/plugin:build', options: { answer: 42 } } },
+    targets: {
+      build: {
+        executor: '@fixture/plugin:build',
+        options: { answer: 42 }
+      }
+    },
   })
   await write('node_modules/@fixture/plugin/package.json', {
     name: '@fixture/plugin',
@@ -36,11 +51,16 @@ async function executorFixture(t, source, manifestKey = 'executors') {
     [manifestKey]: { build: { implementation: '../executor.cjs' } },
   })
   await write('node_modules/@fixture/plugin/executor.cjs', source)
-  return { ...fixtureData, workspace: await parseWorkspace(root) }
+
+  return {
+    ...fixtureData,
+    workspace: await parseWorkspace(root)
+  }
 }
 
 test('prefers first-party shorthand, falls back to third-party packages, and preserves manifest errors', async (t) => {
   const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+
   workspace.projects.demo.targets.build.executor = 'js:build'
   await write('node_modules/@isox-sh/js/package.json', { executors: './executors.json' })
   await write('node_modules/@isox-sh/js/executors.json', { executors: { build: { implementation: './build.cjs' } } })
@@ -69,6 +89,7 @@ test('prefers first-party shorthand, falls back to third-party packages, and pre
 
 test('finds the workspace marker from the root and nested directories', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('isox.json', {})
   await write('apps/demo/src/index.ts', '')
   assert.equal(await findWorkspaceRoot(root), root)
@@ -77,6 +98,7 @@ test('finds the workspace marker from the root and nested directories', async (t
 
 test('uses the nearest workspace marker', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('isox.json', {})
   await write('nested/isox.json', {})
   await write('nested/apps/demo/project.json', {})
@@ -85,6 +107,7 @@ test('uses the nearest workspace marker', async (t) => {
 
 test('ignores directories named isox.json', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('isox.json', {})
   await mkdir(join(root, 'nested/isox.json'), { recursive: true })
   assert.equal(await findWorkspaceRoot(join(root, 'nested')), root)
@@ -92,18 +115,24 @@ test('ignores directories named isox.json', async (t) => {
 
 test('reports a missing workspace marker in the core API', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('project.json', { name: 'demo' })
   await assert.rejects(findWorkspaceRoot(root), /No Isox workspace found.*Add isox.json/)
 })
 
 test('discovers nested and root projects, derives names and roots, and ignores dependencies', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('project.json', {})
   await write('apps/first/project.json', { tags: ['library'] })
-  await write('apps/second/project.json', { name: 'named', dependencies: ['first'] })
+  await write('apps/second/project.json', {
+    name: 'named',
+    dependencies: ['first']
+  })
   await write('node_modules/ignored/project.json', { name: 'ignored' })
   await write('tmp/isox-e2e-fixture/packages/test/project.json', { name: 'ignored' })
   const { projects } = await parseWorkspace(root)
+
   assert.deepEqual(Object.keys(projects).sort(), ['first', 'named', basename(root)].sort())
   assert.equal(projects.first.root, 'apps/first')
   assert.equal(projects.first.name, 'first')
@@ -114,6 +143,7 @@ test('discovers nested and root projects, derives names and roots, and ignores d
 
 test('rejects duplicate project names', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('apps/first/project.json', { name: 'duplicate' })
   await write('apps/second/project.json', { name: 'duplicate' })
   await assert.rejects(parseWorkspace(root), /Duplicate project name duplicate/)
@@ -121,6 +151,7 @@ test('rejects duplicate project names', async (t) => {
 
 test('rejects invalid project configurations', async (t) => {
   const { root, write } = await fixture(t)
+
   for (const content of ['{broken', 'null', '[]', '{"name":42}']) {
     await write('project.json', content)
     await assert.rejects(parseWorkspace(root), /Invalid project configuration in project\.json/)
@@ -129,11 +160,13 @@ test('rejects invalid project configurations', async (t) => {
 
 test('malformed project JSON identifies its file and preserves the parse error', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('apps/broken/project.json', '{broken')
   await assert.rejects(parseWorkspace(root), error => {
     assert.ok(error instanceof SyntaxError)
     assert.match(error.message, /Invalid project configuration in apps\/broken\/project\.json: invalid JSON/)
     assert.ok(error.cause instanceof SyntaxError)
+
     return true
   })
 })
@@ -148,7 +181,14 @@ for (const [label, source, key] of [
 ]) {
   test(`executes a plugin with a ${label}`, async (t) => {
     const { root, workspace } = await executorFixture(t, source, key)
-    await runExecutor(workspace, 'demo', 'build', root)
+    const logs = []
+    const logger = createLogger({ reporters: [{ log: entry => logs.push(entry) }] })
+
+    await runExecutor(workspace, 'demo', 'build', root, logger)
+    const completed = logs.filter(entry => entry.type === 'success')
+
+    assert.equal(completed.length, 1)
+    assert.match(completed[0].args[0], /^Successfully completed @fixture\/plugin:build for demo in \d+\.\d{2}s\.$/)
   })
 }
 
@@ -163,6 +203,7 @@ for (const [label, source] of [
 ]) {
   test(`rejects a ${label}`, async (t) => {
     const { root, workspace } = await executorFixture(t, source)
+
     await assert.rejects(
       runExecutor(workspace, 'demo', 'build', root),
       /Task failed for demo/,
@@ -172,6 +213,7 @@ for (const [label, source] of [
 
 test('reports malformed and missing executors', async (t) => {
   const { root, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+
   workspace.projects.demo.targets.build.executor = 'invalid'
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Invalid executor format/)
   workspace.projects.demo.targets.build.executor = '@fixture/plugin:missing'
@@ -193,6 +235,7 @@ test('executor uses an injected logger and enables verbose context at debug leve
     level: LogLevels.debug,
     reporters: [{ log: entry => logs.push(entry) }],
   })
+
   await runExecutor(workspace, 'demo', 'build', root, logger)
   assert.deepEqual(logs.map(entry => entry.type), ['debug', 'info', 'success'])
   logs.length = 0
@@ -206,23 +249,27 @@ test('executor uses an injected logger and enables verbose context at debug leve
 
 test('native executors reject builders manifests', async (t) => {
   const { root, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })', 'builders')
+
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /does not define an executors manifest/)
 })
 
 test('runner rejects missing projects and commands in the public API', async (t) => {
   const { root, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+
   await assert.rejects(runExecutor(workspace, 'missing', 'build', root), /Project missing not found/)
   await assert.rejects(runExecutor(workspace, 'demo', 'toString', root), /Command toString not found/)
 })
 
 test('selected Nx executors report how to install the optional plugin', async (t) => {
   const { root, write, workspace } = await executorFixture(t, 'throw new Error("must not load")', 'executors')
+
   await write('isox.json', { nx: { executors: ['@fixture'] } })
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Nx executors require @isox-sh\/nx.*npm install --save-dev @isox-sh\/nx/)
 })
 
 test('Nx selection loads the workspace plugin and preserves unscoped nx executor resolution', async (t) => {
   const { root, write, workspace } = await executorFixture(t, 'throw new Error("must not load")', 'executors')
+
   await write('isox.json', { nx: { executors: ['nx'] } })
   workspace.projects.demo.targets.build.executor = 'nx:build'
   await write('node_modules/nx/package.json', { name: 'nx' })
@@ -244,6 +291,7 @@ for (const [label, source, expected] of [
 ]) {
   test(`Nx plugin reports a ${label} without masking it as an installation error`, async (t) => {
     const { root, write, workspace } = await executorFixture(t, 'throw new Error("must not load")', 'executors')
+
     await write('isox.json', { nx: { executors: ['@fixture'] } })
     await write('node_modules/@isox-sh/nx/package.json', { main: './index.cjs' })
     await write('node_modules/@isox-sh/nx/index.cjs', source)
@@ -253,6 +301,7 @@ for (const [label, source, expected] of [
 
 test('native commands do not load the installed Nx plugin', async (t) => {
   const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+
   await write('isox.json', { nx: { executors: ['@nx'] } })
   await write('node_modules/@isox-sh/nx/package.json', { main: './index.cjs' })
   await write('node_modules/@isox-sh/nx/index.cjs', 'throw new Error("Nx plugin must not load")')
@@ -261,9 +310,11 @@ test('native commands do not load the installed Nx plugin', async (t) => {
 
 test('unscoped plugins work when no first-party package is installed, including hidden metadata', async t => {
   const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+
   workspace.projects.demo.targets.build.executor = 'third-party:build'
   await write('node_modules/third-party/package.json', {
-    exports: { '.': './index.cjs' }, executors: './executors.json',
+    exports: { '.': './index.cjs' },
+    executors: './executors.json',
   })
   await write('node_modules/third-party/index.cjs', 'throw new Error("Public entry must not load")')
   await write('node_modules/third-party/executors.json', { executors: { build: { implementation: './build.cjs' } } })
@@ -273,6 +324,7 @@ test('unscoped plugins work when no first-party package is installed, including 
 
 test('Nx selectors reject uppercase package names instead of silently failing to match', async t => {
   const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+
   for (const selector of ['@NX', '@Nx/webpack', 'Nx', 'nx\n']) {
     await write('isox.json', { nx: { executors: [selector] } })
     await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Invalid workspace configuration/)

@@ -11,27 +11,52 @@ const { parseWorkspace, runExecutor } = require('@isox-sh/core')
 
 async function fixture(t, executor) {
   const root = await mkdtemp(join(tmpdir(), 'isox-nx-graph-'))
-  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
+
+  t.onTestFinished(() => rm(root, {
+    recursive: true,
+    force: true
+  }))
   const write = async (file, content) => {
     const path = join(root, file)
+
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, typeof content === 'string' ? content : JSON.stringify(content))
   }
+
   await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
   await symlink(join(import.meta.dirname, '../../../dist/nx'), join(root, 'node_modules/@isox-sh/nx'), 'dir')
   await write('isox.json', { nx: { executors: ['@nx'] } })
   await write('apps/demo/project.json', {
-    name: 'demo', dependencies: ['shared'],
-    targets: { build: { executor: '@nx/fixture:build', options: { answer: 42 } } },
+    name: 'demo',
+    dependencies: ['shared'],
+    targets: {
+      build: {
+        executor: '@nx/fixture:build',
+        options: { answer: 42 }
+      }
+    },
   })
   await write('libs/shared/project.json', { name: 'shared' })
-  await write('node_modules/@nx/fixture/package.json', { name: '@nx/fixture', executors: './executors.json' })
+  await write('node_modules/@nx/fixture/package.json', {
+    name: '@nx/fixture',
+    executors: './executors.json'
+  })
   await write('node_modules/@nx/fixture/executors.json', { executors: { build: { implementation: './build.cjs' } } })
   await write('node_modules/@nx/fixture/build.cjs', executor)
   await write('node_modules/nx/package.json', {
-    name: 'nx', version: '23.3.0', exports: { './package.json': './package.json', './src/project-graph/project-graph': './graph.cjs' },
+    name: 'nx',
+    version: '23.3.0',
+    exports: {
+      './package.json': './package.json',
+      './src/project-graph/project-graph': './graph.cjs'
+    },
   })
-  return { root, write, workspace: await parseWorkspace(root) }
+
+  return {
+    root,
+    write,
+    workspace: await parseWorkspace(root)
+  }
 }
 
 test('Nx graph supplies external packages, inferred projects and file dependencies on fresh and cached runs', async t => {
@@ -60,6 +85,7 @@ test('Nx graph supplies external packages, inferred projects and file dependenci
     assert.deepEqual(map.fileMap.projectFileMap.shared[0].deps, ['npm:runtime'])
     return { success: true }
   }`)
+
   await write('node_modules/nx/graph.cjs', `exports.createProjectGraphAsync = async options => {
     const assert = require('node:assert/strict')
     const fs = require('node:fs')
@@ -92,6 +118,7 @@ test('Nx graph supplies external packages, inferred projects and file dependenci
   const original = structuredClone(workspace)
   const originalCwd = process.cwd()
   const originalEnv = { ...process.env }
+
   await write('version.txt', '2.8.1')
   await runExecutor(workspace, 'demo', 'build', root)
   // Isox's project cache must not freeze installed package versions or file maps.
@@ -104,12 +131,29 @@ test('Nx graph supplies external packages, inferred projects and file dependenci
 
 test('explicit project types override inferred node types without mutating the Nx graph', () => {
   const { createNxProjectGraph } = require('../../../dist/nx/executor/nx-graph')
-  const project = { name: 'demo', root: 'apps/demo', projectType: 'library', targets: {}, implicitDependencies: [], tags: [] }
+  const project = {
+    name: 'demo',
+    root: 'apps/demo',
+    projectType: 'library',
+    targets: {},
+    implicitDependencies: [],
+    tags: []
+  }
   const inferred = {
-    nodes: { demo: { name: 'demo', type: 'app', data: { ...project, projectType: 'application' } } },
+    nodes: {
+      demo: {
+        name: 'demo',
+        type: 'app',
+        data: {
+          ...project,
+          projectType: 'application'
+        }
+      }
+    },
     dependencies: { demo: [] },
   }
   const graph = createNxProjectGraph({ demo: project }, inferred)
+
   assert.equal(graph.nodes.demo.type, 'lib')
   assert.equal(graph.nodes.demo.data.projectType, 'library')
   assert.equal(inferred.nodes.demo.type, 'app')
@@ -119,7 +163,11 @@ test('explicit project types override inferred node types without mutating the N
 for (const version of ['22.6.0', '24.0.0', 'invalid', undefined]) {
   test(`Nx adapter rejects unsupported runtime version ${version ?? '(missing)'}`, async t => {
     const { root, write, workspace } = await fixture(t, 'module.exports = () => { throw new Error("executor must not run") }')
-    await write('node_modules/nx/package.json', { name: 'nx', version })
+
+    await write('node_modules/nx/package.json', {
+      name: 'nx',
+      version
+    })
     await write('node_modules/nx/graph.cjs', 'throw new Error("graph must not load")')
     await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Unsupported Nx version .*supports Nx 23 only/)
   })
@@ -132,6 +180,7 @@ for (const [label, source, expected] of [
 ]) {
   test(`Nx adapter fails before execution when ${label}`, async t => {
     const { root, write, workspace } = await fixture(t, 'module.exports = () => { throw new Error("executor must not run") }')
+
     await write('node_modules/nx/graph.cjs', source)
     await assert.rejects(runExecutor(workspace, 'demo', 'build', root), expected)
   })
@@ -139,16 +188,19 @@ for (const [label, source, expected] of [
 
 test('cancellation stops graph construction before invoking the Nx executor', async t => {
   const { root, write, workspace } = await fixture(t, 'module.exports = () => { throw new Error("executor must not run") }')
+
   await write('node_modules/nx/graph.cjs', `exports.createProjectGraphAsync = async () => {
     require('node:fs').writeFileSync('graph.pid', String(process.pid))
     setInterval(() => {}, 100)
     await new Promise(() => {})
   }`)
   const controller = new AbortController()
+
   t.onTestFinished(() => controller.abort())
   const running = runExecutor(workspace, 'demo', 'build', root, undefined, undefined, controller.signal)
   let pid
   const deadline = Date.now() + 5_000
+
   while (!pid && Date.now() < deadline) {
     try {
       pid = Number(await readFile(join(root, 'graph.pid'), 'utf8'))
@@ -157,10 +209,12 @@ test('cancellation stops graph construction before invoking the Nx executor', as
         throw error
       }
     }
+
     if (!pid) {
       await new Promise(resolve => setTimeout(resolve, 20))
     }
   }
+
   assert.ok(pid, 'graph worker did not start')
   controller.abort()
   await running

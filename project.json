@@ -1,0 +1,33 @@
+{
+  "$schema": "./packages/core/schemas/project.schema.json",
+  "name": "workspace",
+  "targets": {
+    "version": {
+      "executor": "semver:version",
+      "options": {
+        "skipCommit": true,
+        "syncVersions": true,
+        "skipProjectChangelog": true
+      },
+      "configurations": {
+        "production": {
+          "postTargets": [
+            "workspace:github"
+          ]
+        }
+      }
+    },
+    "github": {
+      "executor": "semver:github",
+      "options": {
+        "tag": "{tag}",
+        "notes": "{notes}",
+        "prerelease": "{prerelease}"
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    }
+  },
+  "tags": []
+}

@@ -8,6 +8,11 @@ import { findWorkspaceRoot, readJson, writeJson } from '@isox-sh/core'
 
 import type { CommandOutput, CreateWorkspaceOptions, TestWorkspace } from './workspace.types'
 
+interface CommandFailureDetails {
+  stdout?: string
+  stderr?: string
+}
+
 const execute = promisify(execFile)
 const packageRequire = createRequire(__filename)
 
@@ -19,6 +24,7 @@ interface PackageManifest {
 
 async function readPackage(directory: string, expectedName: string): Promise<PackageManifest> {
   const manifest = await readJson<PackageManifest>('package.json', { projectRoot: directory })
+
   if (manifest?.name !== expectedName) {
     throw new Error(`Expected package ${expectedName} in ${directory}, found ${manifest?.name ?? 'no package name'}.`)
   }
@@ -30,10 +36,13 @@ async function readPackage(directory: string, expectedName: string): Promise<Pac
 export async function createWorkspace(options: CreateWorkspaceOptions = {}): Promise<TestWorkspace> {
   const workspaceRoot = await findWorkspaceRoot(options.startDirectory)
   const maxBuffer = options.maxBuffer ?? 16 * 1024 * 1024
+
   if (!Number.isSafeInteger(maxBuffer) || maxBuffer <= 0) {
     throw new Error('E2E maxBuffer must be a positive integer number of bytes.')
   }
+
   const timeout = options.timeout ?? 30_000
+
   if (!Number.isFinite(timeout) || timeout <= 0) {
     throw new Error('E2E timeout must be a positive number of milliseconds.')
   }
@@ -43,6 +52,7 @@ export async function createWorkspace(options: CreateWorkspaceOptions = {}): Pro
     : resolve(workspaceRoot, options.cliDirectory))
   const cliPackage = await readPackage(cliRoot, 'isox')
   const bin = typeof cliPackage.bin === 'string' ? cliPackage.bin : cliPackage.bin?.isox
+
   if (typeof bin !== 'string' || !bin || typeof cliPackage.version !== 'string') {
     throw new Error(`Invalid CLI package in ${cliRoot}: expected a version and an isox binary.`)
   }
@@ -50,6 +60,7 @@ export async function createWorkspace(options: CreateWorkspaceOptions = {}): Pro
   const cli = resolve(cliRoot, bin)
   const coreRoot = dirname(createRequire(join(cliRoot, 'package.json')).resolve('@isox-sh/core/package.json'))
   const packages = new Map([['isox', cliRoot], ['@isox-sh/core', coreRoot]])
+
   for (const [name, directory] of Object.entries(options.plugins ?? {})) {
     if (!/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/.test(name)) {
       throw new Error(`Invalid plugin package name: ${name}.`)
@@ -64,20 +75,31 @@ export async function createWorkspace(options: CreateWorkspaceOptions = {}): Pro
     }
 
     const packageRoot = await realpath(resolve(workspaceRoot, directory))
+
     await readPackage(packageRoot, name)
     packages.set(name, packageRoot)
   }
 
   const temporaryDirectory = join(workspaceRoot, 'tmp')
+
   await mkdir(temporaryDirectory, { recursive: true })
   const root = await mkdtemp(join(temporaryDirectory, 'isox-e2e-'))
-  const cleanup = () => rm(root, { recursive: true, force: true })
+  const cleanup = () => rm(root, {
+    recursive: true,
+    force: true
+  })
+
   try {
-    await writeJson('package.json', { name: 'isox-e2e-workspace', private: true }, {
-      projectRoot: root, logger: options.logger,
+    await writeJson('package.json', {
+      name: 'isox-e2e-workspace',
+      private: true
+    }, {
+      projectRoot: root,
+      logger: options.logger,
     }, { overwrite: false })
     for (const [name, directory] of packages) {
       const destination = join(root, 'node_modules', name)
+
       await mkdir(dirname(destination), { recursive: true })
       await symlink(directory, destination, 'junction')
     }
@@ -87,13 +109,21 @@ export async function createWorkspace(options: CreateWorkspaceOptions = {}): Pro
   }
 
   const env = { ...process.env }
+
   // Resolve fixture dependencies through its explicit links, without global overrides.
   delete env.NODE_PATH
   const runNode = async (args: string[], cwd = root): Promise<CommandOutput> => {
     try {
-      return await execute(process.execPath, args, { cwd, env, encoding: 'utf8', timeout, maxBuffer })
+      return await execute(process.execPath, args, {
+        cwd,
+        env,
+        encoding: 'utf8',
+        timeout,
+        maxBuffer
+      })
     } catch (error) {
-      const failure = error as Error & { stdout?: string, stderr?: string }
+      const failure = error as Error & CommandFailureDetails
+
       throw new Error(`Command failed: node ${args.join(' ')}\nWorking directory: ${cwd}\n${failure.stdout ?? ''}${failure.stderr ?? ''}`, { cause: error })
     }
   }

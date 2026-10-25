@@ -1,0 +1,72 @@
+name: Release
+run-name: Release ${{ inputs.channel }}${{ inputs.dry_run && ' (dry run)' || '' }} from ${{ github.ref_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel
+        type: choice
+        required: true
+        default: alpha
+        options:
+          - alpha
+          - beta
+          - stable
+      dry_run:
+        description: Preview the release without changing files, pushing, or creating a GitHub release
+        type: boolean
+        required: true
+        default: true
+
+permissions:
+  contents: write
+
+# All channels share synchronized versions and tags across the repository.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Release ${{ inputs.channel }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require a branch
+        run: |
+          if [ "$GITHUB_REF_TYPE" != branch ]; then
+            echo "::error::Select a branch when dispatching a release."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+          persist-credentials: ${{ !inputs.dry_run }}
+
+      - name: Set up Isox
+        uses: ./.github/actions/setup-isox
+
+      - name: Configure Git author
+        if: ${{ !inputs.dry_run }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+      - name: Run workspace release
+        env:
+          RELEASE_CHANNEL: ${{ inputs.channel }}
+          RELEASE_DRY_RUN: ${{ inputs.dry_run }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release_args=()
+          if [ "$RELEASE_CHANNEL" != stable ]; then
+            release_args+=("--preid=$RELEASE_CHANNEL")
+          fi
+
+          pnpm isox version workspace --config=production \
+            "${release_args[@]}" \
+            --options "{\"dryRun\":$RELEASE_DRY_RUN,\"skipCommit\":true,\"push\":true}"

@@ -11,20 +11,43 @@ const { createLogger, LogLevels, runExecutor } = require('../../../dist/core')
 
 async function fixture(t, source) {
   const root = await mkdtemp(join(tmpdir(), 'isox lifecycle '))
-  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
+
+  t.onTestFinished(() => rm(root, {
+    recursive: true,
+    force: true
+  }))
   const write = async (file, value) => {
     const path = join(root, file)
+
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, typeof value === 'string' ? value : JSON.stringify(value))
   }
+
   await write('isox.json', {})
   await write('node_modules/@fixture/plugin/package.json', { executors: './executors.json' })
   await write('node_modules/@fixture/plugin/executors.json', { executors: { build: { implementation: './build.cjs' } } })
   await write('node_modules/@fixture/plugin/build.cjs', source)
-  const workspace = { projects: { demo: { name: 'demo', root: '.', targets: { build: { executor: '@fixture/plugin:build' } } } } }
+  const workspace = {
+    projects: {
+      demo: {
+        name: 'demo',
+        root: '.',
+        targets: { build: { executor: '@fixture/plugin:build' } }
+      }
+    }
+  }
   const logs = []
-  const logger = createLogger({ level: LogLevels.debug, reporters: [{ log: entry => logs.push(entry) }] })
-  return { root, workspace, logs, logger }
+  const logger = createLogger({
+    level: LogLevels.debug,
+    reporters: [{ log: entry => logs.push(entry) }]
+  })
+
+  return {
+    root,
+    workspace,
+    logs,
+    logger
+  }
 }
 
 test('continuous builds can fail and recover without final completion logging', async t => {
@@ -32,6 +55,7 @@ test('continuous builds can fail and recover without final completion logging', 
     yield { success: false, continuous: true }
     yield { success: true, continuous: true }
   }`)
+
   await runExecutor(workspace, 'demo', 'build', root, logger)
   assert.equal(logs.filter(entry => entry.type === 'error').length, 1)
   assert.ok(logs.some(entry => entry.type === 'success' && entry.args[0].includes('Watching for changes')))
@@ -46,6 +70,7 @@ test('passes cancellation to native executors and closes the stream', async t =>
   }`)
   const controller = new AbortController()
   const running = runExecutor(workspace, 'demo', 'build', root, logger, undefined, controller.signal)
+
   controller.abort()
   await running
   assert.equal(await readFile(join(root, 'closed'), 'utf8'), 'yes')
@@ -56,6 +81,7 @@ test('ordinary failed streams still stop and run iterator cleanup', async t => {
     try { yield { success: false } }
     finally { require('node:fs').writeFileSync(require('node:path').join(context.workspaceRoot, 'closed'), 'yes') }
   }`)
+
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root, logger), /Task failed for demo/)
   assert.equal(await readFile(join(root, 'closed'), 'utf8'), 'yes')
 })
@@ -70,6 +96,7 @@ test('cancelled streams close without reporting a task failure or completion', a
   }`)
   const controller = new AbortController()
   const running = runExecutor(workspace, 'demo', 'build', root, logger, undefined, controller.signal)
+
   controller.abort()
   await running
   assert.equal(await readFile(join(root, 'closed'), 'utf8'), 'yes')
@@ -88,6 +115,7 @@ for (const iterable of [false, true]) {
         } finally { require('node:fs').writeFileSync(require('node:path').join(context.workspaceRoot, 'closed'), 'yes') }
       }`)
       const controller = new AbortController()
+
       controller.abort(new Error('Stopped by caller'))
       await runExecutor(workspace, 'demo', 'build', root, logger, undefined, controller.signal)
       assert.equal(await readFile(join(root, 'closed'), 'utf8'), 'yes')
@@ -101,6 +129,7 @@ test('cancellation does not suppress an unrelated executor failure', async t => 
     throw new Error('Cleanup failed')
   }`)
   const controller = new AbortController()
+
   controller.abort()
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root, logger, undefined, controller.signal), /Cleanup failed/)
 })
@@ -109,22 +138,29 @@ test('an AbortError still fails the task when its signal has not been cancelled'
   const { root, workspace, logger } = await fixture(t, `module.exports = async () => {
     throw new DOMException('Independent operation aborted', 'AbortError')
   }`)
+
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root, logger, undefined, new AbortController().signal), /Independent operation aborted/)
 })
 
 test('native child processes are terminated on cancellation even when they ignore SIGTERM', async t => {
   const { root } = await fixture(t, 'module.exports = () => ({ success: true })')
   const { runProcess } = require('../../../dist/core')
+
   await writeFile(join(root, 'child.cjs'), `
     require('node:fs').writeFileSync('ready', String(process.pid))
     process.on('SIGTERM', () => {})
     setInterval(() => {}, 100)
   `)
   const controller = new AbortController()
+
   t.onTestFinished(() => controller.abort())
-  const running = runProcess(process.execPath, ['child.cjs'], { cwd: root, signal: controller.signal })
+  const running = runProcess(process.execPath, ['child.cjs'], {
+    cwd: root,
+    signal: controller.signal
+  })
   const deadline = Date.now() + 5_000
   let pid
+
   while (!pid && Date.now() < deadline) {
     try {
       pid = Number(await readFile(join(root, 'ready'), 'utf8'))
@@ -132,6 +168,7 @@ test('native child processes are terminated on cancellation even when they ignor
       await new Promise(resolve => setTimeout(resolve, 20))
     }
   }
+
   assert.ok(pid, 'child did not start')
   controller.abort()
   assert.deepEqual(await running, { success: false })
@@ -141,6 +178,7 @@ test('native child processes are terminated on cancellation even when they ignor
 test.skipIf(process.platform === 'win32')('descendants retain their cleanup grace period after a launcher exits', async t => {
   const { root } = await fixture(t, 'module.exports = () => ({ success: true })')
   const { runProcess } = require('../../../dist/core')
+
   await writeFile(join(root, 'launcher.cjs'), `
     require('node:child_process').spawn(process.execPath, ['worker.cjs'], { stdio: 'ignore' })
     setInterval(() => {}, 100)
@@ -155,10 +193,15 @@ test.skipIf(process.platform === 'win32')('descendants retain their cleanup grac
     setInterval(() => {}, 100)
   `)
   const controller = new AbortController()
+
   t.onTestFinished(() => controller.abort())
-  const running = runProcess(process.execPath, ['launcher.cjs'], { cwd: root, signal: controller.signal })
+  const running = runProcess(process.execPath, ['launcher.cjs'], {
+    cwd: root,
+    signal: controller.signal
+  })
   const waitFor = async file => {
     const deadline = Date.now() + 5_000
+
     while (Date.now() < deadline) {
       try {
         return await readFile(join(root, file), 'utf8')
@@ -167,10 +210,13 @@ test.skipIf(process.platform === 'win32')('descendants retain their cleanup grac
           throw error
         }
       }
+
       await new Promise(resolve => setTimeout(resolve, 20))
     }
+
     assert.fail(`Timed out waiting for ${file}`)
   }
+
   await waitFor('ready')
   controller.abort()
   assert.deepEqual(await running, { success: false })

@@ -48,6 +48,7 @@ reference, plugin development, and migration guides.
 - [CLI reference](website/docs/cli.md)
 - [Affected projects and GitHub Actions](website/docs/affected-and-ci.md)
 - [Workspace and project configuration](website/docs/configuration.md)
+- [Release versioning and changelogs](website/docs/semver.md)
 - [ESLint executor](website/docs/eslint.md)
 - [TypeScript executor](website/docs/typescript.md) and [Vitest executor](website/docs/vitest.md)
 - [Core API](website/docs/core-api.md) and [custom executors](website/docs/custom-executors.md)

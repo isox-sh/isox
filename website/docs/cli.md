@@ -11,6 +11,7 @@ icon: "terminal"
 | --- | --- |
 | `isox init` | Create `isox.json` in the current directory |
 | `isox init <package> <path> [--importPath=<name>]` | Scaffold a project using an installed package inside an existing workspace |
+| `isox add <package> <project>` | Run an installed plugin’s add generator on an existing project |
 | `isox <command> <project>` | Run a project's configured command |
 | `isox run <project>:<command>` | Alternative syntax, including commands whose names are reserved by the CLI |
 | `isox affected --target=<command>` | Run changed projects and their dependents; add `--print-matrix` for a JSON project array |
@@ -19,8 +20,43 @@ icon: "terminal"
 | `isox reset` | Remove `.isox`; the next command rebuilds discovery data |
 | `isox --help` | Show usage |
 
-Use `--verbose` for debug logging and error stacks. Arbitrary executor options
-are configured in `project.json`; the CLI does not forward unknown flags.
+In `isox build web`, `build` is the target name and `web` is the project name.
+Use `isox run web:build` when you prefer an explicit reference, or when the target
+name conflicts with a built-in CLI command such as `add` or `init`.
+Prefix examples with `npx`, `pnpm exec`, or `yarn` for a local CLI installation.
+
+## Executor option overrides
+
+Use `--verbose` for debug logging and error stacks. Execution commands forward
+unknown flags to the executor as option overrides:
+
+```sh
+isox lint my-app --fix --max-warnings=5
+isox run my-app:lint --no-fix
+isox run-many --target=lint --fix
+isox affected --target=lint --fix
+```
+
+Hyphenated names become camelCase (`--max-warnings` becomes `maxWarnings`). Bare
+flags are `true`, `--no-<name>` is `false`, numeric values become numbers, and
+repeated flags become arrays. Executors may validate the options they support.
+Isox's own flags, such as `--verbose`, `--config`, and `--parallel`, stay with the CLI.
+`init`, `add`, `reset`, and `plan` reject unknown flags.
+
+Use `--options` for a JSON object when values need explicit types, nested objects,
+or names that overlap with CLI flags:
+
+```sh
+isox build my-app --options '{"release":"001","settings":{"minify":true}}'
+```
+
+Forwarded executor-option flags take precedence over `--options`. Reserved CLI
+flags do not override executor options: for example, `run-many --parallel=4`
+with `--options '{"parallel":2}'` runs up to four projects concurrently while
+passing `parallel: 2` to each executor. In multi-project execution,
+overrides apply only to the requested target; pre/post targets keep their own options.
+
+## Pre and post stages
 
 For `affected`, `plan`, and `run-many`, `--pre-targets` and `--post-targets` accept
 comma- or newline-separated command lists. Use `--pre-targets-json` and
@@ -65,19 +101,22 @@ applies if neither selects a name. Without any selection or default, only base
 options are used. An unknown configuration fails with an error. Names retain
 their exact spelling, including leading zeros in names such as `001`.
 
-Options are merged at the top level: `{ ...options, ...configurations[name] }`.
+Options are merged at the top level:
+`{ ...options, ...configurations[name], ...cliOverrides }`.
 Nested objects and arrays are replaced rather than recursively merged. This
 works with native and Nx executors, including automatically migrated Nx project
 files. The source configuration and workspace cache retain their original values;
 the selected options are computed for each invocation. Only one configuration
-can be selected per invocation. Other executor CLI flags are not forwarded.
+can be selected per invocation. Executor CLI flags override the selected configuration.
 
 ## Workspace cache
 
 Isox stores discovered projects in `.isox/workspace.json`. After adding, changing,
 renaming, or removing project files, run `isox reset`. The cache stores project
 configuration, not build outputs or task results. `affected`, `plan`, and
-`run-many` always rescan project files and refresh the cache.
+`run-many` always rescan project files and refresh the cache. Reset removes the
+whole `.isox` directory, including TypeScript ownership records and build locks;
+stop active builds first. It does not delete compiled output.
 
 See [workspace configuration](/docs/configuration) for discovery details and
 [Nx migration](/docs/nx-migration) for temporary adapter support.

@@ -6,7 +6,19 @@ import { join } from 'node:path'
 import type { NxProjectGraph } from './nx-graph'
 import type { ExecutorContext } from '@isox-sh/core'
 
-export type NxGraphMessage = { graph: NxProjectGraph } | { error: string }
+interface NxGraphSuccess {
+  graph: NxProjectGraph
+}
+
+interface NxGraphFailure {
+  error: string
+}
+
+interface NxPackageManifest {
+  version?: unknown
+}
+
+export type NxGraphMessage = NxGraphSuccess | NxGraphFailure
 
 /** Resolve Nx beside the executor, including plugins installed through pnpm. */
 export async function loadNxWorkspaceGraph(context: ExecutorContext, pluginPackagePath: string): Promise<NxProjectGraph | undefined> {
@@ -16,22 +28,27 @@ export async function loadNxWorkspaceGraph(context: ExecutorContext, pluginPacka
 
   const pluginRequire = createRequire(pluginPackagePath)
   let nxPackagePath: string
+
   try {
     nxPackagePath = pluginRequire.resolve('nx/package.json')
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') {
       throw error
     }
+
     context.logger.debug('Nx is not installed beside the executor. Using explicit Isox project dependencies.')
+
     return undefined
   }
 
-  const { version } = JSON.parse(await readFile(nxPackagePath, 'utf8')) as { version?: unknown }
+  const { version } = JSON.parse(await readFile(nxPackagePath, 'utf8')) as NxPackageManifest
+
   if (typeof version !== 'string' || !/^23\.\d+\.\d+(?:[-+].+)?$/.test(version)) {
     throw new Error(`Unsupported Nx version ${String(version ?? 'unknown')}. Isox's migration adapter supports Nx 23 only. Migrate this command to a native Isox executor or the underlying tool.`)
   }
 
   const graphModule = createRequire(nxPackagePath).resolve('nx/src/project-graph/project-graph')
+
   context.logger.debug('Refreshing Nx project graph and file dependency map...')
 
   // Nx binds its root and caches to process state. A child keeps different
@@ -53,6 +70,7 @@ export async function loadNxWorkspaceGraph(context: ExecutorContext, pluginPacka
       },
     })
     let result: NxGraphMessage | undefined
+
     child.on('message', (message: NxGraphMessage) => {
       result = message
     })

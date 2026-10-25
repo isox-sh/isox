@@ -24,6 +24,7 @@ function validateDeps(value: unknown, field: string): asserts value is Record<st
 /** Add missing dependencies to the project's package.json, preserving existing versions. */
 export async function addDepsToPackageJson(deps: PackageJsonDeps, context: WriteJsonContext): Promise<void> {
   const fields = ['dependencies', 'devDependencies'] as const
+
   for (const field of fields) {
     if (deps[field] !== undefined) {
       validateDeps(deps[field], field)
@@ -42,12 +43,14 @@ export async function addDepsToPackageJson(deps: PackageJsonDeps, context: Write
 
   let manifest: unknown
   let exists = true
+
   try {
     manifest = await readJson('package.json', context)
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
       throw error
     }
+
     manifest = {}
     exists = false
   }
@@ -63,15 +66,21 @@ export async function addDepsToPackageJson(deps: PackageJsonDeps, context: Write
   }
 
   let changed = false
+
   for (const field of fields) {
     let entries = (manifest[field] ?? {}) as Record<string, string>
     let fieldChanged = false
+
     for (const [name, version] of Object.entries(deps[field] ?? {})) {
       // Keep a dependency in its existing section and retain its chosen version.
       if (fields.some(key => Object.hasOwn(manifest[key] ?? {}, name))) {
         continue
       }
-      entries = { ...entries, [name]: version }
+
+      entries = {
+        ...entries,
+        [name]: version
+      }
       fieldChanged = true
     }
 

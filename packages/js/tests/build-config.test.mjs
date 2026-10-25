@@ -18,6 +18,7 @@ async function linkedProjects(t) {
     '@fixture/lib/*': ['./packages/lib/src/*'],
     '#local/*': ['./packages/demo package/src/*'],
   }
+
   await write(join(root, 'tsconfig.base.json'), `{
     // Source aliases are shared with editors and workspace discovery.
     "compilerOptions": { "paths": ${JSON.stringify(paths)} }
@@ -32,7 +33,11 @@ async function linkedProjects(t) {
     export const result = answer + feature + local
     export const literal = answer
   `)
-  const lib = { name: 'lib', root: 'packages/lib' }
+  const lib = {
+    name: 'lib',
+    root: 'packages/lib'
+  }
+
   context.workspace.projects.lib = lib
   context.workspace.projects.demo.dependencies = ['lib']
   await write(join(root, 'packages/lib/tsconfig.json'), {
@@ -45,15 +50,26 @@ async function linkedProjects(t) {
   })
   await write(join(root, 'packages/lib/src/index.ts'), 'export const answer = 42')
   await write(join(root, 'packages/lib/src/feature.ts'), 'export const feature = 2')
-  const dependencyContext = { ...context, projectName: 'lib', projectRoot: join(root, lib.root) }
+  const dependencyContext = {
+    ...context,
+    projectName: 'lib',
+    projectRoot: join(root, lib.root)
+  }
+
   assert.deepEqual(await tsc({}, dependencyContext), { success: true })
-  return { ...result, paths, dependencyContext }
+
+  return {
+    ...result,
+    paths,
+    dependencyContext
+  }
 }
 
 test('builds against dependency declarations while preserving inherited source and local aliases', async t => {
   const { root, projectRoot, write, read, context } = await linkedProjects(t)
   const original = await read('tsconfig.json')
   const base = await read(join(root, 'tsconfig.base.json'))
+
   // A build must use the dependency's built API, without compiling its sources again.
   await write(join(root, 'packages/lib/src/index.ts'), 'export const answer: number = "invalid source"')
   assert.deepEqual(await tsc({}, context), { success: true })
@@ -65,11 +81,13 @@ test('builds against dependency declarations while preserving inherited source a
 
   const parsed = ts.getParsedCommandLineOfConfigFile(join(projectRoot, 'tsconfig.json'), {}, ts.sys)
   const resolved = ts.resolveModuleName('@fixture/lib', join(projectRoot, 'src/index.ts'), parsed.options, ts.sys)
+
   assert.equal(resolved.resolvedModule.resolvedFileName, join(root, 'packages/lib/src/index.ts'))
 })
 
 test('preserves project path overrides, configDir output paths, implicit inputs, local types and composite rootDir', async t => {
   const { root, config, paths, write, read, context } = await linkedProjects(t)
+
   delete config.include
   delete config.compilerOptions.rootDir
   config.compilerOptions.composite = true
@@ -84,12 +102,14 @@ test('preserves project path overrides, configDir output paths, implicit inputs,
   // Select the declaration directory from the dependency's default build configuration.
   context.workspace.projects.lib.targets = {
     build: {
-      executor: 'js:tsc', defaultConfiguration: 'acc',
+      executor: 'js:tsc',
+      defaultConfiguration: 'acc',
       configurations: { acc: { tsConfig: 'packages/lib/tsconfig.acc.json' } },
     },
   }
   await write(join(root, 'packages/lib/tsconfig.acc.json'), {
-    extends: './tsconfig.json', compilerOptions: { declarationDir: '../../dist/acc-types/lib' },
+    extends: './tsconfig.json',
+    compilerOptions: { declarationDir: '../../dist/acc-types/lib' },
   })
   await write(join(root, 'dist/acc-types/lib/index.d.ts'), 'export declare const answer = 42')
   await rm(join(root, 'dist/types/lib'), { recursive: true })
@@ -102,6 +122,7 @@ test('uses TypeScript 7 default rootDir for dependencies and the relocated consu
   const { root, config, write, read, context, dependencyContext } = await linkedProjects(t)
   const libConfigPath = join(root, 'packages/lib/tsconfig.json')
   const libConfig = JSON.parse(await read(libConfigPath))
+
   delete libConfig.compilerOptions.rootDir
   libConfig.include.push('root.ts')
   await write(libConfigPath, libConfig)
@@ -119,18 +140,27 @@ test('uses TypeScript 7 default rootDir for dependencies and the relocated consu
 
 test('missing dependency outputs fail without emitting dependency sources and clean up temporary configs', async t => {
   const { root, projectRoot, context } = await linkedProjects(t)
+
   await rm(join(root, 'dist/types/lib'), { recursive: true })
   assert.deepEqual(await tsc({}, context), { success: false })
   await assert.rejects(readdir(join(projectRoot, 'dist')), { code: 'ENOENT' })
   const state = await readdir(join(root, '.isox/tsc'))
+
   assert.equal(state.some(file => file.startsWith('config-') || file.endsWith('.lock') || file.endsWith('.claim')), false)
 })
 
 test('watch rebuilds when a dependency publishes new declarations without a source edit', async t => {
   const { root, write, read, context } = await linkedProjects(t)
   const controller = new AbortController()
-  const stream = await tsc({ watch: true, pollInterval: 100 }, { ...context, signal: controller.signal })
+  const stream = await tsc({
+    watch: true,
+    pollInterval: 100
+  }, {
+    ...context,
+    signal: controller.signal
+  })
   const iterator = stream[Symbol.asyncIterator]()
+
   t.onTestFinished(async () => {
     controller.abort()
     await iterator.return()
@@ -145,15 +175,26 @@ test('watch rebuilds when a dependency publishes new declarations without a sour
 test('inherited target names use the dependency build configuration', async t => {
   const { root, projectRoot, write, context } = await linkedProjects(t)
   const { buildConfiguration } = require('../../../dist/js/executors/tsc/build-config')
+
   context.workspace.projects.lib.targets = {
-    build: { executor: 'js:tsc', options: { tsConfig: 'packages/lib/tsconfig.build.json' } },
+    build: {
+      executor: 'js:tsc',
+      options: { tsConfig: 'packages/lib/tsconfig.build.json' }
+    },
   }
   await write(join(root, 'packages/lib/tsconfig.build.json'), {
-    compilerOptions: { rootDir: 'src', outDir: '../../dist/custom-lib' },
+    compilerOptions: {
+      rootDir: 'src',
+      outDir: '../../dist/custom-lib'
+    },
     include: ['src/**/*'],
   })
   for (const commandName of ['toString', '__proto__', 'constructor']) {
-    const plan = buildConfiguration(join(projectRoot, 'tsconfig.json'), { ...context, commandName })
+    const plan = buildConfiguration(join(projectRoot, 'tsconfig.json'), {
+      ...context,
+      commandName
+    })
+
     assert.deepEqual(plan.outputs, [join(root, 'dist/custom-lib')])
   }
 })

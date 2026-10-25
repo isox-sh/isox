@@ -12,15 +12,18 @@ export async function findWorkspaceRoot(startDirectory = process.cwd()): Promise
       }
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code
+
       if (code !== 'ENOENT' && code !== 'ENOTDIR') {
         throw error
       }
     }
 
     const parent = dirname(directory)
+
     if (parent === directory) {
       throw new Error(`No Isox workspace found from ${resolve(startDirectory)}. Add isox.json to your workspace root.`)
     }
+
     directory = parent
   }
 }

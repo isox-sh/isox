@@ -14,11 +14,17 @@ export async function readJson<T = unknown>(file: string, context: ReadJsonConte
   const root = await realpath(projectRoot)
   let target = root
   const entries = []
+
   // Match writeJson: resolve the root, but reject symlinks beneath it.
   for (const part of projectPath.split(sep)) {
     target = join(target, part)
     const entry = await lstat(target)
-    entries.push({ path: target, entry })
+
+    entries.push({
+      path: target,
+      entry
+    })
+
     if (entry.isSymbolicLink()) {
       throw new Error(`Cannot read JSON through a symlink: ${file}`)
     }
@@ -27,22 +33,28 @@ export async function readJson<T = unknown>(file: string, context: ReadJsonConte
   // Read the opened inode, not a pathname that can be replaced after validation.
   const handle = await open(target, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0))
   let source: string
+
   try {
     const opened = await handle.stat()
     const expected = entries.at(-1)!.entry
+
     if (opened.dev !== expected.dev || opened.ino !== expected.ino) {
       throw new Error(`JSON file changed while opening: ${file}`)
     }
+
     for (const { path, entry } of entries) {
       const current = await lstat(path)
+
       if (current.isSymbolicLink() || current.dev !== entry.dev || current.ino !== entry.ino) {
         throw new Error(`JSON path changed while opening: ${file}`)
       }
     }
+
     source = await handle.readFile('utf8')
   } finally {
     await handle.close()
   }
+
   try {
     return JSON.parse(source.replace(/^\uFEFF/, '')) as T
   } catch (error) {

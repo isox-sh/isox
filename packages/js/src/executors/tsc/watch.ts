@@ -15,21 +15,24 @@ import type { TscOptions } from './options'
 import type { SourceGraph } from './watch-sources'
 import type { ExecutorContext, ExecutorResult } from '@isox-sh/core'
 
+interface SnapshotConfiguration {
+  inputs: Map<string, string | undefined>
+  roots: string[]
+  sources: string[]
+  directories: string[]
+  outputs: string[]
+  diagnostics: string[]
+  options: ts.CompilerOptions
+}
+
 interface SnapshotState {
   sourceGraph?: SourceGraph
-  configuration?: {
-    inputs: Map<string, string | undefined>
-    roots: string[]
-    sources: string[]
-    directories: string[]
-    outputs: string[]
-    diagnostics: string[]
-    options: ts.CompilerOptions
-  }
+  configuration?: SnapshotConfiguration
 }
 
 function configuration(tsConfig: string, context: ExecutorContext, state: SnapshotState) {
   const cached = state.configuration
+
   if (cached && !cached.diagnostics.length && [...cached.inputs].every(([file, source]) => ts.sys.readFile(file) === source)) {
     return cached
   }
@@ -37,9 +40,12 @@ function configuration(tsConfig: string, context: ExecutorContext, state: Snapsh
   const inputs = new Map<string, string | undefined>()
   const readConfigFile = (file: string) => {
     const source = ts.sys.readFile(file)
+
     inputs.set(file, source)
+
     return source
   }
+
   const diagnostics: string[] = []
   // Resolve configs only when their contents change, tracking extended configs and
   // dependency configs too. No native compiler process is needed for polling.
@@ -48,20 +54,29 @@ function configuration(tsConfig: string, context: ExecutorContext, state: Snapsh
     readFile: readConfigFile,
     onUnRecoverableConfigFileDiagnostic: error => diagnostics.push(ts.flattenDiagnosticMessageText(error.messageText, '\n')),
   })
+
   for (const error of parsed?.errors ?? []) {
     diagnostics.push(ts.flattenDiagnosticMessageText(error.messageText, '\n'))
   }
+
   let outputs: string[] = []
   let options = parsed?.options ?? {}
+
   try {
     const build = buildConfiguration(tsConfig, context, readConfigFile)
+
     outputs = build?.outputs ?? []
+
     if (build) {
-      options = { ...options, paths: build.config.compilerOptions.paths }
+      options = {
+        ...options,
+        paths: build.config.compilerOptions.paths
+      }
     }
   } catch (error) {
     diagnostics.push(String(error))
   }
+
   state.configuration = {
     inputs,
     roots: parsed?.options.noEmit ? [] : [parsed?.options.outDir, parsed?.options.declarationDir]
@@ -72,6 +87,7 @@ function configuration(tsConfig: string, context: ExecutorContext, state: Snapsh
     diagnostics,
     options,
   }
+
   return state.configuration
 }
 
@@ -91,6 +107,7 @@ export async function snapshot(
   // Project metadata and schemas affect packaging. Wildcard directories also
   // capture new compiler inputs outside the project without scanning unrelated trees.
   const directories = new Set([context.projectRoot, ...plan.directories, ...plan.outputs])
+
   for (const directory of directories) {
     for (const file of await fg('**/*', {
       cwd: directory,
@@ -107,15 +124,19 @@ export async function snapshot(
       files.add(file)
     }
   }
+
   for (const project of Object.values(context.workspace?.projects ?? {})) {
     files.add(resolve(context.workspaceRoot, project.root, 'package.json'))
   }
+
   const sourceRoots = [...files].filter(file => /\.[cm]?[jt]sx?$/.test(file)
     && !roots.some(root => inside(root, file))).sort()
+
   state.sourceGraph = watchSources(sourceRoots, plan.options, state.sourceGraph)
   for (const file of [...state.sourceGraph.sources, ...state.sourceGraph.contents.keys()]) {
     files.add(file)
   }
+
   for (const file of [...files].sort()) {
     if (roots.some(root => inside(root, file))) {
       continue
@@ -127,6 +148,7 @@ export async function snapshot(
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
         throw error
       }
+
       parts.push(`${slash(file)}:missing`)
     }
   }
@@ -158,11 +180,14 @@ export function watchBuilds(
       const generator = (async function*() {
         process.once('SIGINT', stop)
         process.once('SIGTERM', stop)
+
         try {
           const state: SnapshotState = {}
           let fingerprint = await snapshot(tsConfig, options, context, signal, state)
+
           while (!signal.aborted) {
             let result: ExecutorResult
+
             try {
               result = await build(signal)
             } catch (error) {
@@ -173,6 +198,7 @@ export function watchBuilds(
               if (error instanceof CompilerProcessError) {
                 throw error
               }
+
               context.logger.error(error instanceof Error ? error.message : String(error))
               result = { success: false }
             }
@@ -180,7 +206,11 @@ export function watchBuilds(
             if (signal.aborted) {
               break
             }
-            yield { success: result.success, continuous: true }
+
+            yield {
+              success: result.success,
+              continuous: true
+            }
             while (!signal.aborted) {
               try {
                 await delay(options.pollInterval ?? 500, undefined, { signal })
@@ -193,6 +223,7 @@ export function watchBuilds(
               }
 
               const next = await snapshot(tsConfig, options, context, signal, state)
+
               if (next !== fingerprint) {
                 fingerprint = next
                 break
@@ -205,14 +236,17 @@ export function watchBuilds(
           process.removeListener('SIGTERM', stop)
         }
       })()
+
       return {
         next: () => generator.next(),
         return: async () => {
           stop()
+
           return generator.return()
         },
         throw: async (error: unknown) => {
           stop()
+
           return generator.throw(error)
         },
       }

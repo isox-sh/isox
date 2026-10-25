@@ -11,18 +11,26 @@ const { createLogger, LogLevels, parseWorkspace, runExecutor } = require('@isox-
 
 async function fixture(t, { source, manifestKey = 'executors', pkg = '@nx/fixture', nxJson, isoxJson = { nx: { executors: ['@nx'] } } } = {}) {
   const root = await mkdtemp(join(tmpdir(), 'isox-nx-'))
-  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
+
+  t.onTestFinished(() => rm(root, {
+    recursive: true,
+    force: true
+  }))
   const write = async (file, content) => {
     const path = join(root, file)
+
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, typeof content === 'string' ? content : JSON.stringify(content))
   }
+
   await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
   await symlink(join(import.meta.dirname, '../../../dist/nx'), join(root, 'node_modules/@isox-sh/nx'), 'dir')
   await write('isox.json', isoxJson)
+
   if (nxJson !== undefined) {
     await write('nx.json', nxJson)
   }
+
   await write('apps/demo/project.json', {
     $schema: '../../node_modules/nx/schemas/project-schema.json',
     name: 'demo',
@@ -31,15 +39,29 @@ async function fixture(t, { source, manifestKey = 'executors', pkg = '@nx/fixtur
     tags: ['app'],
     sourceRoot: 'apps/demo/src',
     custom: { owner: 'demo-team' },
-    targets: { build: { executor: `${pkg}:build`, options: { answer: 42 }, custom: { region: 'eu' } } },
+    targets: {
+      build: {
+        executor: `${pkg}:build`,
+        options: { answer: 42 },
+        custom: { region: 'eu' }
+      }
+    },
   })
   await write('libs/shared/project.json', { name: 'shared' })
-  await write(`node_modules/${pkg}/package.json`, { name: pkg, [manifestKey]: './config/executors.json' })
+  await write(`node_modules/${pkg}/package.json`, {
+    name: pkg,
+    [manifestKey]: './config/executors.json'
+  })
   await write(`node_modules/${pkg}/config/executors.json`, {
     [manifestKey]: { build: { implementation: '../executor.cjs' } },
   })
   await write(`node_modules/${pkg}/executor.cjs`, source)
-  return { root, write, workspace: await parseWorkspace(root) }
+
+  return {
+    root,
+    write,
+    workspace: await parseWorkspace(root)
+  }
 }
 
 for (const [entry, pkg] of [
@@ -63,6 +85,7 @@ for (const [entry, pkg] of [
           return { success: true }
         }`,
       })
+
       await runExecutor(workspace, 'demo', 'build', root)
       await runExecutor(await parseWorkspace(root), 'demo', 'build', root)
     })
@@ -86,6 +109,7 @@ for (const [entry, pkg] of [
         return { success: true }
       }`,
     })
+
     await runExecutor(workspace, 'demo', 'build', root)
   })
 }
@@ -100,10 +124,12 @@ test('nx.executors changes apply with an existing workspace cache', async (t) =>
       return { success: true }
     }`,
   })
+
   await runExecutor(workspace, 'demo', 'build', root)
   workspace.projects.demo.targets.build.options.nx = true
   await write('isox.json', { nx: { executors: ['@nx-extend'] } })
   const cached = await parseWorkspace(root)
+
   cached.projects.demo.targets.build.options.nx = true
   await runExecutor(cached, 'demo', 'build', root)
   workspace.projects.demo.targets.build.options.nx = false
@@ -113,6 +139,7 @@ test('nx.executors changes apply with an existing workspace cache', async (t) =>
 
 test('workspace settings report malformed nx.executors configuration', async (t) => {
   const { root, write, workspace } = await fixture(t, { source: 'module.exports = () => ({ success: true })' })
+
   for (const settings of [
     '{broken', null, [], { nx: null }, { nx: [] },
     { nx: { executors: '@nx-extend' } },
@@ -133,16 +160,19 @@ test('@nx packages use the adapter only when selected by nx.executors', async (t
       return { success: true }
     }`,
   })
+
   workspace.projects.demo.targets.build.options.nx = true
   for (const entry of ['@nx', '@nx/fixture']) {
     await write('isox.json', { nx: { executors: [entry] } })
     await runExecutor(workspace, 'demo', 'build', root)
   }
+
   workspace.projects.demo.targets.build.options.nx = false
   for (const settings of [{}, { nx: {} }, { nx: { executors: [] } }, { nx: { executors: ['@nx-extend'] } }]) {
     await write('isox.json', settings)
     await runExecutor(workspace, 'demo', 'build', root)
   }
+
   await rm(join(root, 'isox.json'))
   await runExecutor(workspace, 'demo', 'build', root)
 })
@@ -205,7 +235,11 @@ for (const manifestKey of ['executors', 'builders']) {
     })
     const original = structuredClone(workspace.projects.demo)
     const entries = []
-    const logger = createLogger({ level: LogLevels.debug, reporters: [{ log: entry => entries.push(entry) }] })
+    const logger = createLogger({
+      level: LogLevels.debug,
+      reporters: [{ log: entry => entries.push(entry) }]
+    })
+
     await runExecutor(workspace, 'demo', 'build', root, logger)
     // Graph context must also be available when discovery reads the persisted cache.
     await runExecutor(await parseWorkspace(root), 'demo', 'build', root, logger)
@@ -228,6 +262,7 @@ for (const [label, source, fails] of [
   test(`Nx adapter handles a ${label}`, async (t) => {
     const { root, workspace } = await fixture(t, { source })
     const result = runExecutor(workspace, 'demo', 'build', root)
+
     if (fails) {
       await assert.rejects(result, /Task failed|plugin failed/)
     } else {
@@ -249,6 +284,7 @@ test('similar package prefixes still receive the native context and ignore nx.js
       return { success: true }
     }`,
   })
+
   await runExecutor(workspace, 'demo', 'build', root)
 })
 
@@ -257,6 +293,7 @@ test('Nx adapter reports invalid nx.json rather than discarding its settings', a
     nxJson: '{broken',
     source: 'module.exports = () => ({ success: true })',
   })
+
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root), SyntaxError)
 })
 
@@ -286,9 +323,17 @@ test('Nx project graph preserves transitive dependencies and isolated projects',
       return { success: true }
     }`,
   })
+
   workspace.projects.shared.dependencies = ['foundation']
-  workspace.projects.foundation = { name: 'foundation', root: 'libs/foundation', projectType: 'library' }
-  workspace.projects.__proto__ = { name: '__proto__', root: 'libs/isolated' }
+  workspace.projects.foundation = {
+    name: 'foundation',
+    root: 'libs/foundation',
+    projectType: 'library'
+  }
+  workspace.projects.__proto__ = {
+    name: '__proto__',
+    root: 'libs/isolated'
+  }
   await runExecutor(workspace, 'demo', 'build', root)
 })
 
@@ -296,6 +341,7 @@ test('Nx adapter reports dangling dependencies instead of providing broken graph
   const { root, workspace } = await fixture(t, {
     source: 'module.exports = () => { throw new Error("executor should not run") }',
   })
+
   for (const missing of ['missing', 'toString']) {
     workspace.projects.demo.dependencies = [missing]
     await assert.rejects(runExecutor(workspace, 'demo', 'build', root),
@@ -312,14 +358,17 @@ for (const [label, manifest, source, expected] of [
 ]) {
   test(`Nx plugin rejects a ${label}`, async (t) => {
     const { root, write, workspace } = await fixture(t, { source })
+
     if (manifest === undefined) {
       await write('node_modules/@nx/fixture/package.json', { name: '@nx/fixture' })
     } else {
       await write('node_modules/@nx/fixture/config/executors.json', manifest)
     }
+
     if (label === 'inherited executor') {
       workspace.projects.demo.targets.build.executor = '@nx/fixture:toString'
     }
+
     await assert.rejects(runExecutor(workspace, 'demo', 'build', root), expected)
   })
 }

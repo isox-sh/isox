@@ -5,41 +5,54 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import fg from 'fast-glob'
 import ts from 'typescript'
 
+import { resolveCommandOptions } from '../executor/configuration'
 import { readSourceDependencies } from '../utils/source-dependencies'
 
 import type { ProjectConfiguration, WorkspaceGraph } from './parser'
+
+interface ProjectOutput {
+  root: string
+  name: string
+  projectRoot: string
+  rootDir: string
+}
 
 interface ProjectSources {
   project: ProjectConfiguration
   root: string
   manifest: Record<string, unknown>
   options: ts.CompilerOptions
-  config: string | undefined
 }
 
 function inside(root: string, file: string): boolean {
   const path = relative(root, file)
+
   return path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path)
 }
 
 async function readManifest(file: string): Promise<Record<string, unknown>> {
   let source: string
+
   try {
     source = await readFile(file, 'utf8')
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return {}
     }
+
     throw error
   }
+
   try {
     const manifest = JSON.parse(source)
+
     if (manifest && typeof manifest === 'object' && !Array.isArray(manifest)) {
       return manifest
     }
   } catch (error) {
     throw new SyntaxError(`Invalid package manifest in ${file}.`, { cause: error })
   }
+
   throw new Error(`Invalid package manifest in ${file}: expected an object.`)
 }
 
@@ -47,15 +60,22 @@ function compilerOptions(file: string | undefined): ts.CompilerOptions {
   if (!file) {
     return {}
   }
+
   const fail = (error: ts.Diagnostic): never => {
     throw new Error(`Invalid TypeScript configuration in ${file}: ${ts.flattenDiagnosticMessageText(error.messageText, '\n')}`)
   }
-  const config = ts.getParsedCommandLineOfConfigFile(file, {}, { ...ts.sys, onUnRecoverableConfigFileDiagnostic: fail })
+
+  const config = ts.getParsedCommandLineOfConfigFile(file, {}, {
+    ...ts.sys,
+    onUnRecoverableConfigFileDiagnostic: fail
+  })
   // A shared config may contain only aliases, without any source files of its own.
   const error = config?.errors.find(error => error.code !== 18002 && error.code !== 18003)
+
   if (error) {
     fail(error)
   }
+
   return config?.options ?? {}
 }
 
@@ -69,21 +89,45 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
   const sharedOptions = compilerOptions(baseConfig)
   const projects: ProjectSources[] = []
   const packages = new Map<string, string>()
-  const outputs: { root: string, name: string }[] = []
+  const outputs: ProjectOutput[] = []
+
   for (const project of Object.values(workspace.projects)) {
     const root = resolve(workspaceRoot, project.root)
     const manifest = await readManifest(join(root, 'package.json'))
     const name = typeof manifest.name === 'string' ? manifest.name : project.name
+
     if (packages.has(name)) {
       throw new Error(`Duplicate workspace package name ${name} in projects ${packages.get(name)} and ${project.name}.`)
     }
+
     packages.set(name, project.name)
-    const config = join(root, 'tsconfig.json')
-    const options = ts.sys.fileExists(config) ? compilerOptions(config) : sharedOptions
-    projects.push({ project, root, manifest, options, config: ts.sys.fileExists(config) ? config : baseConfig })
-    for (const directory of [options.outDir, options.declarationDir]) {
+    const editorConfig = join(root, 'tsconfig.json')
+    const config = ts.sys.fileExists(editorConfig) ? editorConfig : baseConfig
+    const options = config === baseConfig ? sharedOptions : compilerOptions(config)
+    const build = project.targets?.build
+    const buildOptions = build ? resolveCommandOptions(build, project.name, 'build').options : {}
+    const buildConfig = typeof buildOptions.tsConfig === 'string'
+      ? resolve(workspaceRoot, buildOptions.tsConfig)
+      : undefined
+    // A named configuration can override a missing base config at execution time.
+    const outputConfig = buildConfig && ts.sys.fileExists(buildConfig) ? buildConfig : config
+    const outputOptions = outputConfig === config ? options : compilerOptions(outputConfig)
+
+    projects.push({
+      project,
+      root,
+      manifest,
+      options
+    })
+    // Editor aliases describe sources; the build config owns emitted files.
+    for (const directory of outputOptions.noEmit ? [] : [outputOptions.outDir, outputOptions.declarationDir]) {
       if (directory && inside(workspaceRoot, directory) && !inside(directory, root)) {
-        outputs.push({ root: directory, name: project.name })
+        outputs.push({
+          root: directory,
+          name: project.name,
+          projectRoot: root,
+          rootDir: outputOptions.rootDir ?? (outputConfig ? dirname(outputConfig) : root)
+        })
       }
     }
   }
@@ -95,17 +139,25 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
     if (new Set(outputs.filter(other => other.root === output.root).map(other => other.name)).size === 1) {
       return [output]
     }
-    const source = projects.find(source => source.project.name === output.name)!
-    const rootDir = source.options.rootDir ?? (source.config ? dirname(source.config) : source.root)
-    if (rootDir === source.root || !inside(rootDir, source.root)) {
+
+    const { rootDir, projectRoot } = output
+
+    if (rootDir === projectRoot || !inside(rootDir, projectRoot)) {
       return []
     }
-    return [{ ...output, root: resolve(output.root, relative(rootDir, source.root)) }]
+
+    return [{
+      ...output,
+      root: resolve(output.root, relative(rootDir, projectRoot))
+    }]
   })
 
   // A file in a nested project belongs to that project, not its enclosing project.
   projects.sort((a, b) => b.root.length - a.root.length || a.project.name.localeCompare(b.project.name))
-  const roots = [...projects.map(({ root, project }) => ({ root, name: project.name })), ...ownedOutputs]
+  const roots = [...projects.map(({ root, project }) => ({
+    root,
+    name: project.name
+  })), ...ownedOutputs]
     .sort((a, b) => b.root.length - a.root.length)
   const owner = (file: string): string | undefined => roots.find(entry => inside(entry.root, file))?.name
   const edges = new Map(projects.map(({ project }) => [project.name, new Set(project.dependencies ?? [])]))
@@ -118,12 +170,15 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
   for (const { project, root, manifest } of projects) {
     for (const field of ['dependencies', 'devDependencies', 'optionalDependencies', 'peerDependencies']) {
       const entries = manifest[field]
+
       if (!entries || typeof entries !== 'object' || Array.isArray(entries)) {
         continue
       }
+
       for (const [name, version] of Object.entries(entries)) {
         const local = typeof version === 'string' && /^(?:workspace|file|link):\./.test(version)
         const alias = typeof version === 'string' && /^(?:workspace|npm):(@?[^@]+)@/.exec(version)
+
         add(project.name, local ? owner(resolve(root, version.slice(version.indexOf(':') + 1))) : packages.get(alias ? alias[1] : name))
       }
     }
@@ -140,31 +195,40 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
     ],
   })
   const sources = files.sort().filter(file => projects.some(project => inside(project.root, file)))
+
   for await (const [file, { all }] of readSourceDependencies(sources)) {
     const source = projects.find(project => inside(project.root, file))
+
     if (!source) {
       continue
     }
+
     const { project, options } = source
+
     for (const specifier of all) {
       if (isBuiltin(specifier)) {
         continue
       }
+
       if (specifier.startsWith('.') || isAbsolute(specifier)) {
         add(project.name, owner(resolve(dirname(file), specifier)))
         continue
       }
+
       // Resolve aliases before package names, including aliases to not-yet-built output.
       const patterns = Object.keys(options.paths ?? {}).sort((a, b) => {
         if (a === specifier || b === specifier) {
           return a === specifier ? -1 : 1
         }
+
         return b.split('*')[0].length - a.split('*')[0].length
       })
       const pattern = patterns.find(pattern => {
         const [prefix, suffix = ''] = pattern.split('*')
+
         return pattern.includes('*') ? specifier.startsWith(prefix) && specifier.endsWith(suffix) && specifier.length >= prefix.length + suffix.length : pattern === specifier
       })
+
       if (pattern) {
         const [prefix, suffix = ''] = pattern.split('*')
         const wildcard = specifier.slice(prefix.length, specifier.length - suffix.length)
@@ -173,6 +237,7 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
         const targets = options.paths![pattern].map(target =>
           resolve(typeof base === 'string' ? base : workspaceRoot, target.replace('*', wildcard)),
         )
+
         // TypeScript selects the first resolving fallback. If outputs do not exist
         // yet, retain only the first known owner so build ordering still works.
         add(project.name, resolved ? owner(resolved.resolvedFileName) : targets.map(owner).find(Boolean))
@@ -184,6 +249,7 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
 
   for (const { project } of projects) {
     const dependencies = edges.get(project.name)!
+
     if (dependencies.size || project.dependencies !== undefined) {
       project.dependencies = [...dependencies].sort()
     }

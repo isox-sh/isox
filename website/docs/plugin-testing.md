@@ -9,10 +9,17 @@ Reusable end-to-end workspaces for testing Isox plugins. Requires Node.js 24 or
 26+. Install this package as a development dependency using your package manager.
 The Isox CLI and core are included as dependencies.
 
+```sh
+npm install --save-dev @isox-sh/e2e
+```
+
 ## Usage
 
 Build your plugin and install its dependencies first. The owning repository must
-contain `isox.json`. With Vitest:
+contain `isox.json`. The plugin directory must expose compiled entry points from
+its `package.json`; use `dist/plugin` if that is your standalone output package.
+The example below assumes `packages/plugin` already resolves to a built package.
+With Vitest installed in the test workspace:
 
 ```js
 import assert from 'node:assert/strict'

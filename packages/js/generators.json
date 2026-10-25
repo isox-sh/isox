@@ -1,0 +1,8 @@
+{
+  "generators": {
+    "init": {
+      "implementation": "../../dist/js/generators/init.js",
+      "description": "Create a TypeScript project and its build configuration."
+    }
+  }
+}

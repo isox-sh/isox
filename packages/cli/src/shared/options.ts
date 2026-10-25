@@ -31,7 +31,7 @@ type Command = ReturnType<CAC['command']>
 
 export function selectionOptions(command: Command): Command {
   return command
-    .option('--base <ref>', 'Compare from this merge base (default: ISOX_BASE or origin/main)')
+    .option('--base <ref>', 'Compare from this merge base (default: ISOX_BASE, affected.defaultBase, or origin/main)')
     .option('--head <ref>', 'Compare committed changes up to this ref (default: ISOX_HEAD or HEAD)')
     .option('--uncommitted', 'Also include staged and unstaged changes')
     .option('--untracked', 'Also include untracked, non-ignored files')
@@ -67,17 +67,21 @@ export function projectList(value: unknown): string[] {
   if (!Array.isArray(value) || value.some(name => typeof name !== 'string' || !/^[^\s:]+$/.test(name))) {
     throw new Error('Projects must be a JSON array of project names.')
   }
+
   if (new Set(value).size !== value.length) {
     throw new Error('Projects must not contain duplicates.')
   }
+
   return value
 }
 
 export function configurationName(options: ConfigurationOptions): string | undefined {
   const selected = options.configuration
+
   if (selected !== undefined && typeof selected !== 'string' && typeof selected !== 'number') {
     throw new Error('Specify exactly one configuration name with --config.')
   }
+
   return selected !== undefined ? String(selected) : options.prod ? 'production' : undefined
 }
 
@@ -85,6 +89,7 @@ function commandList(value: unknown, label: string): string[] {
   if (!Array.isArray(value) || value.some(entry => typeof entry !== 'string')) {
     throw new Error(`${label} must be an array of commands.`)
   }
+
   return value
 }
 
@@ -92,9 +97,11 @@ function stageOptions(value: string | undefined, encoded: string | undefined, fl
   if (value !== undefined && encoded !== undefined) {
     throw new Error(`Use either ${flag} or ${flag}-json.`)
   }
+
   if (encoded !== undefined) {
     return commandList(jsonValue(encoded, `${flag}-json`), `${flag}-json`)
   }
+
   return value === undefined ? [] : stringList(value)
 }
 
@@ -102,6 +109,7 @@ export function targetPlan(options: TargetOptions): TargetPlanOptions {
   if (typeof options.target !== 'string' || !options.target) {
     throw new Error('Specify a project command with --target.')
   }
+
   return {
     target: options.target,
     tag: options.tag,
@@ -118,31 +126,39 @@ export function targetPlans(value: unknown): TargetPlanOptions[] {
   if (!Array.isArray(value) || !value.length) {
     throw new Error('Targets must be a non-empty JSON array of target settings.')
   }
+
   const keys = ['target', 'tag', 'maxJobs', 'parallel', 'config', 'preTargets', 'postTargets']
   const names = new Set<string>()
+
   return value.map(item => {
     if (!item || typeof item !== 'object' || Array.isArray(item) || Object.keys(item).some(key => !keys.includes(key))) {
       throw new Error(`Target settings support only: ${keys.join(', ')}.`)
     }
+
     for (const field of ['target', 'tag', 'config']) {
       if ((field === 'target' || item[field] !== undefined) && typeof item[field] !== 'string') {
         throw new Error(`Target ${field} must be a string.`)
       }
     }
+
     for (const field of ['maxJobs', 'parallel']) {
       if (item[field] !== undefined) {
         positiveInteger(item[field], field)
       }
     }
+
     for (const field of ['preTargets', 'postTargets']) {
       if (item[field] !== undefined) {
         commandList(item[field], field)
       }
     }
+
     if (names.has(item.target)) {
       throw new Error(`Duplicate target ${item.target}. Create separate plans for different filters or configurations.`)
     }
+
     names.add(item.target)
+
     return item as TargetPlanOptions
   })
 }

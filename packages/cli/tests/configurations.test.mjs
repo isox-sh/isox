@@ -14,25 +14,43 @@ const cliPath = resolve(__dirname, '../../../dist/cli/index.js')
 
 async function fixture(t, nx = false) {
   const root = await mkdtemp(join(tmpdir(), 'isox-configurations-'))
-  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
+
+  t.onTestFinished(() => rm(root, {
+    recursive: true,
+    force: true
+  }))
   const write = async (file, content) => {
     const path = join(root, file)
+
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, typeof content === 'string' ? content : JSON.stringify(content))
   }
+
   if (nx) {
     await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
     await symlink(resolve(__dirname, '../../../dist/nx'), join(root, 'node_modules/@isox-sh/nx'), 'dir')
   }
+
   const pkg = nx ? '@nx/fixture' : '@fixture/plugin'
   const manifestKey = 'executors'
   const command = {
     executor: `${pkg}:build`,
-    options: { keep: 42, mode: 'base', nested: { base: true }, list: ['base'], enabled: true },
+    options: {
+      keep: 42,
+      mode: 'base',
+      nested: { base: true },
+      list: ['base'],
+      enabled: true
+    },
     defaultConfiguration: 'development',
     configurations: {
       development: { mode: 'development' },
-      production: { mode: 'production', nested: { prod: true }, list: [], enabled: false },
+      production: {
+        mode: 'production',
+        nested: { prod: true },
+        list: [],
+        enabled: false
+      },
       staging: { mode: 'staging' },
       123: { mode: 'numeric' },
       '001': { mode: 'leading-zero' },
@@ -44,6 +62,7 @@ async function fixture(t, nx = false) {
     ...(nx ? { $schema: '../../node_modules/nx/schemas/project-schema.json' } : {}),
     targets: { build: command },
   }
+
   await write('isox.json', { nx: { executors: ['@nx'] } })
   await write('apps/demo/project.json', project)
   await write(`node_modules/${pkg}/package.json`, { [manifestKey]: './registry.json' })
@@ -62,16 +81,25 @@ async function fixture(t, nx = false) {
       return { success: true }
     }
   `)
-  return { root, command, project }
+
+  return {
+    root,
+    command,
+    project
+  }
 }
 
 function run(root, args) {
-  return spawnSync(process.execPath, [cliPath, ...args], { cwd: root, encoding: 'utf8' })
+  return spawnSync(process.execPath, [cliPath, ...args], {
+    cwd: root,
+    encoding: 'utf8'
+  })
 }
 
 for (const nx of [false, true]) {
   test(`${nx ? 'Nx' : 'native'} executors receive merged configurations through both command syntaxes and cached discovery`, async (t) => {
     const { root, command, project } = await fixture(t, nx)
+
     for (const [args, configuration] of [
       [['build', 'demo', '--prod'], 'production'],
       [['build', 'demo', '--config=production'], 'production'],
@@ -93,27 +121,94 @@ for (const nx of [false, true]) {
     ]) {
       await rm(join(root, 'result.json'), { force: true })
       const result = run(root, args)
+
       assert.equal(result.status, 0, `${args.join(' ')}: ${result.stderr}`)
       const output = JSON.parse(await readFile(join(root, 'result.json'), 'utf8'))
+
       assert.equal(output.configurationName, configuration)
-      assert.deepEqual(output.options, { ...command.options, ...command.configurations[configuration] })
+      assert.deepEqual(output.options, {
+        ...command.options,
+        ...command.configurations[configuration]
+      })
       assert.deepEqual(output.baseOptions, command.options)
       assert.deepEqual(output.graphOptions, command.options)
+
       if (nx) {
         const id = `demo:build:${configuration}`
+
         assert.deepEqual(output.taskGraph.roots, [id])
-        assert.deepEqual(output.taskGraph.tasks[id].target, { project: 'demo', target: 'build', configuration })
+        assert.deepEqual(output.taskGraph.tasks[id].target, {
+          project: 'demo',
+          target: 'build',
+          configuration
+        })
         assert.deepEqual(output.taskGraph.dependencies[id], [])
       }
     }
+
     const cached = JSON.parse(await readFile(join(root, '.isox/workspace.json'), 'utf8'))
+
     assert.deepEqual(cached.projects.demo.targets.build, command)
     assert.deepEqual(JSON.parse(await readFile(join(root, 'apps/demo/project.json'), 'utf8')), project)
   })
 }
 
+for (const nx of [false, true]) {
+  test(`${nx ? 'Nx' : 'native'} executors receive unknown flags as option overrides through every execution command`, async t => {
+    const { root, command } = await fixture(t, nx)
+    const overrides = {
+      typedName: '001',
+      maxWarnings: 5,
+      nested: { override: true },
+      labels: ['json']
+    }
+
+    for (const args of [
+      ['build', 'demo'],
+      ['run', 'demo:build'],
+      ['run-many', '--target=build', '--projects=demo', '--parallel=2'],
+      ['affected', '--target=build', '--all'],
+    ]) {
+      await rm(join(root, 'result.json'), { force: true })
+      const result = run(root, [...args, '--prod', '--verbose', '--options', JSON.stringify(overrides),
+        '--mode=cli', '--max-warnings=2', '--no-enabled', '--flag', '--labels=first', '--labels=second'])
+
+      assert.equal(result.status, 0, `${args.join(' ')}: ${result.stderr}`)
+      const output = JSON.parse(await readFile(join(root, 'result.json'), 'utf8'))
+
+      assert.equal(output.configurationName, 'production')
+      assert.deepEqual(output.options, {
+        ...command.options,
+        ...command.configurations.production,
+        ...overrides,
+        mode: 'cli',
+        maxWarnings: 2,
+        enabled: false,
+        flag: true,
+        labels: ['first', 'second']
+      })
+      assert.deepEqual(output.baseOptions, command.options)
+      assert.deepEqual(output.graphOptions, command.options)
+    }
+  })
+}
+
+test('invalid JSON overrides fail before invoking the executor', async t => {
+  const { root } = await fixture(t)
+
+  for (const value of ['invalid', 'null', '[]', 'true', '42', '"text"']) {
+    const result = run(root, ['build', 'demo', `--options=${value}`])
+
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /--options must contain|--options must contain valid JSON/)
+  }
+
+  await assert.rejects(stat(join(root, 'result.json')), { code: 'ENOENT' })
+})
+
 test('invalid configuration selections fail without invoking the executor', async (t) => {
   const { root } = await fixture(t)
+
   for (const [args, message] of [
     [['build', 'demo', '--config=missing'], /Configuration missing not found for demo:build/],
     [['run', 'demo:build', '--config=toString'], /Configuration toString not found/],
@@ -127,8 +222,10 @@ test('invalid configuration selections fail without invoking the executor', asyn
     [['reset', '--config=production'], /Unknown option/],
   ]) {
     const result = run(root, args)
+
     assert.equal(result.status, 1, args.join(' '))
     assert.match(result.stderr, message)
   }
+
   await assert.rejects(stat(join(root, 'result.json')), { code: 'ENOENT' })
 })

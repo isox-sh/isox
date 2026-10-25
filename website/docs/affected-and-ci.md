@@ -39,8 +39,9 @@ to the children and return exit codes 130/143.
 ## What counts as affected?
 
 - Committed changes are `git diff <merge-base(base, head)> <head>`. Defaults are
-  `ISOX_BASE` or `origin/main`, and `ISOX_HEAD` or `HEAD`. Use `--base` and `--head`
-  to override them. Isox uses the currently checked-out project definitions.
+  `ISOX_BASE`, then `affected.defaultBase` in `isox.json`, then `origin/main` for
+  the base; `ISOX_HEAD` or `HEAD` for the head. Use `--base` and `--head` to override
+  them. Isox uses the currently checked-out project definitions.
 - Staged and unstaged files are included only with `--uncommitted`; non-ignored
   untracked files only with `--untracked`. `--all` bypasses Git and cannot be
   combined with Git selection flags. The actions compare committed changes only.
@@ -59,10 +60,33 @@ to the children and return exit codes 130/143.
   and explicitly declared project dependencies. Type-only imports and tests count.
   Dynamically selected plugins need explicit dependencies; executor selections
   alone do not add edges. Unknown references and cycles fail with an explanation.
-  See [dependency discovery](/docs/configuration#project-definitions).
-- Projects without the requested command and projects tagged `ci=off` are
+  See [dependency discovery](/docs/configuration#dependency-discovery).
+- Projects without the requested command, with `plan.enabled: false`, or tagged `ci=off` are
   excluded from selection. Explicit `run-many --projects-json` runs exactly its
-  list, including a project tagged `ci=off`.
+  list, including projects excluded from automatic selection.
+
+### Exclude a project from automatic selection
+
+Set `plan.enabled` to `false` in `project.json` to exclude it from `affected`,
+`plan` (including `--all`), and ordinary `run-many` selection:
+
+```json
+{
+  "plan": {
+    "enabled": false
+  }
+}
+```
+
+It defaults to `true`. Direct commands such as `isox test tools` and exact
+`--projects-json` lists can still run the project. The existing `ci=off` tag also
+excludes projects for backward compatibility, even with `plan.enabled: true`.
+
+This is a selection filter. The project remains in the dependency graph, and its
+changes still propagate to dependents. It cannot hide a cycle. To skip only one
+target, leave that target undefined on the project instead.
+
+### Shared and ignored files
 
 For shared tools inside a project, add workspace-relative globs to `isox.json`:
 

@@ -37,7 +37,7 @@ npx isox build web
 ```
 
 Names are case-sensitive. The directory name is used when `name` is omitted.
-For a command named `init`, `run`, `reset`, `affected`, `plan`, or `run-many`, use
+For a command named `init`, `add`, `run`, `reset`, `affected`, `plan`, or `run-many`, use
 `isox run web:reset` (substituting your command) to avoid the CLI's reserved names.
 
 ## Executor package cannot be loaded
@@ -59,9 +59,10 @@ installed workspace copy takes precedence, including when that copy is invalid.
 
 ## An option or configuration is rejected
 
-The CLI accepts its own flags and does not forward arbitrary executor options.
-For TypeScript watch mode, put `watch: true` in a named configuration and run
-`isox build web --config=watch`.
+Execution commands forward unknown flags as executor options. Check the executor's
+supported options when one is rejected; each executor decides whether to validate them.
+For TypeScript watch mode, use `isox build web --watch`, or put `watch: true` in a
+named configuration and run `isox build web --config=watch`.
 
 Configuration names must exist on the selected command. Overrides replace nested
 objects and arrays rather than merging them recursively. See
@@ -77,6 +78,36 @@ and any `declarationDir` match the files it emits.
 If imports or package relationships have changed, run `isox reset` before a
 single-project build. For the Isox repository itself, `pnpm bootstrap` prepares
 the CLI, executors, and prerequisite outputs from a clean checkout.
+
+## A source file is not under `rootDir`
+
+Keep editor and build configs separate when workspace aliases point to another
+project's source. The editor config can use the workspace as `rootDir` with
+`noEmit: true`; the build config can keep `rootDir: "./src"` and its own `outDir`.
+Set the build target's `options.tsConfig` to that build config.
+
+Build dependencies first with declarations enabled. `js:tsc` remaps their source
+aliases to declarations during compilation. Direct `tsc` invocations do not run
+this Isox remapping. Projects created with `isox init @isox-sh/js <path>` already
+have separate editor and build configs. See [TypeScript setup](/docs/typescript#usage).
+
+## Project dependency cycle
+
+The error lists a chain such as `app -> workspace -> app`. Check both explicit
+`dependencies` and inferred relationships: imports in tests and local package
+`devDependencies` count too. Selection filters, including `plan.enabled: false` and `ci=off`, do not remove graph
+edges or bypass cycle validation.
+
+For an unexpected edge through compiled output, make sure each build target's
+`options.tsConfig` points to the config that declares its output directory.
+For a root project, imports of root-level scripts or configuration belong to
+that project. Keep repository-wide tests with the root tooling they exercise,
+and keep package tests focused on their package. A root project can depend on
+packages without those packages needing to depend on the root.
+
+After changing imports or config, use `isox reset` before a single-project run.
+`isox plan --all --target=test` scans the current files and validates the graph
+without running tests.
 
 ## Affected selection is larger than expected
 
@@ -99,7 +130,7 @@ Use narrow `affected.globalFiles` globs for additional shared tooling and
 
 Local unstaged and staged changes require `--uncommitted`; non-ignored untracked
 files require `--untracked`. Projects must have the requested command and pass
-the tag filters. A `ci=off` tag excludes a project from normal selection.
+the tag filters. `plan.enabled: false` or a `ci=off` tag excludes a project from normal selection.
 
 For CI, use a checkout with `fetch-depth: 0` in the planning job. Missing revisions
 are errors. On non-PR events the actions compare against the nearest reachable

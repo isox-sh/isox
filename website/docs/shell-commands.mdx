@@ -48,7 +48,11 @@ propagates to the child process tree.
 
 ## Configure tool flags
 
-Put tool flags in `command`. Use named configurations for repeatable variants:
+Put tool flags in `command`. Use named configurations for repeatable variants.
+
+For example, `isox check web --strict` would pass an option named `strict` to this
+executor; it would not append `--strict` to your shell command. Define the full
+command in the configuration instead:
 
 ```json
 {

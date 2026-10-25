@@ -18,6 +18,7 @@ export function handleProcessCancellation(
     try {
       if (process.platform === 'win32') {
         const killer = spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' })
+
         killer.on('error', () => child.kill())
       } else {
         process.kill(-child.pid, force ? 'SIGKILL' : 'SIGTERM')
@@ -33,7 +34,9 @@ export function handleProcessCancellation(
     kill()
     timer = setTimeout(() => kill(true), gracePeriodMs)
   }
+
   signal?.addEventListener('abort', abort, { once: true })
+
   if (signal?.aborted) {
     abort()
   }
@@ -41,6 +44,7 @@ export function handleProcessCancellation(
   // Call on both spawn errors and close: launchers can exit before their descendants.
   return () => {
     signal?.removeEventListener('abort', abort)
+
     // Keep the grace timer alive after a launcher exits: detached descendants may remain.
     if (!signal?.aborted) {
       clearTimeout(timer)

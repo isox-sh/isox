@@ -7,18 +7,20 @@ import { createInterface } from 'node:readline'
 
 import { handleProcessCancellation } from '@isox-sh/core'
 
+interface CompilerOptions {
+  outDir?: string
+  declarationDir?: string
+  rootDir?: string
+  outFile?: string
+  noEmit?: boolean
+  incremental?: boolean
+  composite?: boolean
+  tsBuildInfoFile?: string
+  [key: string]: unknown
+}
+
 export interface CompilerConfig {
-  compilerOptions: {
-    outDir?: string
-    declarationDir?: string
-    rootDir?: string
-    outFile?: string
-    noEmit?: boolean
-    incremental?: boolean
-    composite?: boolean
-    tsBuildInfoFile?: string
-    [key: string]: unknown
-  }
+  compilerOptions: CompilerOptions
   files?: string[]
 }
 
@@ -49,7 +51,11 @@ export async function invokeCompiler(
   emitLog = false,
 ): Promise<CompilerResult> {
   if (signal?.aborted) {
-    return { success: false, output: '', emitted: [] }
+    return {
+      success: false,
+      output: '',
+      emitted: []
+    }
   }
 
   return new Promise<CompilerResult>((resolveResult, reject) => {
@@ -64,35 +70,49 @@ export async function invokeCompiler(
 
     for (const stream of [child.stdout, child.stderr]) {
       const lines = createInterface({ input: stream })
+
       lines.on('line', line => {
         if (line.startsWith('TSFILE: ')) {
           emitted.push(resolve(cwd, line.slice(8)))
         } else {
           output += `${line}\n`
+
           if (emitLog) {
             (stream === child.stderr ? process.stderr : process.stdout).write(`${line}\n`)
           }
         }
       })
     }
+
     child.once('error', error => {
       cleanup()
       reject(new CompilerProcessError(error))
     })
     child.once('close', (code, terminationSignal) => {
       cleanup()
+
       if (terminationSignal && !signal?.aborted) {
         reject(new CompilerProcessError(new Error(`Compiler terminated by ${terminationSignal}.`)))
+
         return
       }
-      resolveResult({ success: code === 0 && !signal?.aborted, output, emitted })
+
+      resolveResult({
+        success: code === 0 && !signal?.aborted,
+        output,
+        emitted
+      })
     })
   })
 }
 
 export async function readConfig(tsConfig: string, root: string, signal?: AbortSignal) {
   const result = await invokeCompiler(['--project', tsConfig, '--showConfig', '--pretty', 'false'], root, signal)
-  return { ...result, config: result.success ? JSON.parse(result.output) as CompilerConfig : undefined }
+
+  return {
+    ...result,
+    config: result.success ? JSON.parse(result.output) as CompilerConfig : undefined
+  }
 }
 
 export async function compile(tsConfig: string, root: string, stateFile: string, config: CompilerConfig, signal?: AbortSignal) {
@@ -106,9 +126,11 @@ export async function compile(tsConfig: string, root: string, stateFile: string,
     '--pretty',
     'false',
   ]
+
   if (config.compilerOptions.incremental || config.compilerOptions.composite) {
     // Re-emit every file so stale-output accounting is complete on every build.
     const buildInfo = `${stateFile}.tsbuildinfo`
+
     await mkdir(dirname(buildInfo), { recursive: true })
     await rm(buildInfo, { force: true })
     args.push('--tsBuildInfoFile', buildInfo)

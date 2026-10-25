@@ -14,24 +14,40 @@ const cliPath = resolve(__dirname, '../../../dist/cli/index.js')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-test-'))
-  t.onTestFinished(() => rm(root, { recursive: true, force: true }))
+
+  t.onTestFinished(() => rm(root, {
+    recursive: true,
+    force: true
+  }))
   const write = async (file, content) => {
     const path = join(root, file)
+
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, typeof content === 'string' ? content : JSON.stringify(content))
   }
-  return { root, write }
+
+  return {
+    root,
+    write
+  }
 }
 
 async function executorFixture(t, source, manifestKey = 'executors') {
   const fixtureData = await fixture(t)
   const { write } = fixtureData
+
   await write('isox.json', {})
   await write('apps/demo/project.json', {
     name: 'demo',
     dependencies: [],
     custom: { owner: 'demo-team' },
-    targets: { build: { executor: '@fixture/plugin:build', options: { answer: 42 }, custom: { region: 'eu' } } },
+    targets: {
+      build: {
+        executor: '@fixture/plugin:build',
+        options: { answer: 42 },
+        custom: { region: 'eu' }
+      }
+    },
   })
   await write('node_modules/@fixture/plugin/package.json', {
     name: '@fixture/plugin',
@@ -41,13 +57,19 @@ async function executorFixture(t, source, manifestKey = 'executors') {
     [manifestKey]: { build: { implementation: '../executor.cjs' } },
   })
   await write('node_modules/@fixture/plugin/executor.cjs', source)
+
   return fixtureData
 }
 
 test('reports a missing workspace marker in the CLI', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('project.json', { name: 'demo' })
-  const result = spawnSync(process.execPath, [cliPath, 'run', 'demo:build'], { cwd: root, encoding: 'utf8' })
+  const result = spawnSync(process.execPath, [cliPath, 'run', 'demo:build'], {
+    cwd: root,
+    encoding: 'utf8'
+  })
+
   assert.equal(result.status, 1)
   assert.match(result.stderr, /No Isox workspace found.*Add isox.json/)
 })
@@ -55,16 +77,24 @@ test('reports a missing workspace marker in the CLI', async (t) => {
 for (const executor of ['@isox-sh/core:run-command', 'core:run-command']) {
   test(`CLI runs ${executor} without core installed in the workspace`, async (t) => {
     const { root, write } = await fixture(t)
+
     await write('isox.json', {})
     await write('apps/demo/project.json', {
       name: 'demo',
-      targets: { build: { executor, options: { command: 'node build.cjs' } } },
+      targets: {
+        build: {
+          executor,
+          options: { command: 'node build.cjs' }
+        }
+      },
     })
     await write('build.cjs', "require('node:fs').writeFileSync('result.txt', 'built')")
     assert.throws(() => require.resolve('@isox-sh/core/package.json', { paths: [root] }), { code: 'MODULE_NOT_FOUND' })
     const result = spawnSync(process.execPath, [cliPath, 'build', 'demo'], {
-      cwd: join(root, 'apps/demo'), encoding: 'utf8',
+      cwd: join(root, 'apps/demo'),
+      encoding: 'utf8',
     })
+
     assert.equal(result.status, 0, result.stderr)
     assert.equal(await readFile(join(root, 'result.txt'), 'utf8'), 'built')
   })
@@ -72,22 +102,35 @@ for (const executor of ['@isox-sh/core:run-command', 'core:run-command']) {
 
 test('CLI prefers workspace core and reports invalid manifests without falling back', async (t) => {
   const { root, write } = await fixture(t)
+
   await write('isox.json', {})
   await write('project.json', {
-    name: 'demo', targets: { build: { executor: '@isox-sh/core:run-command' } },
+    name: 'demo',
+    targets: { build: { executor: '@isox-sh/core:run-command' } },
   })
-  await write('node_modules/@isox-sh/core/package.json', { name: '@isox-sh/core', executors: './executors.json' })
+  await write('node_modules/@isox-sh/core/package.json', {
+    name: '@isox-sh/core',
+    executors: './executors.json'
+  })
   await write('node_modules/@isox-sh/core/executors.json', { executors: { 'run-command': { implementation: './run.cjs' } } })
   await write('node_modules/@isox-sh/core/run.cjs', `module.exports = () => {
     console.log('workspace core selected')
     return { success: true }
   }`)
-  const result = spawnSync(process.execPath, [cliPath, 'build', 'demo'], { cwd: root, encoding: 'utf8' })
+  const result = spawnSync(process.execPath, [cliPath, 'build', 'demo'], {
+    cwd: root,
+    encoding: 'utf8'
+  })
+
   assert.equal(result.status, 0, result.stderr)
   assert.match(result.stdout, /workspace core selected/)
 
   await write('node_modules/@isox-sh/core/package.json', { name: '@isox-sh/core' })
-  const invalid = spawnSync(process.execPath, [cliPath, 'build', 'demo'], { cwd: root, encoding: 'utf8' })
+  const invalid = spawnSync(process.execPath, [cliPath, 'build', 'demo'], {
+    cwd: root,
+    encoding: 'utf8'
+  })
+
   assert.equal(invalid.status, 1)
   assert.match(invalid.stderr, /Package @isox-sh\/core does not define an executors manifest/)
 })
@@ -99,14 +142,20 @@ test('CLI verbose mode enables diagnostics and error stacks', async (t) => {
       throw new Error('fixture failure')
     }
   `)
+
   for (const command of [['run', 'demo:build'], ['build', 'demo']]) {
     for (const verbose of [false, true]) {
       const args = [cliPath, ...command, ...(verbose ? ['--verbose'] : [])]
-      const result = spawnSync(process.execPath, args, { cwd: root, encoding: 'utf8' })
+      const result = spawnSync(process.execPath, args, {
+        cwd: root,
+        encoding: 'utf8'
+      })
+
       assert.equal(result.status, 1)
       assert.match(result.stderr, /fixture failure/)
       assert.equal((result.stderr.match(/fixture failure/g) ?? []).length, 1)
       assert.doesNotMatch(result.stdout, /Successfully completed/)
+
       if (verbose) {
         assert.match(result.stdout, /Workspace root:/)
         assert.match(result.stdout, /Resolved @fixture\/plugin:build/)
@@ -147,10 +196,15 @@ test('CLI runs from root and nested directories with workspace options and conte
     }
   `)
   const nestedDirectory = join(root, 'apps/other/src')
+
   await mkdir(nestedDirectory, { recursive: true })
   for (const command of [['run', 'demo:build'], ['build', 'demo']]) {
     for (const cwd of [root, nestedDirectory]) {
-      const result = spawnSync(process.execPath, [cliPath, ...command], { cwd, encoding: 'utf8' })
+      const result = spawnSync(process.execPath, [cliPath, ...command], {
+        cwd,
+        encoding: 'utf8'
+      })
+
       assert.equal(result.status, 0, result.stderr)
       assert.match(result.stdout, /Successfully completed/)
     }
@@ -159,6 +213,7 @@ test('CLI runs from root and nested directories with workspace options and conte
 
 test('CLI reports input and task failures with a nonzero exit code', async (t) => {
   const { root } = await executorFixture(t, 'module.exports = async () => ({ success: false })')
+
   for (const [args, message] of [
     [['run', 'demo'], /Invalid target format/],
     [['run', 'demo:build:extra'], /Invalid target format/],
@@ -167,19 +222,23 @@ test('CLI reports input and task failures with a nonzero exit code', async (t) =
     [['run', 'demo:toString'], /Command toString not found/],
     [['run', 'demo:build'], /Task failed for demo/],
     [['run'], /missing required args/],
-    [['run', 'demo:build', '--invalid'], /Unknown option/],
+    [['run', 'demo:build', '--invalid'], /Task failed for demo/],
     [['build'], /missing required args/],
     [['build', 'demo', 'extra'], /Unused args/],
     [['build', 'missing'], /Project missing not found/],
     [['missing', 'demo'], /Command missing not found/],
     [['toString', 'demo'], /Command toString not found/],
     [['build', 'demo'], /Task failed for demo/],
-    [['build', 'demo', '--invalid'], /Unknown option/],
+    [['build', 'demo', '--invalid'], /Task failed for demo/],
     [['bad:command', 'demo'], /Invalid command or project name/],
     [['build', 'bad:project'], /Invalid command or project name/],
     [['reset', 'demo'], /Unused args/],
   ]) {
-    const result = spawnSync(process.execPath, [cliPath, ...args], { cwd: root, encoding: 'utf8' })
+    const result = spawnSync(process.execPath, [cliPath, ...args], {
+      cwd: root,
+      encoding: 'utf8'
+    })
+
     assert.equal(result.status, 1, result.stderr)
     assert.match(result.stderr, message)
     assert.doesNotMatch(result.stdout, /Successfully completed/)
@@ -196,16 +255,21 @@ test('CLI shorthand supports custom commands and leading global options', async 
       return { success: true }
     }
   `)
+
   await write('apps/demo/project.json', {
     name: 'demo',
     targets: {
-      'check-types': { executor: '@fixture/plugin:build', options: { answer: 42 } },
+      'check-types': {
+        executor: '@fixture/plugin:build',
+        options: { answer: 42 }
+      },
     },
   })
   const result = spawnSync(process.execPath, [cliPath, '--verbose', 'check-types', 'demo'], {
     cwd: root,
     encoding: 'utf8',
   })
+
   assert.equal(result.status, 0, result.stderr)
   assert.match(result.stdout, /Successfully completed/)
   assert.match(result.stdout, /Workspace root:/)
@@ -214,6 +278,7 @@ test('CLI shorthand supports custom commands and leading global options', async 
 test('CLI provides help', () => {
   for (const args of [[], ['--help'], ['build', '--help']]) {
     const result = spawnSync(process.execPath, [cliPath, ...args], { encoding: 'utf8' })
+
     assert.equal(result.status, 0, result.stderr)
     assert.match(result.stdout, /<command> <target>/)
     assert.match(result.stdout, /run <target>/)

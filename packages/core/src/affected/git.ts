@@ -3,6 +3,12 @@ import { realpath } from 'node:fs/promises'
 import { isAbsolute, relative, resolve, sep } from 'node:path'
 import { promisify } from 'node:util'
 
+import { readWorkspaceSettings } from '../workspace/settings'
+
+interface GitFailureDetails {
+  stderr?: string
+}
+
 const exec = promisify(execFile)
 
 export interface GitChangesOptions {
@@ -23,12 +29,19 @@ export interface GitChanges {
 export async function getGitChanges(workspaceRoot: string, options: GitChangesOptions = {}): Promise<GitChanges> {
   // Git reports physical paths; callers may reach the same workspace through a symlink.
   workspaceRoot = await realpath(workspaceRoot)
+  const settings = await readWorkspaceSettings(workspaceRoot)
   const git = async (args: string[], cwd = workspaceRoot): Promise<string> => {
     try {
-      const result = await exec('git', args, { cwd, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+      const result = await exec('git', args, {
+        cwd,
+        encoding: 'utf8',
+        maxBuffer: 64 * 1024 * 1024
+      })
+
       return result.stdout
     } catch (error) {
-      const detail = error as Error & { stderr?: string }
+      const detail = error as Error & GitFailureDetails
+
       throw new Error(`Git ${args[0]} failed: ${detail.stderr?.trim() || detail.message}. Check the base/head refs and fetch full history (actions/checkout fetch-depth: 0).`, { cause: error })
     }
   }
@@ -37,11 +50,13 @@ export async function getGitChanges(workspaceRoot: string, options: GitChangesOp
     if (!value || value.includes('\0')) {
       throw new Error('Git base/head must be non-empty revisions.')
     }
+
     return (await git(['rev-parse', '--verify', '--end-of-options', `${value}^{commit}`])).trim()
   }
+
   const [repository, base, head] = await Promise.all([
     git(['rev-parse', '--show-toplevel']),
-    revision(options.base ?? process.env.ISOX_BASE ?? 'origin/main'),
+    revision(options.base ?? process.env.ISOX_BASE ?? settings.affected?.defaultBase ?? 'origin/main'),
     revision(options.head ?? process.env.ISOX_HEAD ?? 'HEAD'),
   ])
   const repositoryRoot = repository.replace(/\r?\n$/, '')
@@ -55,13 +70,22 @@ export async function getGitChanges(workspaceRoot: string, options: GitChangesOp
   ])
 
   const files = new Set<string>()
+
   for (const file of changes.flatMap(output => output.split('\0').filter(Boolean))) {
     const workspaceFile = relative(workspaceRoot, resolve(repositoryRoot, file))
+
     // An Isox workspace may occupy just one directory in a larger Git repository.
     if (workspaceFile === '..' || workspaceFile.startsWith(`..${sep}`) || isAbsolute(workspaceFile)) {
       continue
     }
+
     files.add(workspaceFile.split(sep).join('/'))
   }
-  return { base, head, mergeBase, files: [...files].sort() }
+
+  return {
+    base,
+    head,
+    mergeBase,
+    files: [...files].sort()
+  }
 }

@@ -5,6 +5,7 @@ export async function withCancellation(run: (controller: AbortController) => Pro
     process.exitCode = 130
     controller.abort()
   }
+
   const terminate = () => {
     process.exitCode = 143
     controller.abort()
@@ -12,6 +13,7 @@ export async function withCancellation(run: (controller: AbortController) => Pro
 
   process.once('SIGINT', interrupt)
   process.once('SIGTERM', terminate)
+
   try {
     await run(controller)
   } finally {

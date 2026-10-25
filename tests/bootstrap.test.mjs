@@ -5,16 +5,17 @@ import { join } from 'node:path'
 
 import { test } from 'vitest'
 
-import { fixture, tsc } from './fixture.mjs'
+import { fixture, tsc } from '../packages/js/tests/fixture.mjs'
 
 const require = createRequire(import.meta.url)
-const { linkDependency, recordSeedOwnership } = require('../../../scripts/bootstrap-files.cjs')
+const { linkDependency, recordSeedOwnership } = require('../scripts/bootstrap-files.cjs')
 
 test('bootstrap refreshes outdated and broken dependency links without replacing directories', async t => {
   const { root } = await fixture(t)
   const old = join(root, 'versions/old')
   const current = join(root, 'versions/current')
   const link = join(root, 'dist/node_modules/dependency')
+
   await mkdir(old, { recursive: true })
   await mkdir(current, { recursive: true })
   linkDependency(link, old)
@@ -31,13 +32,18 @@ test('bootstrap refreshes outdated and broken dependency links without replacing
 
 test('bootstrap keeps output ownership so deleted sources are cleaned on the next build', async t => {
   const { root, projectRoot, config, write, context } = await fixture(t)
+
   config.compilerOptions.outDir = '../../dist/demo package'
   await write('tsconfig.json', config)
   await write('src/removed.ts', 'export const removed = true')
   await tsc({}, context)
   const output = join(root, 'dist/demo package')
   const manifest = join(output, 'package.json')
-  await write(manifest, { name: 'demo', version: '0.0.1' })
+
+  await write(manifest, {
+    name: 'demo',
+    version: '0.0.1'
+  })
   await recordSeedOwnership(root, new Map([['demo package', [manifest]]]))
   await rm(join(projectRoot, 'src/removed.ts'))
   await tsc({}, context)
@@ -49,6 +55,7 @@ test('bootstrap keeps output ownership so deleted sources are cleaned on the nex
 test('bootstrap refuses symlinked output-state directories before reading or writing them', async t => {
   const { root } = await fixture(t)
   const outside = join(root, 'outside')
+
   await mkdir(outside)
   await mkdir(join(root, '.isox'))
   await symlink(outside, join(root, '.isox/tsc'), 'junction')

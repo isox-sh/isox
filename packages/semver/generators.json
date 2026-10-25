@@ -1,0 +1,8 @@
+{
+  "generators": {
+    "add": {
+      "implementation": "../../dist/semver/generators/add.js",
+      "description": "Add conventional versioning to an existing project."
+    }
+  }
+}

@@ -42,7 +42,8 @@
           "docs/shell-commands",
           "docs/typescript",
           "docs/eslint",
-          "docs/vitest"
+          "docs/vitest",
+          "docs/semver"
         ]
       },
       {
@@ -165,6 +166,10 @@
     {
       "source": "/vitest",
       "destination": "/docs/vitest"
+    },
+    {
+      "source": "/semver",
+      "destination": "/docs/semver"
     },
     {
       "source": "/core-api",

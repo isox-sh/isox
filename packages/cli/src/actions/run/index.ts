@@ -1,11 +1,11 @@
+import { executionOptions, getExecutorOverrides } from '../../shared/executor-options'
 import { runProjectCommand } from '../../shared/run-project-command'
 
 import type { ConfigurationOptions } from '../../shared/options'
 import type { CAC } from 'cac'
 
 export function registerRunAction(cli: CAC): void {
-  cli
-    .command('run <target>', 'Run a project command (e.g., my-app:build)')
+  executionOptions(cli.command('run <target>', 'Run a project command (e.g., my-app:build)'))
     .option('--prod', 'Use the production configuration')
     .option('-c, --config, --configuration <name>', 'Use a named command configuration')
     .action(async (targetStr: string, options: ConfigurationOptions) => {
@@ -14,6 +14,7 @@ export function registerRunAction(cli: CAC): void {
       }
 
       const [projectName, targetName] = targetStr.split(':')
-      await runProjectCommand(targetName, projectName, options)
+
+      await runProjectCommand(targetName, projectName, options, getExecutorOverrides(cli))
     })
 }

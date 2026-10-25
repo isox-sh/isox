@@ -156,8 +156,9 @@ scripts. Its options are:
 The default directory is the workspace root. Environment variables and standard
 streams are inherited. Nonzero exits and signal termination fail the command.
 There is no automatic `.env` loading, Nx token interpolation, command array,
-parallel execution, or arbitrary executor CLI option forwarding. Configuration
-selection flags are handled by Isox itself. Preserve required environment and
+or parallel execution. Unknown CLI flags override executor options; they are not
+appended to the shell command. Configuration selection flags are handled by Isox
+itself. Preserve required environment and
 tool flags explicitly. Do not translate `nx:run-commands` by copying its entire
 options object.
 
@@ -194,8 +195,9 @@ and resolved against project, workspace, and local package versions. Computed
 module names require explicit dependency metadata. Lockfile generation is not
 supported.
 
-For watch mode, add an Isox configuration containing `watch: true` and select it
-with `--config=watch`. There is no standalone forwarded `--watch` CLI flag.
+For watch mode, run `isox build <project> --watch`, or add an Isox configuration
+containing `watch: true` and select it with `--config=watch`. The CLI forwards
+`--watch` as the executor's `watch: true` option.
 Rebuilds refresh tsconfig, assets, and package metadata; recoverable errors keep
 the stream alive. Signal/cancellation closes the watcher and compiler children.
 See [the JS executor contract](/docs/typescript) for exact defaults,
@@ -341,8 +343,9 @@ the workspace root works.
 
 Change scripts, documentation, editor tasks, and CI from `nx run project:build`
 to `isox build project` (or `isox run project:build`). The syntax is
-`isox <command> <target>`, where target is a project name. `init`, `run`, `reset`,
-`affected`, `plan`, and `run-many` are reserved; use `isox run project:reset` for
+`isox <command> <project>`, where the command is an entry under `targets`.
+`init`, `add`, `run`, `reset`, `affected`, `plan`, and `run-many` are reserved;
+use `isox run project:reset` for
 a project command named `reset`.
 
 Replace `nx affected` and `nx run-many` workflows with `isox affected` and
@@ -350,10 +353,12 @@ Replace `nx affected` and `nx run-many` workflows with `isox affected` and
 project lists across weighted workers. Follow the [affected and CI guide](/docs/affected-and-ci)
 for Git selection, tags, named configurations, and pre/post stages. Prepare
 prerequisite outputs explicitly in each worker; the graph does not schedule
-dependency builds. Preserve required build ordering and coverage; do not silently
+dependency builds. For versioning and publishing, assess the native
+[`semver:version` and `semver:github` executors](/docs/semver) against the existing
+release workflow. Preserve required build ordering and coverage; do not silently
 skip checks. Report unresolved needs for remote caching, generators beyond the
-available project initializers, release tooling, module-boundary rules, watch
-orchestration, or artifact transfer.
+available project initializers and add hooks, release features beyond the native
+plugin, module-boundary rules, watch orchestration, or artifact transfer.
 
 Remove unused Nx scripts, configuration, and dependencies only after checking
 remaining imports, retained adapters, and working commands. Do not leave a shell

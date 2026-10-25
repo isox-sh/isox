@@ -16,7 +16,7 @@ export interface WriteJsonContext {
 }
 
 export interface WriteJsonOptions {
-  /** Replace an existing file. Set to false when scaffolding new files. */
+/** Replace an existing file. Set to false when scaffolding new files. */
   overwrite?: boolean
 }
 
@@ -34,8 +34,10 @@ export async function writeJson(
   const root = await realpath(projectRoot)
   let directory = root
   const parents = projectPath.split(sep).slice(0, -1)
+
   for (const part of parents) {
     directory = join(directory, part)
+
     try {
       await mkdir(directory)
     } catch (error) {
@@ -45,6 +47,7 @@ export async function writeJson(
     }
 
     const entry = await lstat(directory)
+
     if (entry.isSymbolicLink() || !entry.isDirectory()) {
       throw new Error(`JSON path must use project directories, without symlinks: ${file}`)
     }
@@ -53,12 +56,16 @@ export async function writeJson(
   const target = join(directory, basename(destination))
   let existed = false
   let mode: number | undefined
+
   try {
     const entry = await lstat(target)
+
     mode = entry.mode & 0o777
+
     if (entry.isSymbolicLink()) {
       throw new Error(`Cannot write JSON through a symlink: ${file}`)
     }
+
     existed = true
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -67,11 +74,17 @@ export async function writeJson(
   }
 
   const temporary = join(dirname(target), `.${basename(target)}.${randomUUID()}.tmp`)
+
   try {
-    await writeFile(temporary, source, { flag: 'wx', mode })
+    await writeFile(temporary, source, {
+      flag: 'wx',
+      mode
+    })
+
     if (mode !== undefined) {
       await chmod(temporary, mode)
     }
+
     if (options.overwrite === false) {
       // Publish without replacing a file created by another writer.
       await publishNewFile(temporary, target)
@@ -85,5 +98,6 @@ export async function writeJson(
 
   const path = relative(resolve(context.workspaceRoot ?? projectRoot), destination).split(sep).join('/')
   const taskLogger = context.logger ?? logger
+
   taskLogger.success(`${existed ? 'Updated' : 'Created'} file ${path}`)
 }

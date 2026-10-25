@@ -16,6 +16,7 @@ export const hash = (value: string | Buffer) => createHash('sha256').update(valu
 export async function atomicWrite(path: string, data: string | Buffer): Promise<void> {
   await mkdir(dirname(path), { recursive: true })
   const temporary = `${path}.${randomUUID()}.tmp`
+
   try {
     await writeFile(temporary, data, { flag: 'wx' })
     await rename(temporary, path)
@@ -27,9 +28,11 @@ export async function atomicWrite(path: string, data: string | Buffer): Promise<
 export async function safeDestination(path: string, roots: string[]): Promise<void> {
   const actual = await canonical(path)
   const actualRoots = await Promise.all(roots.map(canonical))
+
   if (!roots.some((root, index) => inside(root, path) && inside(actualRoots[index], actual))) {
     throw new Error(`Unsafe output path: ${path}`)
   }
+
   // Do not follow even an internal symlink when writing or deleting output.
   for (let part = path;roots.some(root => inside(root, part));part = dirname(part)) {
     try {
@@ -50,6 +53,7 @@ export async function safeDestination(path: string, roots: string[]): Promise<vo
 
 export async function outputRoots(config: CompilerConfig, tsConfig: string, context: ExecutorContext): Promise<string[]> {
   const options = config.compilerOptions
+
   if (options.outFile) {
     throw new Error('tsc outFile is unsupported; use outDir in tsconfig.json.')
   }
@@ -63,8 +67,10 @@ export async function outputRoots(config: CompilerConfig, tsConfig: string, cont
   const workspace = await canonical(context.workspaceRoot)
   const project = await canonical(context.projectRoot)
   const sources = await Promise.all((config.files ?? []).map(file => canonical(resolve(dirname(tsConfig), file))))
+
   for (const root of roots) {
     const actual = await canonical(root)
+
     if (
       !inside(workspace, actual)
       || !inside(workspace, root)
@@ -79,6 +85,7 @@ export async function outputRoots(config: CompilerConfig, tsConfig: string, cont
 
     for (const other of Object.values(context.workspace?.projects ?? {})) {
       const otherRoot = await canonical(resolve(workspace, other.root))
+
       if (otherRoot !== project && otherRoot !== workspace && (inside(otherRoot, actual) || inside(actual, otherRoot))) {
         throw new Error(`Output directory overlaps project ${other.name}: ${root}`)
       }
@@ -95,6 +102,7 @@ export async function outputRoots(config: CompilerConfig, tsConfig: string, cont
         }
       }
     }
+
     await safeDestination(root, roots)
   }
 
@@ -116,6 +124,7 @@ export function statePath(context: ExecutorContext): string {
 export async function loadState(path: string): Promise<OutputState | undefined> {
   try {
     const value = JSON.parse(await readFile(path, 'utf8'))
+
     if (
       !value
       || typeof value !== 'object'
@@ -137,6 +146,7 @@ export async function loadState(path: string): Promise<OutputState | undefined> 
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return undefined
     }
+
     throw error
   }
 }
@@ -144,7 +154,11 @@ export async function loadState(path: string): Promise<OutputState | undefined> 
 export async function checkOwners(path: string, roots: string[], context: ExecutorContext): Promise<void> {
   const directory = dirname(path)
   const actualRoots = await Promise.all(roots.map(canonical))
-  for (const file of await fg(['*.json', '*.claim'], { cwd: directory, absolute: true })) {
+
+  for (const file of await fg(['*.json', '*.claim'], {
+    cwd: directory,
+    absolute: true
+  })) {
     if (file === path) {
       continue
     }
@@ -153,6 +167,7 @@ export async function checkOwners(path: string, roots: string[], context: Execut
     // If the claim disappears after the directory scan, inspect that state instead.
     const other = await loadState(file)
       ?? (file.endsWith('.claim') ? await loadState(file.slice(0, -'.claim'.length)) : undefined)
+
     if (!other || other.project === context.projectRoot) {
       continue
     }
@@ -161,6 +176,7 @@ export async function checkOwners(path: string, roots: string[], context: Execut
     const overlaps = actualRoots.some(root => otherRoots.some(otherRoot =>
       inside(root, otherRoot) || inside(otherRoot, root),
     ))
+
     if (overlaps) {
       throw new Error(`Output directory overlaps TypeScript output owned by ${other.project}.`)
     }
@@ -172,12 +188,14 @@ export async function removeOwned(previous: OutputState | undefined, keep: Set<s
     if (keep.has(file)) {
       continue
     }
+
     // A changed output location does not authorize removing the former location.
     if (!roots.some(root => inside(root, file))) {
       continue
     }
 
     await safeDestination(file, roots)
+
     try {
       if (hash(await readFile(file)) === digest) {
         await rm(file)
