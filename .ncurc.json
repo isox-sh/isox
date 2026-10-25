@@ -1,0 +1,9 @@
+{
+  "upgrade": true,
+  "interactive": true,
+  "root": true,
+  "workspaces": true,
+  "packageManager": "pnpm",
+  "format": ["group", "repo"],
+  "reject": []
+}
