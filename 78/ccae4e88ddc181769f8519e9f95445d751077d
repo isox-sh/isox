@@ -1,0 +1,23 @@
+packages/e2e/src/workspace.types.ts
+  s_51871bdcdb3b4c::t_166329a636e445 12-13
+packages/e2e/src/create-workspace.ts
+  s_51871bdcdb3b4c::t_166329a636e445 32-35,94
+packages/e2e/tests/workspace.test.mjs
+  s_51871bdcdb3b4c::t_c46b8f607385aa 150-160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "78ccae4e88ddc181769f8519e9f95445d751077d",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
