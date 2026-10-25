@@ -1,5 +1,6 @@
 import { createLogger, findWorkspaceRoot, logger, parseWorkspace, selectProjects } from '@isox-sh/core'
 
+import { executionOptions, getExecutorOverrides } from '../../shared/executor-options'
 import { jsonValue, projectList, stringList, targetOptions, targetPlan } from '../../shared/options'
 import { runProjects } from '../../shared/run-projects'
 
@@ -12,7 +13,7 @@ interface RunManyActionOptions extends TargetOptions {
 }
 
 export function registerRunManyAction(cli: CAC): void {
-  targetOptions(cli.command('run-many', 'Run a command on an explicit project list or all projects'))
+  executionOptions(targetOptions(cli.command('run-many', 'Run a command on an explicit project list or all projects')))
     .option('--projects <names>', 'Comma-separated project names (default: all matching projects)')
     .option('--projects-json <json>', 'Exact JSON project list from a plan; no filtering or redistribution')
     .action(async (options: RunManyActionOptions) => {
@@ -45,6 +46,6 @@ export function registerRunManyAction(cli: CAC): void {
         projects = selectProjects(workspace, candidates, plan.target, plan.tag)
       }
 
-      await runProjects(root, workspace, projects, plan)
+      await runProjects(root, workspace, projects, plan, getExecutorOverrides(cli))
     })
 }

@@ -26,6 +26,7 @@ export async function runExecutor(
   taskLogger: Logger = logger,
   requestedConfiguration?: string,
   signal?: AbortSignal,
+  optionOverrides: Record<string, unknown> = {},
 ): Promise<void> {
   const project = Object.hasOwn(workspace.projects, projectName) ? workspace.projects[projectName] : undefined
 
@@ -82,7 +83,10 @@ export async function runExecutor(
   taskLogger.info(`Running ${executorName} for ${projectName}...`)
 
   try {
-    const result = await executorFn(options, context)
+    const result = await executorFn({
+      ...options,
+      ...optionOverrides
+    }, context)
 
     if (isAsyncIterable(result)) {
       let hasResult = false

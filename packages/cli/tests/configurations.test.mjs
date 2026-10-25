@@ -153,6 +153,58 @@ for (const nx of [false, true]) {
   })
 }
 
+for (const nx of [false, true]) {
+  test(`${nx ? 'Nx' : 'native'} executors receive unknown flags as option overrides through every execution command`, async t => {
+    const { root, command } = await fixture(t, nx)
+    const overrides = {
+      typedName: '001',
+      maxWarnings: 5,
+      nested: { override: true },
+      labels: ['json']
+    }
+
+    for (const args of [
+      ['build', 'demo'],
+      ['run', 'demo:build'],
+      ['run-many', '--target=build', '--projects=demo', '--parallel=2'],
+      ['affected', '--target=build', '--all'],
+    ]) {
+      const result = run(root, [...args, '--prod', '--verbose', '--options', JSON.stringify(overrides),
+        '--mode=cli', '--max-warnings=2', '--no-enabled', '--flag', '--labels=first', '--labels=second'])
+
+      assert.equal(result.status, 0, `${args.join(' ')}: ${result.stderr}`)
+      const output = JSON.parse(await readFile(join(root, 'result.json'), 'utf8'))
+
+      assert.equal(output.configurationName, 'production')
+      assert.deepEqual(output.options, {
+        ...command.options,
+        ...command.configurations.production,
+        ...overrides,
+        mode: 'cli',
+        maxWarnings: 2,
+        enabled: false,
+        flag: true,
+        labels: ['first', 'second']
+      })
+      assert.deepEqual(output.baseOptions, command.options)
+      assert.deepEqual(output.graphOptions, command.options)
+    }
+  })
+}
+
+test('invalid JSON overrides fail before invoking the executor', async t => {
+  const { root } = await fixture(t)
+
+  for (const value of ['invalid', 'null', '[]', 'true', '42', '"text"']) {
+    const result = run(root, ['build', 'demo', `--options=${value}`])
+
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /--options must contain|--options must contain valid JSON/)
+  }
+
+  await assert.rejects(stat(join(root, 'result.json')), { code: 'ENOENT' })
+})
+
 test('invalid configuration selections fail without invoking the executor', async (t) => {
   const { root } = await fixture(t)
 

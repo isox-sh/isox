@@ -156,8 +156,9 @@ scripts. Its options are:
 The default directory is the workspace root. Environment variables and standard
 streams are inherited. Nonzero exits and signal termination fail the command.
 There is no automatic `.env` loading, Nx token interpolation, command array,
-parallel execution, or arbitrary executor CLI option forwarding. Configuration
-selection flags are handled by Isox itself. Preserve required environment and
+or parallel execution. Unknown CLI flags override executor options; they are not
+appended to the shell command. Configuration selection flags are handled by Isox
+itself. Preserve required environment and
 tool flags explicitly. Do not translate `nx:run-commands` by copying its entire
 options object.
 

@@ -35,6 +35,21 @@ rule plugins installed in the workspace.
 Run `isox lint my-app`. The fully scoped executor name is
 `@isox-sh/eslint:lint`.
 
+Apply automatic fixes from the CLI:
+
+```sh
+isox lint my-app --fix
+isox run my-app:lint --fix
+isox run-many --target=lint --fix
+isox affected --target=lint --fix
+```
+
+The CLI flag overrides `fix` from the target's options or selected configuration.
+Other plugin options work the same way, such as `--max-warnings=5` or
+`--config-file=eslint.custom.mjs`; the CLI forwards unrecognized flags to the executor.
+For multi-project runs, it applies to the requested target, leaving pre/post
+targets' options unchanged. Use `--no-fix` to disable configured fixes for a run.
+
 ## Options
 
 | Option | Default | Description |

@@ -59,9 +59,10 @@ installed workspace copy takes precedence, including when that copy is invalid.
 
 ## An option or configuration is rejected
 
-The CLI accepts its own flags and does not forward arbitrary executor options.
-For TypeScript watch mode, put `watch: true` in a named configuration and run
-`isox build web --config=watch`.
+Execution commands forward unknown flags as executor options. Check the executor's
+supported options when one is rejected; a typo now reaches its validation.
+For TypeScript watch mode, use `isox build web --watch`, or put `watch: true` in a
+named configuration and run `isox build web --config=watch`.
 
 Configuration names must exist on the selected command. Overrides replace nested
 objects and arrays rather than merging them recursively. See

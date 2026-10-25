@@ -5,7 +5,7 @@ import { withCancellation } from './cancellation'
 import type { TargetPlanOptions, WorkspaceGraph } from '@isox-sh/core'
 
 /** Each project gets its own CLI process: plugins may change cwd, environment, or module globals. */
-export async function runProjects(root: string, workspace: WorkspaceGraph, projects: string[], options: TargetPlanOptions): Promise<void> {
+export async function runProjects(root: string, workspace: WorkspaceGraph, projects: string[], options: TargetPlanOptions, optionOverrides: Record<string, unknown> = {}): Promise<void> {
   const parallel = positiveInteger(options.parallel ?? 1, 'parallel')
 
   validateProjectCommands(workspace, projects, options)
@@ -17,7 +17,7 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
   }
 
   await withCancellation(async controller => {
-    for (const stage of getCommandStages(options)) {
+    for (const [stageIndex, stage] of getCommandStages(options).entries()) {
       if (controller.signal.aborted) {
         break
       }
@@ -31,6 +31,11 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
 
           try {
             const args = [process.argv[1], 'run']
+
+            if (stageIndex === (options.preTargets?.length ?? 0) && Object.keys(optionOverrides).length) {
+              // JSON preserves booleans, numbers, arrays, and objects across workers.
+              args.push(`--options=${JSON.stringify(optionOverrides)}`)
+            }
 
             if (stage.config !== undefined) {
               args.push(`--config=${stage.config}`)

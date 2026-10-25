@@ -39,11 +39,12 @@ async function fixture(t) {
 
   await mkdir(dirname(link), { recursive: true })
   await symlink(resolve(import.meta.dirname, '../../../dist/eslint'), link, process.platform === 'win32' ? 'junction' : 'dir')
-  const run = (...args) => spawnSync(process.execPath, [cli, 'lint', 'demo', ...args], {
+  const runCommand = (...args) => spawnSync(process.execPath, [cli, ...args], {
     cwd: projectRoot,
     encoding: 'utf8',
     timeout: 30_000,
   })
+  const run = (...args) => runCommand('lint', 'demo', ...args)
   const configure = async options => {
     await write('apps/demo project/project.json', {
       name: 'demo',
@@ -71,6 +72,7 @@ async function fixture(t) {
     projectRoot,
     write,
     run,
+    runCommand,
     configure,
     context
   }
@@ -113,6 +115,66 @@ test('supports scoped names, workspace-relative globs, and fixes', async t => {
   assert.equal(result.status, 0, result.stderr)
   assert.equal(await readFile(join(projectRoot, 'index.js'), 'utf8'), 'export const value = 1\n')
 })
+
+for (const args of [
+  ['lint', 'demo'],
+  ['run', 'demo:lint'],
+  ['run-many', '--target=lint'],
+  ['affected', '--target=lint', '--all'],
+]) {
+  test(`CLI --fix overrides configured options for ${args[0]}`, async t => {
+    const { projectRoot, write, runCommand } = await fixture(t)
+
+    await write('apps/demo project/project.json', {
+      name: 'demo',
+      targets: {
+        lint: {
+          executor: 'eslint:lint',
+          options: { fix: true },
+          defaultConfiguration: 'ci',
+          configurations: { ci: { fix: false } }
+        }
+      }
+    })
+    await write('apps/demo project/index.js', 'export const value = 1;\n')
+    assert.equal(runCommand(...args).status, 1)
+    const result = runCommand(...args, '--fix')
+
+    assert.equal(result.status, 0, result.stderr + result.stdout)
+    assert.equal(await readFile(join(projectRoot, 'index.js'), 'utf8'), 'export const value = 1\n')
+  })
+
+  test(`CLI --no-fix disables configured fixes for ${args[0]}`, async t => {
+    const { projectRoot, write, configure, runCommand } = await fixture(t)
+
+    await configure({ fix: true })
+    await write('apps/demo project/index.js', 'export const value = 1;\n')
+    const result = runCommand(...args, '--no-fix')
+
+    assert.equal(result.status, 1)
+    assert.doesNotMatch(result.stderr, /Unknown option/)
+    assert.equal(await readFile(join(projectRoot, 'index.js'), 'utf8'), 'export const value = 1;\n')
+  })
+}
+
+for (const preTarget of ['prepare', 'lint']) {
+  test(`multi-project --fix leaves ${preTarget} pre-target options unchanged`, async t => {
+    const { projectRoot, write, runCommand } = await fixture(t)
+
+    await write('apps/demo project/project.json', {
+      name: 'demo',
+      targets: {
+        lint: { executor: 'eslint:lint' },
+        prepare: { executor: 'eslint:lint' }
+      }
+    })
+    await write('apps/demo project/index.js', 'export const value = 1;\n')
+    const result = runCommand('run-many', '--target=lint', `--pre-targets=${preTarget}`, '--fix')
+
+    assert.equal(result.status, 1)
+    assert.equal(await readFile(join(projectRoot, 'index.js'), 'utf8'), 'export const value = 1;\n')
+  })
+}
 
 test('uses workspace-relative configuration overrides', async t => {
   const { write, run } = await fixture(t)

@@ -19,8 +19,31 @@ icon: "terminal"
 | `isox reset` | Remove `.isox`; the next command rebuilds discovery data |
 | `isox --help` | Show usage |
 
-Use `--verbose` for debug logging and error stacks. Arbitrary executor options
-are configured in `project.json`; the CLI does not forward unknown flags.
+Use `--verbose` for debug logging and error stacks. Execution commands forward
+unknown flags to the executor as option overrides:
+
+```sh
+isox lint my-app --fix --max-warnings=5
+isox run my-app:lint --no-fix
+isox run-many --target=lint --fix
+isox affected --target=lint --fix
+```
+
+Hyphenated names become camelCase (`--max-warnings` becomes `maxWarnings`). Bare
+flags are `true`, `--no-<name>` is `false`, numeric values become numbers, and
+repeated flags become arrays. Executors validate the options they support.
+Isox's own flags, such as `--verbose`, `--config`, and `--parallel`, stay with the CLI.
+`init`, `reset`, and `plan` reject unknown flags.
+
+Use `--options` for a JSON object when values need explicit types, nested objects,
+or names that overlap with CLI flags:
+
+```sh
+isox build my-app --options '{"release":"001","settings":{"minify":true}}'
+```
+
+Explicit flags take precedence over `--options`. In multi-project execution,
+overrides apply only to the requested target; pre/post targets keep their own options.
 
 For `affected`, `plan`, and `run-many`, `--pre-targets` and `--post-targets` accept
 comma- or newline-separated command lists. Use `--pre-targets-json` and
@@ -65,12 +88,13 @@ applies if neither selects a name. Without any selection or default, only base
 options are used. An unknown configuration fails with an error. Names retain
 their exact spelling, including leading zeros in names such as `001`.
 
-Options are merged at the top level: `{ ...options, ...configurations[name] }`.
+Options are merged at the top level:
+`{ ...options, ...configurations[name], ...cliOverrides }`.
 Nested objects and arrays are replaced rather than recursively merged. This
 works with native and Nx executors, including automatically migrated Nx project
 files. The source configuration and workspace cache retain their original values;
 the selected options are computed for each invocation. Only one configuration
-can be selected per invocation. Other executor CLI flags are not forwarded.
+can be selected per invocation. Executor CLI flags override the selected configuration.
 
 ## Workspace cache
 

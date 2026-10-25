@@ -1,5 +1,6 @@
 import { selectProjects, validateProjectCommands } from '@isox-sh/core'
 
+import { executionOptions, getExecutorOverrides } from '../../shared/executor-options'
 import { selectionOptions, targetOptions, targetPlan } from '../../shared/options'
 import { runProjects } from '../../shared/run-projects'
 import { loadSelection } from '../../shared/selection'
@@ -12,7 +13,7 @@ interface AffectedActionOptions extends SelectionOptions, TargetOptions {
 }
 
 export function registerAffectedAction(cli: CAC): void {
-  targetOptions(selectionOptions(cli.command('affected', 'Run or print affected projects and their dependents')))
+  executionOptions(targetOptions(selectionOptions(cli.command('affected', 'Run or print affected projects and their dependents'))))
     .option('--print-matrix', 'Print a JSON array of project names without running commands')
     .example('isox affected --target=build --base=origin/main --print-matrix')
     .action(async (options: AffectedActionOptions) => {
@@ -26,7 +27,7 @@ export function registerAffectedAction(cli: CAC): void {
         process.stdout.write(`${JSON.stringify(projects)}\n`)
 
       } else {
-        await runProjects(selected.root, selected.workspace, projects, plan)
+        await runProjects(selected.root, selected.workspace, projects, plan, getExecutorOverrides(cli))
       }
     })
 }

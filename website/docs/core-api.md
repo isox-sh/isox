@@ -76,6 +76,10 @@ receive the merged options and a native `ExecutorContext` containing project,
 command, workspace, root paths, configuration name, verbosity, and logger.
 Context project/command records retain the original configuration.
 
+An optional eighth argument supplies executor option overrides. These replace
+base and named-configuration values at the top level without mutating the workspace.
+The CLI uses this argument for plugin flags such as `--fix`.
+
 Use `resetWorkspace()` to remove the detected workspace's `.isox` directory.
 Discovery reads cached project configuration until reset; this is not task-result
 caching.
