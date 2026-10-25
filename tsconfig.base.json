@@ -22,6 +22,8 @@
       "@isox-sh/js/*": ["./packages/js/src/*"],
       "@isox-sh/nx": ["./packages/nx/src/index.ts"],
       "@isox-sh/nx/*": ["./packages/nx/src/*"],
+      "@isox-sh/semver": ["./packages/semver/src"],
+      "@isox-sh/semver/*": ["./packages/semver/src/*"],
       "@isox-sh/vitest": ["./packages/vitest/src"],
       "@isox-sh/vitest/*": ["./packages/vitest/src/*"]
     }

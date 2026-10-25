@@ -42,7 +42,8 @@
           "docs/shell-commands",
           "docs/typescript",
           "docs/eslint",
-          "docs/vitest"
+          "docs/vitest",
+          "docs/semver"
         ]
       },
       {

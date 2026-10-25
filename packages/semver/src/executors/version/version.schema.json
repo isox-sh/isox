@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Release version executor",
+  "type": "object",
+  "properties": {
+    "dryRun": {
+      "type": "boolean",
+      "default": false,
+      "description": "Preview the release without writing files, Git changes, pushes, or post targets."
+    },
+    "releaseAs": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Override the calculated bump: major, minor, patch, or an exact semantic version."
+    },
+    "tagPrefix": {
+      "type": "string",
+      "description": "Git tag prefix. Defaults to {projectName}@ for independent releases or v with syncVersions. Supports {projectName}."
+    },
+    "push": {
+      "type": "boolean",
+      "default": false,
+      "description": "Atomically push the current branch and release tag before post targets."
+    },
+    "remote": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "default": "origin"
+    },
+    "postTargets": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          {
+            "type": "object",
+            "required": [
+              "target"
+            ],
+            "properties": {
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "options": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "default": []
+    },
+    "skipCommit": {
+      "type": "boolean",
+      "default": false,
+      "description": "Stage release files without creating a commit. The release tag points to the existing HEAD; pushing and post targets still run."
+    },
+    "syncVersions": {
+      "type": "boolean",
+      "default": false,
+      "description": "Release all versioned workspace package manifests together, using workspace history, a shared tag (v by default), and a root changelog."
+    },
+    "skipProjectChangelog": {
+      "type": "boolean",
+      "default": false,
+      "description": "Do not read or write project changelogs. Synchronized releases still generate the root changelog and release notes."
+    },
+    "commitMessageFormat": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "default": "chore({projectName}): Release {version}",
+      "description": "Release commit message with {projectName} and {version} placeholders. Ignored when skipCommit is true."
+    },
+    "preid": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*$",
+      "description": "Prerelease identifier such as alpha or beta. Calculated bumps start at <version>-<preid>.0; subsequent releases increment the counter unless a higher version is required. An exact releaseAs version takes precedence."
+    }
+  },
+  "additionalProperties": false
+}

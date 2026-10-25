@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "GitHub release executor",
+  "type": "object",
+  "required": [
+    "tag",
+    "notes"
+  ],
+  "properties": {
+    "tag": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "An existing tag already pushed to GitHub."
+    },
+    "notes": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "repository": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "GitHub repository as owner/repo (defaults to the current repository)."
+    },
+    "draft": {
+      "type": "boolean",
+      "default": false
+    },
+    "prerelease": {
+      "type": "boolean",
+      "default": false
+    },
+    "dryRun": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "additionalProperties": false
+}

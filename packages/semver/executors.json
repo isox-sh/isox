@@ -1,0 +1,14 @@
+{
+  "executors": {
+    "version": {
+      "implementation": "../../dist/semver/executors/version/version.executor.js",
+      "schema": "../../dist/semver/executors/version/version.schema.json",
+      "description": "Version a project from conventional commits and run post-release targets."
+    },
+    "github": {
+      "implementation": "../../dist/semver/executors/github/github.executor.js",
+      "schema": "../../dist/semver/executors/github/github.schema.json",
+      "description": "Create a GitHub release for an existing remote tag."
+    }
+  }
+}
