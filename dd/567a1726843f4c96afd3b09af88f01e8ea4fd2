@@ -1,0 +1,14 @@
+.github/workflows/pull-requests.yml
+  h_b13471b77746e9 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dd567a1726843f4c96afd3b09af88f01e8ea4fd2",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
