@@ -1,0 +1,94 @@
+package.json
+  s_47454cea8c60f4::t_dec7b99385a061 30
+  s_47454cea8c60f4::t_4f3b262b8517e0 24
+  s_51871bdcdb3b4c::t_aa24ec4598fa52 23
+e2e/tests/js-init.test.mjs
+  s_47454cea8c60f4::t_60bb7fd2c29f7a 24,33-35,39,41,51-52
+  s_47454cea8c60f4::t_bcf1f664c99ae7 16,20,23,27,30
+  s_47454cea8c60f4::t_f826fe6ebb472e 6,11-12,14-15
+  s_47454cea8c60f4::t_2da52595a13a96 2
+  s_47454cea8c60f4::t_55231544792f46 5,42
+  s_47454cea8c60f4::t_dc3b1847381a24 40
+  s_47454cea8c60f4::t_4f3b262b8517e0 1,3-4,7-10,17-19,21-22,25-26,28-29,31-32,36-38,43-50,53-60
+  s_51871bdcdb3b4c::t_63410460eacd72 13
+packages/e2e/package.json
+  s_51871bdcdb3b4c::t_63410460eacd72 6-10,21-23,26-28,30-32
+  s_47454cea8c60f4::t_dec7b99385a061 1-5,11-20,24-25,29,33
+packages/e2e/tests/workspace.test.mjs
+  s_47454cea8c60f4::t_6d06dddd15873a 142-146
+  s_47454cea8c60f4::t_55231544792f46 6,90,95
+  s_47454cea8c60f4::t_8bd4a7a6f06829 4
+  s_47454cea8c60f4::t_042d95d3bfed77 1-3,5,7-8,10-89,91-94,96-141,147-149
+  s_51871bdcdb3b4c::t_63410460eacd72 9
+packages/e2e/tsconfig.json
+  s_51871bdcdb3b4c::t_63410460eacd72 4,7-9
+  s_47454cea8c60f4::t_dec7b99385a061 1-3,5-6,10
+packages/e2e/project.json
+  s_47454cea8c60f4::t_dec7b99385a061 1-3,8-10,15,19,21-24
+  s_51871bdcdb3b4c::t_63410460eacd72 12-13
+  s_51871bdcdb3b4c::t_b2aaedf5d45698 4-7,11,14,16-18,20
+packages/e2e/src/index.ts
+  s_47454cea8c60f4::t_fbed24a4901a18 1-2
+docs/contributing.md
+  s_8aa3c3c8370b9b::t_3d5c2d579d1e02 1-35,37,39-40,43-53,55-56,58-68,70-92,95-97,99-100,139-151,154-156
+  s_51871bdcdb3b4c::t_96b4e928e47584 93-94,101,127-138
+  s_8aa3c3c8370b9b::t_06f6a03c459a30 152-153
+  s_51871bdcdb3b4c::t_285dfdeb75919f 122-125
+  s_47454cea8c60f4::t_6d06dddd15873a 36,38,41-42,54,57,69,98
+  s_47454cea8c60f4::t_45d3e3cab48886 102-121,126
+e2e/project.json
+  s_47454cea8c60f4::t_4f3b262b8517e0 1-3,5-11
+  s_47454cea8c60f4::t_dec7b99385a061 4
+e2e/vitest.config.mjs
+  s_47454cea8c60f4::t_4f3b262b8517e0 1-6
+.github/workflows/ci.yml
+  s_47454cea8c60f4::t_4f3b262b8517e0 48-50
+  s_47454cea8c60f4::t_dec7b99385a061 51-53
+packages/e2e/vitest.config.mjs
+  s_47454cea8c60f4::t_dec7b99385a061 1-6
+packages/e2e/src/create-workspace.ts
+  s_47454cea8c60f4::t_90d51a83fb3c45 1-24,26-35,37-44,46-52,54-56,58-60,62-95,97-104
+  s_51871bdcdb3b4c::t_839df6300cf19f 25,36,45,53,57,61,96
+packages/e2e/README.md
+  s_47454cea8c60f4::t_6d06dddd15873a 1-90
+packages/e2e/src/workspace.types.ts
+  s_47454cea8c60f4::t_90d51a83fb3c45 1-30
+.gitignore
+  s_47454cea8c60f4::t_24f416873892f2 11
+pnpm-lock.yaml
+  s_51871bdcdb3b4c::t_fb7dd07fae16fa 175-177,238-247
+scripts/bootstrap.cjs
+  s_51871bdcdb3b4c::t_f6e4923eb16b70 9,106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3e20196d4b5a91fce8dcfed122e826a7472a1356",
+  "prompts": {},
+  "sessions": {
+    "s_47454cea8c60f4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1729d-e4df-7cb2-b4f3-a0accef8a34b",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_8aa3c3c8370b9b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a172b3-29ff-7940-8e52-c64307ebdfed",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
