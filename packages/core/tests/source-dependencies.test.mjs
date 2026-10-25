@@ -95,3 +95,20 @@ test('recognizes quoted createRequire bindings and excludes shadowed functions',
   `
   assert.deepEqual([...sourceDependencies('example.cjs', source)].sort(), ['global', 'node:module', 'real'])
 })
+
+test('batch analysis isolates file bindings and returns runtime and type dependencies together', () => {
+  const { sourceDependencyBatch } = require('../../../dist/core')
+  const result = sourceDependencyBatch(new Map([
+    ['shadow.js', "const require = () => {}; require('not-a-dependency')"],
+    ['loader.js', "require('runtime')"],
+    ['types.ts', "import type { Shape } from 'types'; import { value } from 'runtime'"],
+    ['factory.cjs', "const { createRequire } = require('node:module'); const local = createRequire(__filename); local('local-runtime')"],
+    ['unrelated.cjs', "local('not-visible'); require('global-runtime')"],
+  ]))
+  assert.deepEqual([...result.get('shadow.js').all], [])
+  assert.deepEqual([...result.get('loader.js').runtime], ['runtime'])
+  assert.deepEqual([...result.get('types.ts').runtime], ['runtime'])
+  assert.deepEqual([...result.get('types.ts').all], ['types', 'runtime'])
+  assert.deepEqual([...result.get('factory.cjs').all], ['node:module', 'local-runtime'])
+  assert.deepEqual([...result.get('unrelated.cjs').all], ['global-runtime'])
+})

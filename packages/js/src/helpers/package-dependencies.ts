@@ -1,8 +1,7 @@
-import { readFile } from 'node:fs/promises'
 import { isBuiltin } from 'node:module'
 import { dirname, isAbsolute, resolve } from 'node:path'
 
-import { sourceDependencies } from '@isox-sh/core'
+import { readSourceDependencies } from '@isox-sh/core'
 import ts from 'typescript'
 
 import { canonical, inside } from './files'
@@ -56,13 +55,8 @@ export async function inferDependencies(
     }
   }
   const required = new Set<string>()
-  for (const file of sources) {
-    if (/\.d\.[cm]?ts$/.test(file)) {
-      continue
-    }
-    const source = await readFile(file, 'utf8')
-    const runtime = sourceDependencies(file, source)
-    for (const specifier of sourceDependencies(file, source, { includeTypes: true })) {
+  for await (const [file, { runtime, all }] of readSourceDependencies(sources.filter(file => !/\.d\.[cm]?ts$/.test(file)))) {
+    for (const specifier of all) {
       if (isBuiltin(specifier) || specifier.startsWith('.') || specifier.startsWith('#')
         || isAbsolute(specifier) || /^[a-z][a-z\d+.-]*:/i.test(specifier)) {
         continue

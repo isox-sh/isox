@@ -5,7 +5,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import fg from 'fast-glob'
 import ts from 'typescript'
 
-import { sourceDependencies } from '../utils/source-dependencies'
+import { readSourceDependencies } from '../utils/source-dependencies'
 
 import type { ProjectConfiguration, WorkspaceGraph } from './parser'
 
@@ -139,13 +139,14 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
       ...outputDirectories.map(output => `${fg.escapePath(relative(workspaceRoot, output).split(sep).join('/'))}/**`),
     ],
   })
-  for (const file of files.sort()) {
+  const sources = files.sort().filter(file => projects.some(project => inside(project.root, file)))
+  for await (const [file, { all }] of readSourceDependencies(sources)) {
     const source = projects.find(project => inside(project.root, file))
     if (!source) {
       continue
     }
     const { project, options } = source
-    for (const specifier of sourceDependencies(file, await readFile(file, 'utf8'), { includeTypes: true })) {
+    for (const specifier of all) {
       if (isBuiltin(specifier)) {
         continue
       }
