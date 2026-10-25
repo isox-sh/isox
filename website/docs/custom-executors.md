@@ -62,7 +62,7 @@ paths under `dist`:
 ```json
 {
   "name": "my-plugin",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "js:tsc",
       "options": {

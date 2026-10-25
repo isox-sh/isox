@@ -1,7 +1,7 @@
 {
   "$schema": "../packages/core/schemas/project.schema.json",
   "name": "website",
-  "executors": {
+  "targets": {
     "serve": {
       "executor": "core:run-command",
       "options": {

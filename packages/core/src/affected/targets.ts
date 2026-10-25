@@ -42,7 +42,7 @@ export function validateProjectCommands(workspace: WorkspaceGraph, projects: str
       throw new Error(`Project ${project} not found in workspace.`)
     }
 
-    const commands = workspace.projects[project].executors ?? {}
+    const commands = workspace.projects[project].targets ?? {}
     for (const { target, config } of stages) {
       if (Object.hasOwn(commands, target)) {
         resolveCommandOptions(commands[target], project, target, config)

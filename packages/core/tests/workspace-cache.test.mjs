@@ -48,14 +48,14 @@ test('caches the complete workspace and reuses it without reading project files'
     tags: ['app'],
     custom: { owner: 'demo-team', enabled: true },
     sourceRoot: 'apps/demo/src',
-    executors: { build: { executor: 'plugin:build', options: { nested: { value: 42 } }, custom: ['extra'] } },
+    targets: { build: { executor: 'plugin:build', options: { nested: { value: 42 } }, custom: ['extra'] } },
   }
   await write('apps/demo/project.json', project)
   await write('libs/lib/project.json', { name: 'lib' })
   await write('.isox/ignored/project.json', { name: 'ignored' })
   const discovered = await parseWorkspace(root)
   const cached = JSON.parse(await readFile(cacheFile, 'utf8'))
-  assert.equal(cached.version, 6)
+  assert.equal(cached.version, 8)
   assert.deepEqual(cached.projects.demo, { ...project, root: 'apps/demo' })
   assert.deepEqual(Object.keys(cached.projects).sort(), ['demo', 'lib'])
 
@@ -84,12 +84,12 @@ test('migrates Nx projects into the cache without modifying project files and re
 
   const workspace = await parseWorkspace(root)
   const migrated = workspace.projects.dashboard
-  assert.deepEqual(migrated.executors, project.targets)
+  assert.deepEqual(migrated.targets, project.targets)
   assert.deepEqual(migrated.dependencies, project.implicitDependencies)
   assert.deepEqual(migrated.custom, project.custom)
   assert.equal(migrated.sourceRoot, project.sourceRoot)
   assert.equal(migrated.root, 'apis/dashboard')
-  assert.equal(Object.hasOwn(migrated, 'targets'), false)
+  assert.equal(Object.hasOwn(migrated, 'executors'), false)
   assert.equal(Object.hasOwn(migrated, 'implicitDependencies'), false)
   const schema = JSON.parse(await readFile(fileURLToPath(migrated.$schema), 'utf8'))
   assert.equal(schema.title, 'Isox project')
@@ -112,16 +112,16 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
     { version: 2, projects: { stale: { name: 'stale', root: '.' } } },
     { version: 3, projects: { stale: { name: 'stale', root: '.' } } },
     { version: 5, projects: { stale: { name: 'stale', root: '.' } } },
-    { version: 6, projects: { demo: { name: 'demo', root: '.', $schema: 'nx/schemas/project-schema.json', targets: {} } } },
-    { version: 6, projects: { demo: { name: 'demo', root: '.', executors: [] } } },
+    { version: 8, projects: { demo: { name: 'demo', root: '.', $schema: 'nx/schemas/project-schema.json', targets: {} } } },
+    { version: 8, projects: { demo: { name: 'demo', root: '.', targets: [] } } },
     { version: 999, projects: {} },
-    { version: 6, projects: [] },
-    { version: 6, projects: { demo: { name: 'different', root: 'apps/demo' } } },
+    { version: 8, projects: [] },
+    { version: 8, projects: { demo: { name: 'different', root: 'apps/demo' } } },
   ]) {
     await write('.isox/workspace.json', content)
     const workspace = await parseWorkspace(root)
     assert.equal(workspace.projects.demo.root, 'apps/demo')
-    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 6)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 8)
   }
 })
 
@@ -159,16 +159,19 @@ test('reset removes a corrupt cache', async (t) => {
   await assert.rejects(stat(join(root, '.isox')), { code: 'ENOENT' })
 })
 
-test('rebuilds caches using the former commands field', async (t) => {
-  const { root, write, cacheFile } = await fixture(t)
-  const executors = { build: { executor: 'plugin:build' } }
-  await write('apps/demo/project.json', { name: 'demo', executors })
-  await write('.isox/workspace.json', {
-    version: 4,
-    projects: { demo: { name: 'demo', root: 'apps/demo', commands: executors } },
+for (const [field, version] of [['commands', 4], ['executors', 7]]) {
+  test(`rebuilds caches using the former ${field} field`, async t => {
+    const { root, write, cacheFile } = await fixture(t)
+    const targets = { build: { executor: 'plugin:build' } }
+    await write('apps/demo/project.json', { name: 'demo', targets })
+    await write('.isox/workspace.json', {
+      version,
+      projects: { demo: { name: 'demo', root: 'apps/demo', [field]: targets } },
+    })
+    const workspace = await parseWorkspace(root)
+    assert.deepEqual(workspace.projects.demo.targets, targets)
+    assert.equal(Object.hasOwn(workspace.projects.demo, field), false)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 8)
+    assert.deepEqual(await parseWorkspace(root), workspace)
   })
-  const workspace = await parseWorkspace(root)
-  assert.deepEqual(workspace.projects.demo.executors, executors)
-  assert.equal(Object.hasOwn(workspace.projects.demo, 'commands'), false)
-  assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 6)
-})
+}

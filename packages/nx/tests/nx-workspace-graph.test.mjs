@@ -22,7 +22,7 @@ async function fixture(t, executor) {
   await write('isox.json', { nx: { executors: ['@nx'] } })
   await write('apps/demo/project.json', {
     name: 'demo', dependencies: ['shared'],
-    executors: { build: { executor: '@nx/fixture:build', options: { answer: 42 } } },
+    targets: { build: { executor: '@nx/fixture:build', options: { answer: 42 } } },
   })
   await write('libs/shared/project.json', { name: 'shared' })
   await write('node_modules/@nx/fixture/package.json', { name: '@nx/fixture', executors: './executors.json' })

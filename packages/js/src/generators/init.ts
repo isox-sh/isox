@@ -66,7 +66,7 @@ const init: ProjectInitializer = async (options, context) => {
     await mkdir(join(projectRoot, 'src'))
     await writeJson('project.json', {
       name: projectName,
-      executors: {
+      targets: {
         build: {
           executor: '@isox-sh/js:tsc',
           options: { tsConfig: relativePath(workspaceRoot, join(projectRoot, 'tsconfig.build.json')) },

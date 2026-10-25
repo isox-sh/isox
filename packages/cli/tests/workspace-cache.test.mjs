@@ -28,7 +28,7 @@ test('reset removes the whole cache from nested directories and the next CLI run
   const { root, write, cacheFile } = await fixture(t)
   const project = {
     name: 'demo',
-    executors: { build: { executor: 'fixture-plugin:build', options: { success: true } } },
+    targets: { build: { executor: 'fixture-plugin:build', options: { success: true } } },
   }
   await write('apps/demo/project.json', project)
   await write('node_modules/fixture-plugin/package.json', { executors: './executors.json' })
@@ -42,7 +42,7 @@ test('reset removes the whole cache from nested directories and the next CLI run
   let result = run('run', 'demo:build')
   assert.equal(result.status, 0, result.stderr)
   assert.ok((await stat(cacheFile)).isFile())
-  project.executors.build.options.success = false
+  project.targets.build.options.success = false
   await write('apps/demo/project.json', project)
   result = run('run', 'demo:build')
   assert.equal(result.status, 0, result.stderr)
@@ -59,7 +59,7 @@ test('reset removes the whole cache from nested directories and the next CLI run
   assert.equal(result.status, 1)
   assert.match(result.stderr, /Task failed for demo/)
   const recreated = JSON.parse(await readFile(cacheFile, 'utf8'))
-  assert.equal(recreated.projects.demo.executors.build.options.success, false)
+  assert.equal(recreated.projects.demo.targets.build.options.success, false)
 })
 
 test('reset works with a corrupt cache and rejects locations without a workspace marker', async (t) => {

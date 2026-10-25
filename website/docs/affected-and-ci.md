@@ -91,7 +91,7 @@ Set a positive numeric `plan.weight` in `project.json`:
   "name": "api",
   "dependencies": ["shared"],
   "plan": { "weight": 5 },
-  "executors": {
+  "targets": {
     "test": { "executor": "vitest:test" }
   }
 }

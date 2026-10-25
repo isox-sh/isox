@@ -11,11 +11,11 @@ import type { ExecutorContext, ExecutorOutput } from '@isox-sh/core'
 /** Adapt Isox configuration and Nx dependency metadata without Nx's scheduler. */
 async function createNxContext(context: ExecutorContext, pluginPackagePath: string) {
   const projects: Record<string, NxProjectConfiguration> = Object.fromEntries(Object.entries(context.workspace.projects).map(([name, project]) => {
-    const { executors, dependencies, ...metadata } = project
+    const { targets, dependencies, ...metadata } = project
     return [name, {
       ...metadata,
       name,
-      targets: executors ?? {},
+      targets: targets ?? {},
       implicitDependencies: dependencies ?? [],
       tags: project.tags ?? [],
     }]

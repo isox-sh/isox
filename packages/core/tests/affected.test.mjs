@@ -12,7 +12,7 @@ const { createProjectGraph, getAffectedProjects, getGitChanges, createProjectMat
 
 function workspace(definitions) {
   return { projects: Object.fromEntries(Object.entries(definitions).map(([name, extra]) => [name, {
-    name, root: `packages/${name}`, executors: { build: { executor: 'core:run-command' } }, ...extra,
+    name, root: `packages/${name}`, targets: { build: { executor: 'core:run-command' } }, ...extra,
   }])) }
 }
 
@@ -92,7 +92,7 @@ test('default weights balance by count, with no empty shards or duplicate projec
 })
 
 test('plans apply ci=off and command filters only after dependent propagation', () => {
-  const graph = workspace({ lib: { tags: ['ci=off'] }, app: { dependencies: ['lib'], tags: ['resource=web'] }, other: { executors: {} } })
+  const graph = workspace({ lib: { tags: ['ci=off'] }, app: { dependencies: ['lib'], tags: ['resource=web'] }, other: { targets: {} } })
   const selected = getAffectedProjects(graph, ['packages/lib/a.ts'])
   const plan = createProjectMatrix(graph, selected, [{ target: 'build', tag: 'resource=web' }])
   assert.deepEqual(plan.include[0].projects, ['app'])
@@ -114,7 +114,7 @@ test('plans validate numbers, matrix limits, configurations and pre/post stages'
 })
 
 test('plans preserve schema-valid comma-containing stage names and their configurations', () => {
-  const graph = workspace({ app: { executors: {
+  const graph = workspace({ app: { targets: {
     build: { executor: 'core:run-command' },
     'prepare,assets': { executor: 'core:run-command', configurations: { acc: {} } },
     '--finish,assets': { executor: 'core:run-command' },

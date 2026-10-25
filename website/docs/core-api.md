@@ -30,7 +30,7 @@ Add a command to a project's `project.json`:
 ```json
 {
   "name": "web",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "@isox-sh/core:run-command",
       "options": {

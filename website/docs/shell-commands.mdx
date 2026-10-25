@@ -16,7 +16,7 @@ For a project that already has a `build` script in `apps/web/package.json`, crea
 ```json apps/web/project.json
 {
   "name": "web",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "core:run-command",
       "options": {
@@ -64,7 +64,7 @@ Put tool flags in `command`. Use named configurations for repeatable variants:
 }
 ```
 
-If this definition is stored under `executors.check`, run
+If this definition is stored under `targets.check`, run
 `isox check web --config=strict`. The example assumes your workspace provides
 `scripts/check.mjs` and that it accepts `--strict`.
 

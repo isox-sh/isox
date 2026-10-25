@@ -79,7 +79,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
   test(`CLI watch handles ${signal} without orphaning its compiler or reporting final completion`, async t => {
     const { root, projectRoot, write } = await fixture(t)
     await write('../../isox.json', {})
-    await write('project.json', { name: 'demo', executors: { build: { executor: 'js:tsc', options: { watch: true, pollInterval: 100 } } } })
+    await write('project.json', { name: 'demo', targets: { build: { executor: 'js:tsc', options: { watch: true, pollInterval: 100 } } } })
     const link = join(root, 'node_modules/@isox-sh/js')
     await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
     await symlink(resolve(import.meta.dirname, '../../../dist/js'), link, process.platform === 'win32' ? 'junction' : 'dir')

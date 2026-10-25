@@ -70,7 +70,7 @@ test('links arbitrary scoped and unscoped plugin directories and runs their real
   await workspace.runIsox(['init'])
   await writeJson('project.json', {
     name: 'external',
-    executors: {
+    targets: {
       build: { executor: '@example/compiler:build', options: { output: 'scoped.txt' } },
       other: { executor: 'custom-plugin:build', options: { output: 'unscoped.txt' } },
     },

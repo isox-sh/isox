@@ -101,12 +101,12 @@ test('nx.executors changes apply with an existing workspace cache', async (t) =>
     }`,
   })
   await runExecutor(workspace, 'demo', 'build', root)
-  workspace.projects.demo.executors.build.options.nx = true
+  workspace.projects.demo.targets.build.options.nx = true
   await write('isox.json', { nx: { executors: ['@nx-extend'] } })
   const cached = await parseWorkspace(root)
-  cached.projects.demo.executors.build.options.nx = true
+  cached.projects.demo.targets.build.options.nx = true
   await runExecutor(cached, 'demo', 'build', root)
-  workspace.projects.demo.executors.build.options.nx = false
+  workspace.projects.demo.targets.build.options.nx = false
   await write('isox.json', { nx: { executors: [] } })
   await runExecutor(workspace, 'demo', 'build', root)
 })
@@ -133,12 +133,12 @@ test('@nx packages use the adapter only when selected by nx.executors', async (t
       return { success: true }
     }`,
   })
-  workspace.projects.demo.executors.build.options.nx = true
+  workspace.projects.demo.targets.build.options.nx = true
   for (const entry of ['@nx', '@nx/fixture']) {
     await write('isox.json', { nx: { executors: [entry] } })
     await runExecutor(workspace, 'demo', 'build', root)
   }
-  workspace.projects.demo.executors.build.options.nx = false
+  workspace.projects.demo.targets.build.options.nx = false
   for (const settings of [{}, { nx: {} }, { nx: { executors: [] } }, { nx: { executors: ['@nx-extend'] } }]) {
     await write('isox.json', settings)
     await runExecutor(workspace, 'demo', 'build', root)
@@ -244,7 +244,7 @@ test('similar package prefixes still receive the native context and ignore nx.js
     source: `module.exports = (options, context) => {
       const assert = require('node:assert/strict')
       assert.equal(context.commandName, 'build')
-      assert.equal(context.workspace.projects.demo.executors.build.executor, '@nx-custom/fixture:build')
+      assert.equal(context.workspace.projects.demo.targets.build.executor, '@nx-custom/fixture:build')
       assert.equal(Object.hasOwn(context, 'targetName'), false)
       return { success: true }
     }`,
@@ -318,7 +318,7 @@ for (const [label, manifest, source, expected] of [
       await write('node_modules/@nx/fixture/config/executors.json', manifest)
     }
     if (label === 'inherited executor') {
-      workspace.projects.demo.executors.build.executor = '@nx/fixture:toString'
+      workspace.projects.demo.targets.build.executor = '@nx/fixture:toString'
     }
     await assert.rejects(runExecutor(workspace, 'demo', 'build', root), expected)
   })

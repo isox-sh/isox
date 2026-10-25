@@ -33,14 +33,14 @@ continue to control dependency installation and package linking.
 
 ## Commands and executors
 
-A **command** is a named entry under a project's `executors` object, such as
+A **command** is a named entry under a project's `targets` object, such as
 `build`, `lint`, or `test`. An **executor** is the implementation that runs it.
 Commands can have any name; `build` has no special scheduling behavior.
 
 ```json
 {
   "name": "shared",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "js:tsc",
       "options": { "tsConfig": "packages/shared/tsconfig.json" }

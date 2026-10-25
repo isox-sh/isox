@@ -26,7 +26,7 @@ for (const pathStyle of ['relative', 'absolute']) {
     await runIsox(['init', '@isox-sh/js', projectPath, '--importPath=@org/test'])
     const project = await readJson('project.json', projectContext)
     assert.equal(project.name, 'test')
-    assert.equal(project.executors.build.executor, '@isox-sh/js:tsc')
+    assert.equal(project.targets.build.executor, '@isox-sh/js:tsc')
     assert.deepEqual((await readJson('tsconfig.base.json', workspaceContext)).compilerOptions.paths, {
       '@org/test': ['./packages/test/src/index.ts'],
     })

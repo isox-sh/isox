@@ -22,7 +22,7 @@ export async function runExecutor(
     throw new Error(`Project ${projectName} not found in workspace.`)
   }
 
-  const command = Object.hasOwn(project.executors ?? {}, commandName) ? project.executors?.[commandName] : undefined
+  const command = Object.hasOwn(project.targets ?? {}, commandName) ? project.targets?.[commandName] : undefined
   if (!command) {
     throw new Error(`Command ${commandName} not found in project ${projectName}.`)
   }

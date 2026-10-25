@@ -21,7 +21,7 @@ rule plugins installed in the workspace.
 ```json
 {
   "name": "my-app",
-  "executors": {
+  "targets": {
     "lint": {
       "executor": "eslint:lint",
       "options": {

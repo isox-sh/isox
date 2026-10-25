@@ -23,7 +23,7 @@ npm install --save-dev @isox-sh/vitest vitest
 ```json
 {
   "name": "web",
-  "executors": {
+  "targets": {
     "test": {
       "executor": "vitest:test"
     }

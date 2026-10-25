@@ -18,7 +18,7 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
       if (controller.signal.aborted) {
         break
       }
-      const queue = projects.filter(name => Object.hasOwn(workspace.projects[name].executors ?? {}, stage.target))
+      const queue = projects.filter(name => Object.hasOwn(workspace.projects[name].targets ?? {}, stage.target))
       let next = 0
       let failure: Error | undefined
       const worker = async () => {

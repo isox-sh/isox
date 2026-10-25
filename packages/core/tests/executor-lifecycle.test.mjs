@@ -21,7 +21,7 @@ async function fixture(t, source) {
   await write('node_modules/@fixture/plugin/package.json', { executors: './executors.json' })
   await write('node_modules/@fixture/plugin/executors.json', { executors: { build: { implementation: './build.cjs' } } })
   await write('node_modules/@fixture/plugin/build.cjs', source)
-  const workspace = { projects: { demo: { name: 'demo', root: '.', executors: { build: { executor: '@fixture/plugin:build' } } } } }
+  const workspace = { projects: { demo: { name: 'demo', root: '.', targets: { build: { executor: '@fixture/plugin:build' } } } } }
   const logs = []
   const logger = createLogger({ level: LogLevels.debug, reporters: [{ log: entry => logs.push(entry) }] })
   return { root, workspace, logs, logger }

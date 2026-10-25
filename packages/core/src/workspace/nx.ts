@@ -28,16 +28,12 @@ export function migrateNxProject(
   isoxSchema: string,
 ): Record<string, unknown> {
   const migrated: Record<string, unknown> = { ...project, $schema: isoxSchema }
-  for (const [nxField, isoxField] of [['targets', 'executors'], ['implicitDependencies', 'dependencies']]) {
-    if (!Object.hasOwn(project, nxField)) {
-      continue
+  if (Object.hasOwn(project, 'implicitDependencies')) {
+    if (Object.hasOwn(project, 'dependencies')) {
+      throw new Error(`Invalid project configuration in ${file}: Nx schema defines both implicitDependencies and dependencies. Keep one field before migrating.`)
     }
-
-    if (Object.hasOwn(project, isoxField)) {
-      throw new Error(`Invalid project configuration in ${file}: Nx schema defines both ${nxField} and ${isoxField}. Keep one field before migrating.`)
-    }
-    migrated[isoxField] = project[nxField]
-    delete migrated[nxField]
+    migrated.dependencies = project.implicitDependencies
+    delete migrated.implicitDependencies
   }
 
   return migrated

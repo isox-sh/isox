@@ -22,7 +22,11 @@ that use the Nx executor adapter.
 
 ## Project definitions
 
-The project definition uses `name`, `dependencies` (project names), `executors`,
+Existing Isox projects using the former `executors` field should rename it to
+`targets`. Plugin `executors.json` registries and `nx.executors` settings keep
+their existing names. Older workspace caches are rebuilt automatically.
+
+The project definition uses `name`, `dependencies` (project names), `targets`,
 `tags`, and optional `plan.weight`. Each command specifies an `executor`, optional `options`, and optional
 `configurations` and `defaultConfiguration`. The
 project root comes from the file's location; an omitted name defaults to that
@@ -34,7 +38,7 @@ directory's name. Dependencies and tags are optional. For example:
   "name": "cli",
   "dependencies": ["core"],
   "plan": { "weight": 3 },
-  "executors": {
+  "targets": {
     "build": {
       "executor": "js:tsc",
       "options": {

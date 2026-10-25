@@ -36,7 +36,7 @@ Create a directory named `apps/hello` with this `project.json`:
 ```json apps/hello/project.json
 {
   "name": "hello",
-  "executors": {
+  "targets": {
     "greet": {
       "executor": "core:run-command",
       "options": {
@@ -97,7 +97,7 @@ For an existing npm workspace named `@example/web` with a `build` script, create
 {
   "name": "web",
   "dependencies": [],
-  "executors": {
+  "targets": {
     "build": {
       "executor": "@isox-sh/core:run-command",
       "options": {

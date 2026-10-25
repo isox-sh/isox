@@ -9,7 +9,7 @@ simple, inspectable, and independent of Nx and background daemons.
 
 This preserves the original blueprint's orchestration goals while reflecting
 our decision to use Isox's own contract. Projects use `project.json` with
-`dependencies` and `executors`; executor packages expose an `executors.json`
+`dependencies` and `targets`; executor packages expose an `executors.json`
 manifest and receive Isox's native context. The runtime uses TypeScript/Node.js,
 `cac` for CLI parsing, and `fast-glob` for discovery.
 

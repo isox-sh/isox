@@ -51,8 +51,8 @@ custom executors, scripts, and application code as well as CLI invocations.
 ## 2. Use Isox's project definition
 
 For gradual migration, Isox can read existing Nx-schema `project.json` files
-directly. A recognized Nx `$schema` triggers in-memory conversion of `targets`
-to `executors` and `implicitDependencies` to `dependencies`. Options and custom
+directly. A recognized Nx `$schema` preserves `targets` and triggers in-memory
+conversion of `implicitDependencies` to `dependencies`. Options and custom
 metadata survive; `$schema` becomes a file URL to the bundled Isox schema in the
 converted workspace cache. Source files stay unchanged. Recognized schemas
 include local `nx/schemas/project-schema.json` and legacy
@@ -62,8 +62,8 @@ No schema is downloaded during discovery.
 
 Migration is selected by `$schema`, not by field names alone. Files with no
 schema or another schema are treated as Isox definitions with optional extra
-metadata. A file defining both `targets` and `executors`, or both dependency field
-names, must be resolved before automatic conversion. This does not resolve
+metadata. A file defining both `implicitDependencies` and `dependencies` must be
+resolved before automatic conversion. This does not resolve
 inferred targets, target defaults, or targets using only shell-command shorthand;
 commands still need explicit executor references and effective options.
 
@@ -88,7 +88,7 @@ and executor context without giving them built-in scheduling behavior:
   "$schema": "../../node_modules/@isox-sh/core/schemas/project.schema.json",
   "name": "cli",
   "dependencies": ["core"],
-  "executors": {
+  "targets": {
     "build": {
       "executor": "@isox-sh/core:run-command",
       "options": {
@@ -115,7 +115,7 @@ source of truth if migrating against a different Isox version.
 - Names must be unique and contain no whitespace or colons. An omitted name
   defaults to the containing directory's name. The project root is derived from
   the location of `project.json`; do not add a `root` field.
-- Rename `targets` to `executors`. A command requires `executor` and accepts optional
+- Keep `targets`. A command requires `executor` and accepts optional
   `options` plus additional metadata. Executors use `package:executor` references; options must be objects.
 - Convert manual dependencies to explicit Isox project names in `dependencies`.
   Resolve any Nx patterns and exclusions before converting them. Isox also infers
@@ -212,7 +212,7 @@ such as:
 ```json
 {
   "name": "shared",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "@nx/js:tsc",
       "options": {

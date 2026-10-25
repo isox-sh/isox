@@ -82,7 +82,7 @@ test('preserves project path overrides, configDir output paths, implicit inputs,
   await write('src/index.ts', `import { answer } from '@fixture/lib'
     export const result = answer + ambientMarker`)
   // Select the declaration directory from the dependency's default build configuration.
-  context.workspace.projects.lib.executors = {
+  context.workspace.projects.lib.targets = {
     build: {
       executor: 'js:tsc', defaultConfiguration: 'acc',
       configurations: { acc: { tsConfig: 'packages/lib/tsconfig.acc.json' } },

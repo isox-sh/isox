@@ -2,7 +2,7 @@
   "$schema": "../core/schemas/project.schema.json",
   "name": "nx",
   "plan": { "weight": 1 },
-  "executors": {
+  "targets": {
     "build": {
       "executor": "js:tsc",
       "options": {

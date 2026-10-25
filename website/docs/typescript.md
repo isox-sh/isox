@@ -46,7 +46,7 @@ Install `@isox-sh/js` in your workspace, then define a project command:
 ```json
 {
   "name": "web",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "@isox-sh/js:tsc",
       "options": {

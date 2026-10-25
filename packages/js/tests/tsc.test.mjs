@@ -61,7 +61,7 @@ test('CLI loads the manifest and merges configurations using workspace-relative 
   await writeFile(join(root, 'isox.json'), '{}')
   await write('project.json', {
     name: 'demo',
-    executors: {
+    targets: {
       build: {
         executor: '@isox-sh/js:tsc',
         options: { tsConfig: 'missing.json' },

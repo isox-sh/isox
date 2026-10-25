@@ -56,7 +56,7 @@ test('numeric-looking Git refs, names, tags and configurations retain their exac
     defaultConfiguration: '001',
     configurations: { '001': { marker: 'leading-zero', delay: 0 } },
   }
-  await project('007', { tags: ['007'], executors: { '01': command, '02': command, '03': command } })
+  await project('007', { tags: ['007'], targets: { '01': command, '02': command, '03': command } })
   commit()
 
   const planned = run('plan', '-t=01', '--base=2026', '--tag=007', '-c=001')
@@ -154,7 +154,7 @@ test('run-many fails before executing invalid exact plans and treats an empty li
 
 test('worker failures stop pending projects and post stages', async t => {
   const { root, project, run } = await affectedFixture(t)
-  await project('lib', { executors: { build: { executor: '@fixture/plugin:record', options: { fail: true } } } })
+  await project('lib', { targets: { build: { executor: '@fixture/plugin:record', options: { fail: true } } } })
   const result = run('run-many', '--target=build', '--projects-json', '["lib","app"]', '--parallel=1', '--post-targets=finish')
   assert.equal(result.status, 1)
   assert.deepEqual((await events(root)).map(event => event.project), ['lib', 'lib'])
@@ -182,7 +182,7 @@ test('shared tooling glob changes select all projects', async t => {
 
 test('worker cancellation propagates to children and exits with the signal status', async t => {
   const { root, project } = await affectedFixture(t)
-  await project('lib', { executors: { build: { executor: '@fixture/plugin:record', options: { delay: 60_000 } } } })
+  await project('lib', { targets: { build: { executor: '@fixture/plugin:record', options: { delay: 60_000 } } } })
   const child = spawn(process.execPath, [cliPath, 'run-many', '--target=build', '--projects-json', '["lib"]'], { cwd: root, stdio: 'ignore' })
   t.onTestFinished(() => child.kill('SIGKILL'))
   const closed = new Promise(resolve => child.on('close', (code, signal) => resolve({ code, signal })))

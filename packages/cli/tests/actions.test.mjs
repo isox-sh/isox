@@ -128,7 +128,7 @@ test('planner and worker preserve exact stage names and reject invalid stages th
     configurations: { acc: { marker: `${marker}-acc` } },
   })
   const decoy = { executor: '@fixture/plugin:record', options: { fail: true, delay: 0 } }
-  await project('lib', { tags: ['stage-names'], executors: {
+  await project('lib', { tags: ['stage-names'], targets: {
     build: command('build'),
     'prepare,assets': command('prepare'),
     '--finish,assets': command('finish'),

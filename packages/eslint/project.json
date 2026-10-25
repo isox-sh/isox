@@ -1,7 +1,7 @@
 {
   "$schema": "../core/schemas/project.schema.json",
   "name": "eslint",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "js:tsc",
       "options": {

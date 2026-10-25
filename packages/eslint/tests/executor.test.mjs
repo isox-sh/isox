@@ -22,7 +22,7 @@ async function fixture(t) {
     await writeFile(path, typeof value === 'string' ? value : JSON.stringify(value))
   }
   await write('isox.json', {})
-  await write('apps/demo project/project.json', { name: 'demo', executors: { lint: { executor: 'eslint:lint' } } })
+  await write('apps/demo project/project.json', { name: 'demo', targets: { lint: { executor: 'eslint:lint' } } })
   await write('eslint.config.mjs', "export default [{ rules: { 'no-debugger': 'error', 'no-unused-vars': 'warn', semi: ['error', 'never'] } }]")
   await write('apps/demo project/index.js', 'export const value = 1\n')
   await write('unrelated/index.js', 'debugger\n')
@@ -34,7 +34,7 @@ async function fixture(t) {
   })
   const configure = async options => {
     await write('apps/demo project/project.json', {
-      name: 'demo', executors: { lint: { executor: '@isox-sh/eslint:lint', options } },
+      name: 'demo', targets: { lint: { executor: '@isox-sh/eslint:lint', options } },
     })
     await rm(join(root, '.isox'), { recursive: true, force: true })
   }
@@ -77,7 +77,7 @@ test('uses workspace-relative configuration overrides', async t => {
   await write('config/custom lint.mjs', 'export default [{ rules: {} }]')
   await write('apps/demo project/index.js', 'debugger\n')
   await write('apps/demo project/project.json', {
-    name: 'demo', executors: { lint: {
+    name: 'demo', targets: { lint: {
       executor: 'eslint:lint', options: { configFile: 'missing.mjs' },
       configurations: { ci: { configFile: 'config/custom lint.mjs' } },
     } },

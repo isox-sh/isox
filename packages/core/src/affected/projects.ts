@@ -53,7 +53,7 @@ export function selectProjects(workspace: WorkspaceGraph, projects: string[], ta
       throw new Error(`Project ${name} not found in workspace.`)
     }
     const project = workspace.projects[name]
-    return Object.hasOwn(project.executors ?? {}, target)
+    return Object.hasOwn(project.targets ?? {}, target)
       && !project.tags?.includes('ci=off')
       && matches(project.tags ?? [])
   })

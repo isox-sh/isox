@@ -22,7 +22,7 @@ async function fixture(t) {
     await writeFile(path, typeof value === 'string' ? value : JSON.stringify(value))
   }
   await write('isox.json', {})
-  await write('apps/demo project/project.json', { name: 'demo', executors: { test: { executor: 'vitest:test' } } })
+  await write('apps/demo project/project.json', { name: 'demo', targets: { test: { executor: 'vitest:test' } } })
   await write('apps/demo project/tests/example.test.mjs', "import { test, expect } from 'vitest'\ntest('passes', () => expect(1).toBe(1))")
   await write('unrelated/failure.test.mjs', "throw new Error('must not scan sibling projects')")
   for (const [name, target] of [
@@ -65,7 +65,7 @@ test('supports scoped executors and configuration overrides with workspace-relat
   const { root, write, run } = await fixture(t)
   await write('apps/demo project/project.json', {
     name: 'demo',
-    executors: {
+    targets: {
       test: {
         executor: '@isox-sh/vitest:test',
         options: { configFile: 'missing.config.mjs' },

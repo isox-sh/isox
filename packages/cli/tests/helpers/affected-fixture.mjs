@@ -36,7 +36,7 @@ module.exports = async (options, context) => {
 `)
   const project = async (name, extra = {}) => {
     const command = { executor: '@fixture/plugin:record', options: { marker: 'base' }, configurations: { production: { marker: 'prod' } } }
-    await write(`packages/${name}/project.json`, { name, executors: { build: command, prepare: command, finish: command }, ...extra })
+    await write(`packages/${name}/project.json`, { name, targets: { build: command, prepare: command, finish: command }, ...extra })
   }
   await project('lib')
   await project('app', { dependencies: ['lib'] })

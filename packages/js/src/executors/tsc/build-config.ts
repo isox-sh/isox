@@ -48,8 +48,8 @@ export function buildConfiguration(tsConfig: string, context: ExecutorContext) {
       return absolute
     }
 
-    const commandName = owner.project.executors?.[context.commandName] ? context.commandName : 'build'
-    const command = owner.project.executors?.[commandName]
+    const commandName = owner.project.targets?.[context.commandName] ? context.commandName : 'build'
+    const command = owner.project.targets?.[commandName]
     const configuration = context.configurationName && Object.hasOwn(command?.configurations ?? {}, context.configurationName)
       ? context.configurationName
       : undefined

@@ -27,7 +27,7 @@ and clear `nx.executors`. Retaining the adapter is an incomplete migration.
 
 When the workspace root contains `nx.json`, `isox init` includes `@nx` in
 `nx.executors`, so executors such as `@nx/js:tsc` use the separate Nx adapter.
-Project files still use Isox's `executors` and `dependencies`. To always use the Nx
+Project files still use Isox's `targets` and `dependencies`. To always use the Nx
 adapter for additional scopes or packages, configure `nx.executors` in `isox.json`:
 
 ```json
@@ -93,8 +93,8 @@ of drop-in compatibility. The native runner does not read `nx.json`.
 
 ## Project conversion
 
-When `$schema` references Nx's project schema, discovery converts `targets` to
-`executors` and `implicitDependencies` to `dependencies` in memory. It preserves
+When `$schema` references Nx's project schema, discovery keeps the `targets` field
+and converts `implicitDependencies` to `dependencies` in memory. It preserves
 options and additional metadata and replaces `$schema` with a file URL to the
 bundled Isox schema. The converted graph is written to `.isox/workspace.json`;
 the original `project.json` is never modified. Recognized references include
@@ -102,12 +102,12 @@ local `nx/schemas/project-schema.json` and legacy
 `@nrwl/workspace/schemas/project-schema.json` paths, Nx's project-configuration
 schema identifier on `nx.dev`, and the schema in the official raw GitHub repository.
 Files with another schema or no schema retain their fields as written. A file
-that defines both names of a mapped field (such as `targets` and `executors`)
+that defines both `implicitDependencies` and `dependencies`
 reports an error instead of discarding either value.
 
 This conversion covers explicitly configured targets with an `executor`;
 inferred targets, target defaults, and shell-command shorthand are not resolved.
-Commands execute through the resulting `executors` field. Extra metadata
+Commands execute through the resulting `targets` field. Extra metadata
 does not automatically enable `dependsOn` scheduling, `inputs`, or `outputs`
 processing. The resolved `name` and file-derived `root`
 remain authoritative in the workspace graph.
@@ -119,7 +119,7 @@ Keep the original executor reference in `project.json`:
 ```json
 {
   "name": "web",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "@nx/js:tsc",
       "options": {

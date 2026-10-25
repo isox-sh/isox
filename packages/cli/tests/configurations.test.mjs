@@ -42,7 +42,7 @@ async function fixture(t, nx = false) {
   const project = {
     name: 'demo',
     ...(nx ? { $schema: '../../node_modules/nx/schemas/project-schema.json' } : {}),
-    [nx ? 'targets' : 'executors']: { build: command },
+    targets: { build: command },
   }
   await write('isox.json', { nx: { executors: ['@nx'] } })
   await write('apps/demo/project.json', project)
@@ -57,7 +57,7 @@ async function fixture(t, nx = false) {
         configurationName: context.configurationName,
         baseOptions: command.options,
         taskGraph: context.taskGraph,
-        graphOptions: nx ? context.projectGraph.nodes.demo.data.targets.build.options : context.workspace.projects.demo.executors.build.options,
+        graphOptions: nx ? context.projectGraph.nodes.demo.data.targets.build.options : context.workspace.projects.demo.targets.build.options,
       }))
       return { success: true }
     }
@@ -106,7 +106,7 @@ for (const nx of [false, true]) {
       }
     }
     const cached = JSON.parse(await readFile(join(root, '.isox/workspace.json'), 'utf8'))
-    assert.deepEqual(cached.projects.demo.executors.build, command)
+    assert.deepEqual(cached.projects.demo.targets.build, command)
     assert.deepEqual(JSON.parse(await readFile(join(root, 'apps/demo/project.json'), 'utf8')), project)
   })
 }

@@ -21,7 +21,7 @@ export interface ProjectDefinition {
   name?: string
   /** Additional project names; discovery merges these with inferred dependencies. */
   dependencies?: string[]
-  executors?: Record<string, ExecutorConfiguration>
+  targets?: Record<string, ExecutorConfiguration>
   tags?: string[]
   plan?: {
     [key: string]: unknown

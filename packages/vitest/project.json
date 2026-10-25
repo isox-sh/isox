@@ -1,7 +1,7 @@
 {
   "$schema": "../core/schemas/project.schema.json",
   "name": "vitest",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "js:tsc",
       "options": {

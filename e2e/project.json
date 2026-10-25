@@ -3,7 +3,7 @@
   "name": "e2e",
   "plan": { "weight": 2 },
   "dependencies": ["js", "vitest"],
-  "executors": {
+  "targets": {
     "test": {
       "executor": "vitest:test"
     }

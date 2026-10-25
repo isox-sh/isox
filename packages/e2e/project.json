@@ -1,7 +1,7 @@
 {
   "$schema": "../core/schemas/project.schema.json",
   "name": "e2e-plugin",
-  "executors": {
+  "targets": {
     "build": {
       "executor": "js:tsc",
       "options": {

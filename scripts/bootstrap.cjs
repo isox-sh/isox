@@ -71,7 +71,7 @@ function seed(name) {
 function compileSeed(name) {
   const projectRoot = resolve(root, 'packages', name)
   const project = JSON.parse(readFileSync(resolve(projectRoot, 'project.json'), 'utf8'))
-  const command = project.executors.build
+  const command = project.targets.build
   if (!['js:tsc', '@isox-sh/js:tsc'].includes(command.executor)) {
     throw new Error(`Bootstrap requires the TypeScript executor for ${name}.`)
   }
