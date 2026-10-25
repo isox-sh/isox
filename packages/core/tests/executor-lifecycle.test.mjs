@@ -137,3 +137,42 @@ test('native child processes are terminated on cancellation even when they ignor
   assert.deepEqual(await running, { success: false })
   assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' })
 })
+
+test.skipIf(process.platform === 'win32')('descendants retain their cleanup grace period after a launcher exits', async t => {
+  const { root } = await fixture(t, 'module.exports = () => ({ success: true })')
+  const { runProcess } = require('../../../dist/core')
+  await writeFile(join(root, 'launcher.cjs'), `
+    require('node:child_process').spawn(process.execPath, ['worker.cjs'], { stdio: 'ignore' })
+    setInterval(() => {}, 100)
+  `)
+  await writeFile(join(root, 'worker.cjs'), `
+    const fs = require('node:fs')
+    process.on('SIGTERM', () => setTimeout(() => {
+      fs.writeFileSync('cleaned', 'yes')
+      process.exit(0)
+    }, 200))
+    fs.writeFileSync('ready', String(process.pid))
+    setInterval(() => {}, 100)
+  `)
+  const controller = new AbortController()
+  t.onTestFinished(() => controller.abort())
+  const running = runProcess(process.execPath, ['launcher.cjs'], { cwd: root, signal: controller.signal })
+  const waitFor = async file => {
+    const deadline = Date.now() + 5_000
+    while (Date.now() < deadline) {
+      try {
+        return await readFile(join(root, file), 'utf8')
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          throw error
+        }
+      }
+      await new Promise(resolve => setTimeout(resolve, 20))
+    }
+    assert.fail(`Timed out waiting for ${file}`)
+  }
+  await waitFor('ready')
+  controller.abort()
+  assert.deepEqual(await running, { success: false })
+  assert.equal(await waitFor('cleaned'), 'yes')
+})

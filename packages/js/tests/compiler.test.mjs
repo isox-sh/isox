@@ -60,6 +60,17 @@ test.skipIf(process.platform === 'win32')('cancelling the compiler also kills ch
   assert.ok(pid, 'native compiler did not start')
   controller.abort()
   assert.equal((await running).success, false)
-  await delay(20)
-  assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' })
+  const stoppedBy = Date.now() + 5_000
+  while (Date.now() < stoppedBy) {
+    try {
+      process.kill(pid, 0)
+    } catch (error) {
+      if (error.code === 'ESRCH') {
+        return
+      }
+      throw error
+    }
+    await delay(20)
+  }
+  assert.fail('compiler descendant survived cancellation')
 })

@@ -32,7 +32,6 @@ export function handleProcessCancellation(
   const abort = () => {
     kill()
     timer = setTimeout(() => kill(true), gracePeriodMs)
-    timer.unref()
   }
   signal?.addEventListener('abort', abort, { once: true })
   if (signal?.aborted) {
@@ -42,9 +41,9 @@ export function handleProcessCancellation(
   // Call on both spawn errors and close: launchers can exit before their descendants.
   return () => {
     signal?.removeEventListener('abort', abort)
-    if (signal?.aborted) {
-      kill(true)
+    // Keep the grace timer alive after a launcher exits: detached descendants may remain.
+    if (!signal?.aborted) {
+      clearTimeout(timer)
     }
-    clearTimeout(timer)
   }
 }

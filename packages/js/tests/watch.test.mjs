@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
 import { once } from 'node:events'
-import { mkdir, rm, symlink } from 'node:fs/promises'
+import { mkdir, readFile, rm, symlink } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 
@@ -76,15 +76,29 @@ test('iterator return cancels a pending poll without requiring an external signa
 })
 
 for (const signal of ['SIGINT', 'SIGTERM']) {
-  test(`CLI watch handles ${signal} without orphaning its compiler or reporting final completion`, async t => {
+  test.skipIf(process.platform === 'win32')(`CLI watch handles ${signal} without orphaning its compiler or reporting final completion`, async t => {
     const { root, projectRoot, write } = await fixture(t)
     await write('../../isox.json', {})
     await write('project.json', { name: 'demo', targets: { build: { executor: 'js:tsc', options: { watch: true, pollInterval: 100 } } } })
     const link = join(root, 'node_modules/@isox-sh/js')
     await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
     await symlink(resolve(import.meta.dirname, '../../../dist/js'), link, process.platform === 'win32' ? 'junction' : 'dir')
+    // Hold the actual native compilation in its own watch loop. This exercises
+    // cancellation while the executor is awaiting a child, before its first result.
+    const preload = join(root, 'hold-compiler.cjs')
+    await write(preload, `
+      const childProcess = require('node:child_process')
+      const spawn = childProcess.spawn
+      childProcess.spawn = function (command, args, options) {
+        const compiling = args.includes('--listEmittedFiles')
+        const child = spawn(command, compiling ? [...args, '--watch'] : args, options)
+        if (compiling) require('node:fs').writeFileSync(${JSON.stringify(join(root, 'compiler.pid'))}, String(child.pid))
+        return child
+      }
+    `)
     const child = spawn(process.execPath, [resolve(import.meta.dirname, '../../../dist/cli/index.js'), 'build', 'demo'], {
       cwd: projectRoot, stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, NODE_OPTIONS: `--require=${JSON.stringify(preload)}` },
     })
     let stdout = ''
     let stderr = ''
@@ -94,16 +108,27 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
     child.stderr.on('data', chunk => {
       stderr += chunk
     })
-    t.onTestFinished(() => {
+    t.onTestFinished(async () => {
+      try {
+        const pid = Number(await readFile(join(root, 'compiler.pid'), 'utf8'))
+        process.kill(-pid, 'SIGKILL')
+      } catch (error) {
+        if (!['ENOENT', 'ESRCH'].includes(error.code)) {
+          throw error
+        }
+      }
       if (child.exitCode === null) {
         child.kill('SIGKILL')
       }
     })
     const deadline = Date.now() + 10_000
-    while (!stdout.includes('Watching for changes') && Date.now() < deadline && child.exitCode === null) {
+    while (!stdout.includes('compilation in watch mode') && Date.now() < deadline && child.exitCode === null) {
       await delay(25)
     }
-    assert.match(stdout, /Watching for changes/, stderr)
+    assert.match(stdout, /compilation in watch mode/, stderr)
+    const compilerPid = Number(await readFile(join(root, 'compiler.pid'), 'utf8'))
+    assert.ok(compilerPid)
+    process.kill(compilerPid, 0)
     const exited = once(child, 'exit')
     child.kill(signal)
     const [code] = await Promise.race([exited, delay(5_000).then(() => {
@@ -111,6 +136,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) {
     })])
     assert.equal(code, signal === 'SIGINT' ? 130 : 143)
     assert.doesNotMatch(stdout, /Successfully completed/)
+    assert.throws(() => process.kill(compilerPid, 0), { code: 'ESRCH' })
   })
 }
 
