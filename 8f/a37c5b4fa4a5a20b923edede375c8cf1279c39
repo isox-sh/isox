@@ -1,0 +1,44 @@
+website/docs/nx-migration.md
+  s_51871bdcdb3b4c::t_30f33373c6081b 110
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 74
+packages/nx/src/executor/nx-graph.ts
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 41-44
+  s_51871bdcdb3b4c::t_90994434b7a258 40
+packages/core/src/workspace/nx.ts
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 41
+  s_51871bdcdb3b4c::t_30f33373c6081b 39-40,42-47
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 8
+  s_51871bdcdb3b4c::t_12d6d0a54be50a 24,48-49
+packages/core/tests/project-configuration.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 130,132
+  s_51871bdcdb3b4c::t_30f33373c6081b 119-129,131,133-134,154-159
+  s_51871bdcdb3b4c::t_4f8c6565a715ba 84,118
+packages/core/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_30f33373c6081b 78-81
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 90
+website/docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_30f33373c6081b 68-69
+packages/nx/tests/nx-workspace-graph.test.mjs
+  s_51871bdcdb3b4c::t_0b9d62215530a4 56,78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8fa37c5b4fa4a5a20b923edede375c8cf1279c39",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
