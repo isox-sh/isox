@@ -1,0 +1,40 @@
+website/docs/cli.md
+  s_51871bdcdb3b4c::t_77355d1fdbfccd 37
+  s_51871bdcdb3b4c::t_8b8d6f5004b229 14
+website/docs/custom-executors.md
+  s_51871bdcdb3b4c::t_77355d1fdbfccd 49,201-203,205-218,223-227,229-230
+  s_51871bdcdb3b4c::t_560d8c39c6cd99 204,219-222,228,231
+packages/cli/src/actions/add/index.ts
+  s_51871bdcdb3b4c::t_d784f24b472809 1-71
+packages/cli/src/index.ts
+  s_51871bdcdb3b4c::t_67161c24489ce0 5,21
+packages/cli/tests/add.test.mjs
+  s_51871bdcdb3b4c::t_07c810035dcd3e 1-170
+packages/core/src/initializer/types.ts
+  s_51871bdcdb3b4c::t_1b22ffbaf263dd 16-18
+packages/js/src/helpers/package-json.ts
+  s_51871bdcdb3b4c::t_1ff85bad886d35 270
+packages/js/tests/package-json.test.mjs
+  s_51871bdcdb3b4c::t_6f3e6758e2de48 83,88-89,112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9753d644db7ee2e6b91a4b671d8186792a0e2852",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
