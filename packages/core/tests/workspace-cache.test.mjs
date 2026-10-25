@@ -79,7 +79,7 @@ test('caches the complete workspace and reuses it without reading project files'
   const discovered = await parseWorkspace(root)
   const cached = JSON.parse(await readFile(cacheFile, 'utf8'))
 
-  assert.equal(cached.version, 8)
+  assert.equal(cached.version, 9)
   assert.deepEqual(cached.projects.demo, {
     ...project,
     root: 'apps/demo'
@@ -186,7 +186,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       }
     },
     {
-      version: 8,
+      version: 9,
       projects: {
         demo: {
           name: 'demo',
@@ -197,7 +197,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       }
     },
     {
-      version: 8,
+      version: 9,
       projects: {
         demo: {
           name: 'demo',
@@ -211,11 +211,11 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       projects: {}
     },
     {
-      version: 8,
+      version: 9,
       projects: []
     },
     {
-      version: 8,
+      version: 9,
       projects: {
         demo: {
           name: 'different',
@@ -228,7 +228,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
     const workspace = await parseWorkspace(root)
 
     assert.equal(workspace.projects.demo.root, 'apps/demo')
-    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 8)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 9)
   }
 })
 
@@ -295,7 +295,7 @@ for (const [field, version] of [['commands', 4], ['executors', 7]]) {
 
     assert.deepEqual(workspace.projects.demo.targets, targets)
     assert.equal(Object.hasOwn(workspace.projects.demo, field), false)
-    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 8)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 9)
     assert.deepEqual(await parseWorkspace(root), workspace)
   })
 }

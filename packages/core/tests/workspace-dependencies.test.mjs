@@ -7,7 +7,7 @@ import { dirname, join } from 'node:path'
 import { test } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { getAffectedProjects, parseWorkspace } = require('../../../dist/core')
+const { createProjectGraph, getAffectedProjects, parseWorkspace } = require('../../../dist/core')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-dependencies-'))
@@ -114,6 +114,131 @@ test('maps aliases and relative imports to compiled output without requiring a b
   await write('packages/app/src/index.ts', "import '@compiled/lib'")
   await write('packages/app/tests/test.mjs', "require('../../../out/lib/index.js')")
   assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['lib'])
+})
+
+for (const editorConfig of [false, true]) {
+  test(`build config output ownership prevents false root-project cycles (editor config: ${editorConfig})`, async t => {
+    const { root, write, project } = await fixture(t)
+
+    await write('project.json', { name: 'workspace' })
+    await write('package.json', { devDependencies: { '@org/core': 'workspace:*' } })
+    await project('core', { name: '@org/core' }, {
+      targets: {
+        build: {
+          executor: 'js:tsc',
+          options: { tsConfig: 'packages/core/tsconfig.build.json' }
+        }
+      }
+    })
+    await project('app')
+    await project('lib')
+    await write('tsconfig.base.json', {
+      compilerOptions: {
+        paths: { '@source/lib': ['./packages/lib/src/index.ts'] }
+      }
+    })
+    if (editorConfig) {
+      await write('packages/core/tsconfig.json', {
+        extends: '../../tsconfig.base.json',
+        compilerOptions: {
+          noEmit: true,
+          rootDir: '../..'
+        }
+      })
+    }
+
+    await write('packages/core/tsconfig.build.json', {
+      compilerOptions: {
+        rootDir: './src',
+        outDir: '../../output/core',
+        declarationDir: '../../types/core',
+        paths: { '@source/lib': ['../../packages/app/src/index.ts'] }
+      }
+    })
+    await write('packages/core/src/index.ts', "import '@source/lib'")
+    await write('packages/core/tests/self.mjs', "require('../../../output/core/index.js')")
+    await write('packages/app/tests/core.mjs', "require('../../../types/core/index.d.ts')")
+    // Old caches can already contain the false edge; upgrading must rebuild them.
+    await write('.isox/workspace.json', {
+      version: 8,
+      projects: {
+        core: {
+          name: 'core',
+          root: 'packages/core',
+          dependencies: ['workspace']
+        },
+        workspace: {
+          name: 'workspace',
+          root: '.',
+          dependencies: ['core']
+        }
+      }
+    })
+    const workspace = await parseWorkspace(root)
+
+    assert.deepEqual(workspace.projects.core.dependencies, ['lib'])
+    assert.deepEqual(workspace.projects.app.dependencies, ['core'])
+    assert.deepEqual(workspace.projects.workspace.dependencies, ['core'])
+    assert.doesNotThrow(() => createProjectGraph(workspace))
+    assert.deepEqual(getAffectedProjects(workspace, ['packages/lib/src/index.ts']), ['app', 'core', 'lib', 'workspace'])
+
+    // Generated imports must not add edges when output directories exist later.
+    await write('output/core/index.js', "require('@org/core')")
+    await write('types/core/index.d.ts', "import '@org/core'")
+    assert.deepEqual((await parseWorkspace(root, { cache: false })).projects, workspace.projects)
+  })
+}
+
+test('a missing build config falls back to editor output ownership without blocking discovery', async t => {
+  const { root, write, project } = await fixture(t)
+
+  await project('app')
+  await project('lib', undefined, {
+    targets: {
+      build: {
+        executor: 'js:tsc',
+        options: { tsConfig: 'missing.json' }
+      }
+    }
+  })
+  await write('packages/lib/tsconfig.json', { compilerOptions: { outDir: '../../output/lib' } })
+  await write('packages/app/index.ts', "import '../../output/lib/index.js'")
+  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['lib'])
+})
+
+test('build default configurations and inherited output roots assign shared outputs to the correct projects', async t => {
+  const { root, write, project } = await fixture(t)
+
+  await project('app')
+  await write('config/build.json', {
+    compilerOptions: {
+      rootDir: '..',
+      outDir: '../output',
+      declarationDir: '../types'
+    }
+  })
+  for (const name of ['one', 'two']) {
+    await project(name, undefined, {
+      targets: {
+        build: {
+          executor: 'js:tsc',
+          options: { tsConfig: 'unused.json' },
+          defaultConfiguration: 'production',
+          configurations: { production: { tsConfig: join(root, `packages/${name}/compile.json`) } }
+        }
+      }
+    })
+    await write(`packages/${name}/tsconfig.json`, {
+      compilerOptions: {
+        noEmit: true,
+        rootDir: './src'
+      }
+    })
+    await write(`packages/${name}/compile.json`, { extends: '../../config/build.json' })
+  }
+
+  await write('packages/app/index.ts', "import '../../output/packages/two/index.js'\nimport '../../types/packages/two/index.d.ts'")
+  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['two'])
 })
 
 test('maps local package dependencies, aliases and paths to project names while ignoring external packages', async t => {

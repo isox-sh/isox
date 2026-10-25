@@ -92,6 +92,10 @@ and test files. Package names and subpaths map to their owning projects. Relativ
 cross-project imports and exact or wildcard TypeScript `paths` aliases also count;
 extended configs and project-specific overrides are respected. Aliases can point
 to source files or declared compiler output directories, even before a build.
+Output ownership uses the build target's `options.tsConfig`, including its default
+configuration and inherited `outDir`, `declarationDir`, and `rootDir`. When that
+option is absent or its file does not exist, discovery uses the project's `tsconfig.json` or the shared
+workspace config. Source aliases continue to use the editor configuration.
 
 Local package references in `dependencies`, `devDependencies`, `optionalDependencies`,
 and `peerDependencies` are also detected. Package aliases and relative workspace

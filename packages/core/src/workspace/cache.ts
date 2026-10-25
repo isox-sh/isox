@@ -14,7 +14,7 @@ interface WorkspaceCache extends WorkspaceGraph {
   version: number
 }
 
-const cacheVersion = 8
+const cacheVersion = 9
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)

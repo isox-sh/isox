@@ -5,6 +5,7 @@ import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import fg from 'fast-glob'
 import ts from 'typescript'
 
+import { resolveCommandOptions } from '../executor/configuration'
 import { readSourceDependencies } from '../utils/source-dependencies'
 
 import type { ProjectConfiguration, WorkspaceGraph } from './parser'
@@ -12,6 +13,8 @@ import type { ProjectConfiguration, WorkspaceGraph } from './parser'
 interface ProjectOutput {
   root: string
   name: string
+  projectRoot: string
+  rootDir: string
 }
 
 interface ProjectSources {
@@ -19,7 +22,6 @@ interface ProjectSources {
   root: string
   manifest: Record<string, unknown>
   options: ts.CompilerOptions
-  config: string | undefined
 }
 
 function inside(root: string, file: string): boolean {
@@ -99,21 +101,32 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
     }
 
     packages.set(name, project.name)
-    const config = join(root, 'tsconfig.json')
-    const options = ts.sys.fileExists(config) ? compilerOptions(config) : sharedOptions
+    const editorConfig = join(root, 'tsconfig.json')
+    const config = ts.sys.fileExists(editorConfig) ? editorConfig : baseConfig
+    const options = config === baseConfig ? sharedOptions : compilerOptions(config)
+    const build = project.targets?.build
+    const buildOptions = build ? resolveCommandOptions(build, project.name, 'build').options : {}
+    const buildConfig = typeof buildOptions.tsConfig === 'string'
+      ? resolve(workspaceRoot, buildOptions.tsConfig)
+      : undefined
+    // A named configuration can override a missing base config at execution time.
+    const outputConfig = buildConfig && ts.sys.fileExists(buildConfig) ? buildConfig : config
+    const outputOptions = outputConfig === config ? options : compilerOptions(outputConfig)
 
     projects.push({
       project,
       root,
       manifest,
-      options,
-      config: ts.sys.fileExists(config) ? config : baseConfig
+      options
     })
-    for (const directory of [options.outDir, options.declarationDir]) {
+    // Editor aliases describe sources; the build config owns emitted files.
+    for (const directory of outputOptions.noEmit ? [] : [outputOptions.outDir, outputOptions.declarationDir]) {
       if (directory && inside(workspaceRoot, directory) && !inside(directory, root)) {
         outputs.push({
           root: directory,
-          name: project.name
+          name: project.name,
+          projectRoot: root,
+          rootDir: outputOptions.rootDir ?? (outputConfig ? dirname(outputConfig) : root)
         })
       }
     }
@@ -127,16 +140,15 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
       return [output]
     }
 
-    const source = projects.find(source => source.project.name === output.name)!
-    const rootDir = source.options.rootDir ?? (source.config ? dirname(source.config) : source.root)
+    const { rootDir, projectRoot } = output
 
-    if (rootDir === source.root || !inside(rootDir, source.root)) {
+    if (rootDir === projectRoot || !inside(rootDir, projectRoot)) {
       return []
     }
 
     return [{
       ...output,
-      root: resolve(output.root, relative(rootDir, source.root))
+      root: resolve(output.root, relative(rootDir, projectRoot))
     }]
   })
 
