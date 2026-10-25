@@ -159,3 +159,22 @@ test('cancels an active native compiler process and rejects process launch failu
   assert.equal(result.success, false)
   await assert.rejects(invokeCompiler(['--version'], join(projectRoot, 'missing')), { code: 'ENOENT' })
 })
+
+test('watch snapshots ignore unrelated project sources but track extended configs and local inputs', async t => {
+  const { root, projectRoot, config, write, context } = await fixture(t)
+  const { createRequire } = await import('node:module')
+  const { snapshot } = createRequire(import.meta.url)('../../../dist/js/executors/tsc/watch')
+  await write('base.json', config)
+  await write('tsconfig.json', { extends: './base.json' })
+  const signal = new AbortController().signal
+  const state = {}
+  const current = () => snapshot(join(projectRoot, 'tsconfig.json'), {}, context, signal, state)
+  const initial = await current()
+  await write(join(root, 'unrelated/src/large.ts'), 'export const unrelated = 1')
+  assert.equal(await current(), initial)
+  await write('src/new.ts', 'export const added = 1')
+  const added = await current()
+  assert.notEqual(added, initial)
+  await write('base.json', { ...config, compilerOptions: { ...config.compilerOptions, strict: true } })
+  assert.notEqual(await current(), added)
+})

@@ -8,11 +8,14 @@ import { inside } from './files'
 
 import type { ExecutorContext } from '@isox-sh/core'
 
-function readConfig(file: string): ts.ParsedCommandLine {
+function readConfig(file: string, onRead?: (file: string) => void): ts.ParsedCommandLine {
   const fail = (error: ts.Diagnostic): never => {
     throw new Error(`Invalid TypeScript configuration in ${file}: ${ts.flattenDiagnosticMessageText(error.messageText, '\n')}`)
   }
-  const parsed = ts.getParsedCommandLineOfConfigFile(file, {}, { ...ts.sys, onUnRecoverableConfigFileDiagnostic: fail })!
+  const parsed = ts.getParsedCommandLineOfConfigFile(file, {}, { ...ts.sys, readFile: path => {
+    onRead?.(path)
+    return ts.sys.readFile(path)
+  }, onUnRecoverableConfigFileDiagnostic: fail })!
   const error = parsed.errors.find(error => error.code !== 18002 && error.code !== 18003)
   if (error) {
     fail(error)
@@ -21,7 +24,7 @@ function readConfig(file: string): ts.ParsedCommandLine {
 }
 
 /** Keep source aliases for editors; compile each package against its dependencies' outputs. */
-export function buildConfiguration(tsConfig: string, context: ExecutorContext) {
+export function buildConfiguration(tsConfig: string, context: ExecutorContext, onRead?: (file: string) => void) {
   const workspace = context.workspace?.projects ?? {}
   const dependencies = new Set(workspace[context.projectName]?.dependencies ?? [])
   for (const name of dependencies) {
@@ -36,7 +39,7 @@ export function buildConfiguration(tsConfig: string, context: ExecutorContext) {
   const projects = Object.values(workspace)
     .map(project => ({ project, root: resolve(context.workspaceRoot, project.root) }))
     .sort((a, b) => b.root.length - a.root.length)
-  const parsed = readConfig(tsConfig)
+  const parsed = readConfig(tsConfig, onRead)
   const base = parsed.options.baseUrl ?? parsed.options.pathsBasePath
   const outputs = new Set<string>()
   const configurations = new Map<string, ts.ParsedCommandLine>()
@@ -57,12 +60,13 @@ export function buildConfiguration(tsConfig: string, context: ExecutorContext) {
     const configPath = typeof options.tsConfig === 'string'
       ? resolve(context.workspaceRoot, options.tsConfig)
       : join(owner.root, 'tsconfig.json')
+    onRead?.(configPath)
     if (!ts.sys.fileExists(configPath)) {
       return absolute
     }
     let dependency = configurations.get(configPath)
     if (!dependency) {
-      dependency = readConfig(configPath)
+      dependency = readConfig(configPath, onRead)
       configurations.set(configPath, dependency)
     }
     const root = dependency.options.rootDir ?? dirname(configPath)

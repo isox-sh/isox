@@ -1,54 +1,104 @@
 import { readFile } from 'node:fs/promises'
-import { dirname, resolve } from 'node:path'
+import { relative, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 
 import fg from 'fast-glob'
+import ts from 'typescript'
 
 import { collectAssets } from './assets'
 import { buildConfiguration } from './build-config'
-import { CompilerProcessError, readConfig } from './compiler'
+import { CompilerProcessError } from './compiler'
 import { hash, inside, slash } from './files'
 
 import type { TscOptions } from './options'
 import type { ExecutorContext, ExecutorResult } from '@isox-sh/core'
 
-/** Content snapshots catch atomic saves, additions/deletions, and config changes. */
-export async function snapshot(tsConfig: string, options: TscOptions, context: ExecutorContext, signal: AbortSignal): Promise<string> {
-  const parsed = await readConfig(tsConfig, context.workspaceRoot, signal)
-  const roots = [parsed.config?.compilerOptions.outDir, parsed.config?.compilerOptions.declarationDir]
-    .filter((value): value is string => !!value).map(value => resolve(dirname(tsConfig), value))
-  const files = new Set(await fg('**/*', {
-    cwd: context.workspaceRoot,
-    absolute: true,
-    dot: true,
-    followSymbolicLinks: false,
-    ignore: [
-      '**/node_modules/**',
-      '**/.git/**',
-      '**/.isox/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/coverage/**',
-      '**/.cache/**',
-      '**/*.tsbuildinfo',
-    ],
-  }))
-  for (const file of parsed.config?.files ?? []) {
-    files.add(resolve(dirname(tsConfig), file))
+interface SnapshotState {
+  configuration?: {
+    inputs: Map<string, string | undefined>
+    roots: string[]
+    sources: string[]
+    directories: string[]
+    outputs: string[]
+    diagnostics: string[]
   }
-  files.add(tsConfig)
-  const parts = [parsed.output]
-  if (parsed.config) {
-    try {
-      // A dependency's declarations may be rebuilt after its source change was observed.
-      for (const output of buildConfiguration(tsConfig, context)?.outputs ?? []) {
-        for (const file of await fg('**/*', { cwd: output, absolute: true, dot: true, followSymbolicLinks: false })) {
-          files.add(file)
-        }
-      }
-    } catch (error) {
-      parts.push(String(error))
+}
+
+function configuration(tsConfig: string, context: ExecutorContext, state: SnapshotState) {
+  const cached = state.configuration
+  if (cached && !cached.diagnostics.length && [...cached.inputs].every(([file, source]) => ts.sys.readFile(file) === source)) {
+    return cached
+  }
+
+  const inputs = new Map<string, string | undefined>()
+  const readConfigFile = (file: string) => {
+    const source = ts.sys.readFile(file)
+    inputs.set(file, source)
+    return source
+  }
+  const diagnostics: string[] = []
+  // Resolve configs only when their contents change, tracking extended configs and
+  // dependency configs too. No native compiler process is needed for polling.
+  const parsed = ts.getParsedCommandLineOfConfigFile(tsConfig, {}, {
+    ...ts.sys,
+    readFile: readConfigFile,
+    onUnRecoverableConfigFileDiagnostic: error => diagnostics.push(ts.flattenDiagnosticMessageText(error.messageText, '\n')),
+  })
+  for (const error of parsed?.errors ?? []) {
+    diagnostics.push(ts.flattenDiagnosticMessageText(error.messageText, '\n'))
+  }
+  let outputs: string[] = []
+  try {
+    outputs = buildConfiguration(tsConfig, context, readConfigFile)?.outputs ?? []
+  } catch (error) {
+    diagnostics.push(String(error))
+  }
+  state.configuration = {
+    inputs,
+    roots: parsed?.options.noEmit ? [] : [parsed?.options.outDir, parsed?.options.declarationDir]
+      .filter((value): value is string => !!value),
+    sources: parsed?.fileNames ?? [],
+    directories: Object.keys(parsed?.wildcardDirectories ?? {}),
+    outputs,
+    diagnostics,
+  }
+  return state.configuration
+}
+
+/** Content snapshots catch atomic saves, additions/deletions, and config changes. */
+export async function snapshot(
+  tsConfig: string,
+  options: TscOptions,
+  context: ExecutorContext,
+  signal: AbortSignal,
+  state: SnapshotState = {},
+): Promise<string> {
+  signal.throwIfAborted()
+  const plan = configuration(tsConfig, context, state)
+  const { roots } = plan
+  const files = new Set([...plan.inputs.keys(), ...plan.sources, resolve(context.workspaceRoot, 'package.json')])
+  const parts = [...plan.diagnostics]
+  // Project metadata and schemas affect packaging. Wildcard directories also
+  // capture new compiler inputs outside the project without scanning unrelated trees.
+  const directories = new Set([context.projectRoot, ...plan.directories, ...plan.outputs])
+  for (const directory of directories) {
+    for (const file of await fg('**/*', {
+      cwd: directory,
+      absolute: true,
+      dot: true,
+      followSymbolicLinks: false,
+      ignore: [
+        '**/node_modules/**', '**/.git/**', '**/.isox/**',
+        '**/dist/**', '**/build/**', '**/coverage/**', '**/.cache/**', '**/*.tsbuildinfo',
+        ...roots.filter(root => inside(directory, root))
+          .map(root => `${fg.escapePath(slash(relative(directory, root)))}/**`),
+      ],
+    })) {
+      files.add(file)
     }
+  }
+  for (const project of Object.values(context.workspace?.projects ?? {})) {
+    files.add(resolve(context.workspaceRoot, project.root, 'package.json'))
   }
   for (const file of [...files].sort()) {
     if (roots.some(root => inside(root, file))) {
@@ -93,7 +143,8 @@ export function watchBuilds(
         process.once('SIGINT', stop)
         process.once('SIGTERM', stop)
         try {
-          let fingerprint = await snapshot(tsConfig, options, context, signal)
+          const state: SnapshotState = {}
+          let fingerprint = await snapshot(tsConfig, options, context, signal, state)
           while (!signal.aborted) {
             let result: ExecutorResult
             try {
@@ -125,7 +176,7 @@ export function watchBuilds(
                 break
               }
 
-              const next = await snapshot(tsConfig, options, context, signal)
+              const next = await snapshot(tsConfig, options, context, signal, state)
               if (next !== fingerprint) {
                 fingerprint = next
                 break
