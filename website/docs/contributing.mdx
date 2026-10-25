@@ -205,6 +205,31 @@ cd /path/to/your/workspace
 node /path/to/isox/dist/cli/index.js build my-app
 ```
 
+## Release this repository
+
+In GitHub Actions, open **Release**, select **Run workflow**, and choose the
+branch and release channel (`alpha`, `beta`, or `stable`). **Dry run** is enabled by default:
+it previews the next synchronized version, changelog, tag, and post targets
+without changing files or publishing a release.
+
+A real run uses `workspace:version:production` with `skipCommit: true`, tags the
+existing source commit, pushes only that tag, and creates a GitHub release.
+`alpha` and `beta` add a prerelease identifier and mark the GitHub release as a
+prerelease. `stable` omits the identifier and creates a regular GitHub release.
+Generated package versions and the root changelog stay in the runner's checkout;
+the branch and tagged source keep their original files. Later releases use the
+latest reachable release tag as their version baseline. Bumps come from conventional commits;
+without releasable changes, the run succeeds without creating a release.
+
+All channels share one synchronized version history. Release runs are serialized
+across branches and channels. The workflow uses `GITHUB_TOKEN` with
+`contents: write`; repository rules must permit it to create release tags.
+The current production post target creates a GitHub release; npm publishing is
+not configured.
+
+The workflow must exist on the default branch before GitHub shows **Run workflow**.
+See [release configuration](/docs/semver) for version calculation and post targets.
+
 ## Documentation
 
 The Mintlify site lives in `website/`, with navigation and branding in
