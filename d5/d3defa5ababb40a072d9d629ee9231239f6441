@@ -1,0 +1,24 @@
+website/docs/typescript.md
+  s_51871bdcdb3b4c::t_6a2bcc53369553 36-38
+  s_51871bdcdb3b4c::t_dfc6f0738b805a 34-35,55,135
+website/docs/concepts.mdx
+  s_51871bdcdb3b4c::t_dfc6f0738b805a 46
+website/docs/custom-executors.md
+  s_51871bdcdb3b4c::t_dfc6f0738b805a 69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d5d3defa5ababb40a072d9d629ee9231239f6441",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
