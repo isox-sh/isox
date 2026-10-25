@@ -46,7 +46,7 @@ jobs:
       - name: Set up Isox
         uses: ./.github/actions/setup-isox
 
-      - name: Run planned tests
+      - name: Run planned ${{ inputs.target }}
         uses: ./actions/run-many
         with:
           cliPath: dist/cli/index.js
