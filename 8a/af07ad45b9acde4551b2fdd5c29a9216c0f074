@@ -1,0 +1,27 @@
+website/docs/contributing.mdx
+  s_5d3ad8740834ec::t_0d3c82e3d05e3e 215,219-221,226
+  s_5d3ad8740834ec::t_2f1b6c0928c6f1 211,216-218,224
+  s_5d3ad8740834ec::t_4c52f9a8703604 208-210,212-214,222-223,225,227-232
+project.json
+  s_5d3ad8740834ec::t_2f1b6c0928c6f1 25
+.github/workflows/release.yml
+  s_5d3ad8740834ec::t_2f1b6c0928c6f1 15,25,65-69,71
+  s_5d3ad8740834ec::t_4c52f9a8703604 1-14,16-24,26-64,70
+  s_5d3ad8740834ec::t_0d3c82e3d05e3e 72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8aaf07ad45b9acde4551b2fdd5c29a9216c0f074",
+  "prompts": {},
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
