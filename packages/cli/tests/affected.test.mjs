@@ -11,7 +11,7 @@ import { affectedFixture, cliPath } from './helpers/affected-fixture.mjs'
 const events = async root => (await readFile(join(root, 'events.log'), 'utf8')).trim().split('\n').map(line => JSON.parse(line))
 
 test('affected prints clean JSON with verbose logs on stderr, includes dependents, and runs from nested folders', async t => {
-  const { root, write, commit, run } = await affectedFixture(t)
+  const { root, env, write, commit, run } = await affectedFixture(t)
 
   await write('packages/lib/changed.ts', 'change')
   commit()
@@ -20,7 +20,10 @@ test('affected prints clean JSON with verbose logs on stderr, includes dependent
   assert.equal(output.status, 0, output.stderr)
   assert.deepEqual(JSON.parse(output.stdout), ['app', 'lib'])
   assert.match(output.stderr, /Affected comparison/)
-  const child = spawn(process.execPath, [cliPath, 'affected', '--target=build', '--print-matrix'], { cwd: join(root, 'packages/app') })
+  const child = spawn(process.execPath, [cliPath, 'affected', '--target=build', '--print-matrix'], {
+    cwd: join(root, 'packages/app'),
+    env
+  })
   let stdout = ''
 
   child.stdout.on('data', data => {
@@ -299,7 +302,7 @@ test('shared tooling glob changes select all projects', async t => {
 })
 
 test('worker cancellation propagates to children and exits with the signal status', async t => {
-  const { root, project } = await affectedFixture(t)
+  const { root, env, project } = await affectedFixture(t)
 
   await project('lib', {
     targets: {
@@ -311,6 +314,7 @@ test('worker cancellation propagates to children and exits with the signal statu
   })
   const child = spawn(process.execPath, [cliPath, 'run-many', '--target=build', '--projects-json', '["lib"]'], {
     cwd: root,
+    env,
     stdio: 'ignore'
   })
 
@@ -343,7 +347,7 @@ test('worker cancellation propagates to children and exits with the signal statu
 
 for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]]) {
   test.skipIf(process.platform === 'win32')(`abort-aware executors keep the ${signal} exit status without logging a task error`, async t => {
-    const { root, write } = await affectedFixture(t)
+    const { root, env, write } = await affectedFixture(t)
 
     await write('node_modules/@fixture/plugin/record.cjs', `
       module.exports = async (_, context) => {
@@ -354,6 +358,7 @@ for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]]) {
     `)
     const child = spawn(process.execPath, [cliPath, 'build', 'lib'], {
       cwd: root,
+      env,
       stdio: ['ignore', 'pipe', 'pipe']
     })
 
@@ -392,7 +397,7 @@ for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]]) {
 }
 
 test.skipIf(process.platform === 'win32')('worker cancellation lets executors kill stubborn subprocesses before stopping the worker', async t => {
-  const { root, write } = await affectedFixture(t)
+  const { root, env, write } = await affectedFixture(t)
   const core = resolve(import.meta.dirname, '../../../dist/core')
 
   await write('node_modules/@fixture/plugin/record.cjs', `
@@ -408,6 +413,7 @@ test.skipIf(process.platform === 'win32')('worker cancellation lets executors ki
   `)
   const child = spawn(process.execPath, [cliPath, 'run-many', '--target=build', '--projects-json', '["lib"]'], {
     cwd: root,
+    env,
     stdio: 'ignore'
   })
   let pid

@@ -169,6 +169,7 @@ for (const nx of [false, true]) {
       ['run-many', '--target=build', '--projects=demo', '--parallel=2'],
       ['affected', '--target=build', '--all'],
     ]) {
+      await rm(join(root, 'result.json'), { force: true })
       const result = run(root, [...args, '--prod', '--verbose', '--options', JSON.stringify(overrides),
         '--mode=cli', '--max-warnings=2', '--no-enabled', '--flag', '--labels=first', '--labels=second'])
 
