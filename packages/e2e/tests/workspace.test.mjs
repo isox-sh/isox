@@ -147,3 +147,14 @@ test('cleans up if workspace setup fails', async t => {
   }), /setup failed/)
   assert.deepEqual(await readdir(join(root, 'tmp')), [])
 })
+
+test('captures large output and accepts a custom buffer limit', async t => {
+  const root = await owner(t)
+  const workspace = await createWorkspace({ startDirectory: root })
+  t.onTestFinished(workspace.cleanup)
+  const { stdout } = await workspace.runNode(['--eval', "process.stdout.write('x'.repeat(2 * 1024 * 1024))"])
+  assert.equal(stdout.length, 2 * 1024 * 1024)
+  for (const maxBuffer of [0, -1, 1.5, NaN, Infinity]) {
+    await assert.rejects(createWorkspace({ startDirectory: root, maxBuffer }), /maxBuffer/)
+  }
+})

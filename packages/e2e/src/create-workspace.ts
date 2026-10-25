@@ -29,6 +29,10 @@ async function readPackage(directory: string, expectedName: string): Promise<Pac
 /** Create an uninitialized fixture using built local packages, without invoking a package manager. */
 export async function createWorkspace(options: CreateWorkspaceOptions = {}): Promise<TestWorkspace> {
   const workspaceRoot = await findWorkspaceRoot(options.startDirectory)
+  const maxBuffer = options.maxBuffer ?? 16 * 1024 * 1024
+  if (!Number.isSafeInteger(maxBuffer) || maxBuffer <= 0) {
+    throw new Error('E2E maxBuffer must be a positive integer number of bytes.')
+  }
   const timeout = options.timeout ?? 30_000
   if (!Number.isFinite(timeout) || timeout <= 0) {
     throw new Error('E2E timeout must be a positive number of milliseconds.')
@@ -87,7 +91,7 @@ export async function createWorkspace(options: CreateWorkspaceOptions = {}): Pro
   delete env.NODE_PATH
   const runNode = async (args: string[], cwd = root): Promise<CommandOutput> => {
     try {
-      return await execute(process.execPath, args, { cwd, env, encoding: 'utf8', timeout })
+      return await execute(process.execPath, args, { cwd, env, encoding: 'utf8', timeout, maxBuffer })
     } catch (error) {
       const failure = error as Error & { stdout?: string, stderr?: string }
       throw new Error(`Command failed: node ${args.join(' ')}\nWorking directory: ${cwd}\n${failure.stdout ?? ''}${failure.stderr ?? ''}`, { cause: error })

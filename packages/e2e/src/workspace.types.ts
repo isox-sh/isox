@@ -9,6 +9,8 @@ export interface CreateWorkspaceOptions {
   cliDirectory?: string
   /** Timeout for each child process, in milliseconds. Defaults to 30 seconds. */
   timeout?: number
+  /** Maximum captured stdout or stderr in bytes. Defaults to 16 MiB. */
+  maxBuffer?: number
   logger?: Logger
 }
 
