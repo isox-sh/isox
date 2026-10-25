@@ -61,9 +61,26 @@ to the children and return exit codes 130/143.
   Dynamically selected plugins need explicit dependencies; executor selections
   alone do not add edges. Unknown references and cycles fail with an explanation.
   See [dependency discovery](/docs/configuration#project-definitions).
-- Projects without the requested command and projects tagged `ci=off` are
+- Projects without the requested command, with `plan.enabled: false`, or tagged `ci=off` are
   excluded from selection. Explicit `run-many --projects-json` runs exactly its
-  list, including a project tagged `ci=off`.
+  list, including projects excluded from automatic selection.
+
+### Exclude a project from automatic selection
+
+Set `plan.enabled` to `false` in `project.json` to exclude it from `affected`,
+`plan` (including `--all`), and ordinary `run-many` selection:
+
+```json
+{
+  "plan": {
+    "enabled": false
+  }
+}
+```
+
+It defaults to `true`. Direct commands such as `isox test tools` and exact
+`--projects-json` lists can still run the project. The existing `ci=off` tag also
+excludes projects for backward compatibility, even with `plan.enabled: true`.
 
 For shared tools inside a project, add workspace-relative globs to `isox.json`:
 

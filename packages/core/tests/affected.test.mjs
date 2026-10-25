@@ -169,22 +169,51 @@ test('default weights balance by count, with no empty shards or duplicate projec
   assert.deepEqual(createProjectMatrix(graph, [], [{ target: 'build' }]), { include: [] })
 })
 
-test('plans apply ci=off and command filters only after dependent propagation', () => {
+test('plans exclude disabled projects after dependent propagation and preserve ci=off compatibility', () => {
   const graph = workspace({
-    lib: { tags: ['ci=off'] },
+    lib: { plan: { enabled: false } },
     app: {
       dependencies: ['lib'],
       tags: ['resource=web']
     },
+    enabled: { plan: { enabled: true } },
+    legacy: {
+      tags: ['ci=off'],
+      plan: { enabled: true }
+    },
     other: { targets: {} }
   })
   const selected = getAffectedProjects(graph, ['packages/lib/a.ts'])
-  const plan = createProjectMatrix(graph, selected, [{
+  const plan = createProjectMatrix(graph, selected, [{ target: 'build' }])
+
+  assert.deepEqual(selected, ['app', 'lib'])
+  assert.deepEqual(plan.include[0].projects, ['app'])
+  assert.deepEqual(createProjectMatrix(graph, Object.keys(graph.projects), [{ target: 'build' }]).include[0].projects, ['app', 'enabled'])
+  assert.deepEqual(createProjectMatrix(graph, ['lib', 'legacy'], [{ target: 'build' }]), { include: [] })
+  assert.deepEqual(createProjectMatrix(graph, Object.keys(graph.projects), [{
     target: 'build',
     tag: 'resource=web'
-  }])
+  }]).include[0].projects, ['app'])
+})
 
-  assert.deepEqual(plan.include[0].projects, ['app'])
+test('project schema accepts boolean plan.enabled and rejects other values', async t => {
+  const { root, write } = await repository(t)
+
+  for (const enabled of [true, false]) {
+    await write('project.json', {
+      name: 'test',
+      plan: { enabled }
+    })
+    assert.equal((await parseWorkspace(root, { cache: false })).projects.test.plan.enabled, enabled)
+  }
+
+  for (const enabled of ['false', 0, null, [], {}]) {
+    await write('project.json', {
+      name: 'test',
+      plan: { enabled }
+    })
+    await assert.rejects(parseWorkspace(root, { cache: false }), /Invalid project configuration/)
+  }
 })
 
 test('plans validate numbers, matrix limits, configurations and pre/post stages', () => {

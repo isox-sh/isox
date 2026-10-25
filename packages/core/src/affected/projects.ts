@@ -65,6 +65,7 @@ export function selectProjects(workspace: WorkspaceGraph, projects: string[], ta
     const project = workspace.projects[name]
 
     return Object.hasOwn(project.targets ?? {}, target)
+      && project.plan?.enabled !== false
       && !project.tags?.includes('ci=off')
       && matches(project.tags ?? [])
   })

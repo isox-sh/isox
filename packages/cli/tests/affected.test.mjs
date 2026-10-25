@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawn } from 'node:child_process'
-import { readFile } from 'node:fs/promises'
+import { readFile, rm } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { setTimeout as delay } from 'node:timers/promises'
 
@@ -121,6 +121,34 @@ test('plans bypass stale discovery data and apply changed weights without reset'
   assert.deepEqual(JSON.parse(next.stdout).include.map(row => [row.projects, row.weight]), [
     [['other'], 8], [['app', 'lib', 'new'], 4],
   ])
+})
+
+test('disabled plans filter automatic selection but allow direct commands and exact lists', async t => {
+  const { root, project, run } = await affectedFixture(t)
+  const original = run('plan', '--target=build', '--all')
+
+  assert.equal(original.status, 0, original.stderr)
+  assert.deepEqual(JSON.parse(original.stdout).include[0].projects, ['app', 'lib', 'other'])
+  await project('lib', { plan: { enabled: false } })
+  const affected = run('affected', '--target=build', '--uncommitted', '--print-matrix')
+
+  assert.equal(affected.status, 0, affected.stderr)
+  assert.deepEqual(JSON.parse(affected.stdout), ['app'])
+  const plan = run('plan', '--target=build', '--all')
+
+  assert.equal(plan.status, 0, plan.stderr)
+  assert.deepEqual(JSON.parse(plan.stdout).include[0].projects, ['app', 'other'])
+  const automatic = run('run-many', '--target=build')
+
+  assert.equal(automatic.status, 0, automatic.stderr)
+  assert.deepEqual((await events(root)).filter(event => event.phase === 'end').map(event => event.project).sort(), ['app', 'other'])
+  for (const args of [['build', 'lib'], ['run-many', '--target=build', '--projects-json', '["lib"]']]) {
+    await rm(join(root, 'events.log'))
+    const result = run(...args)
+
+    assert.equal(result.status, 0, result.stderr)
+    assert.deepEqual((await events(root)).filter(event => event.phase === 'end').map(event => event.project), ['lib'])
+  }
 })
 
 test('numeric-looking Git refs, names, tags and configurations retain their exact spelling', async t => {

@@ -8,6 +8,8 @@ import { workspaceSchemaPath } from './schema'
 
 interface ProjectPlan {
   [key: string]: unknown
+  /** Include this project in automatic selection. Defaults to true. */
+  enabled?: boolean
   /** Relative CI cost. Defaults to 1 and must be positive. */
   weight?: number
 }

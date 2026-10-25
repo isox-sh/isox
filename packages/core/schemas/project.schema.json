@@ -30,6 +30,11 @@
       "type": "object",
       "additionalProperties": true,
       "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include this project in affected, plan, and ordinary run-many selection. Direct commands and exact project lists can still run it."
+        },
         "weight": {
           "type": "number",
           "exclusiveMinimum": 0,

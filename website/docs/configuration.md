@@ -111,6 +111,12 @@ Merely listing a command's
 executor does not add an edge. Affected planning rejects unknown dependencies and
 reports dependency cycles.
 
+Set `plan.enabled` to `false` to exclude a project from `affected`, `plan`, and
+ordinary `run-many` selection. It defaults to `true`. Direct commands and exact
+`run-many --projects-json` lists can still run it, and changes still affect its
+dependents. The existing `ci=off` tag also excludes projects, even when
+`plan.enabled` is `true`.
+
 `plan.weight` is a positive number that estimates a project's relative CI cost.
 It defaults to `1`; increasing it gives the project more weight when balancing
 shards. Fractional weights are supported. See [affected and CI](/docs/affected-and-ci)

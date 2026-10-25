@@ -100,7 +100,7 @@ Use narrow `affected.globalFiles` globs for additional shared tooling and
 
 Local unstaged and staged changes require `--uncommitted`; non-ignored untracked
 files require `--untracked`. Projects must have the requested command and pass
-the tag filters. A `ci=off` tag excludes a project from normal selection.
+the tag filters. `plan.enabled: false` or a `ci=off` tag excludes a project from normal selection.
 
 For CI, use a checkout with `fetch-depth: 0` in the planning job. Missing revisions
 are errors. On non-PR events the actions compare against the nearest reachable
