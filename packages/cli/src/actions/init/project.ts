@@ -2,7 +2,7 @@ import { lstat, realpath, rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 
-import { findWorkspaceRoot, logger, parseWorkspace } from '@isox-sh/core'
+import { findWorkspaceRoot, logger, parseWorkspace, resolvePackageJson } from '@isox-sh/core'
 
 import type { InitializerOptions, ProjectInitializer } from '@isox-sh/core'
 
@@ -47,7 +47,7 @@ export async function initializeProject(packageName: string, projectPath: string
   }
 
   const workspaceRequire = createRequire(join(workspaceRoot, 'package.json'))
-  const packageFile = workspaceRequire.resolve(`${packageName}/package.json`)
+  const packageFile = resolvePackageJson(packageName, workspaceRoot)
   const manifest = workspaceRequire(packageFile)
   if (typeof manifest.init !== 'string' || !manifest.init) {
     throw new Error(`Package ${packageName} does not define an init implementation.`)

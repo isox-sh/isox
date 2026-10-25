@@ -72,6 +72,7 @@ test('rejects invalid additions and duplicate section requests before writing', 
   const context = await fixture(t)
   for (const deps of [
     { dependencies: null }, { dependencies: [] }, { dependencies: { bad: 42 } },
+    { dependencies: { 'Bad Name': '^1' } }, { dependencies: { '@scope/../bad': '^1' } },
     { devDependencies: { bad: '' } }, { dependencies: { '': '^1' } },
     { dependencies: { tool: '^1' }, devDependencies: { tool: '^2' } },
   ]) {

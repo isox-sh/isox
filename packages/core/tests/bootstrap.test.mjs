@@ -258,3 +258,23 @@ test('native commands do not load the installed Nx plugin', async (t) => {
   await write('node_modules/@isox-sh/nx/index.cjs', 'throw new Error("Nx plugin must not load")')
   await runExecutor(workspace, 'demo', 'build', root)
 })
+
+test('unscoped plugins work when no first-party package is installed, including hidden metadata', async t => {
+  const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+  workspace.projects.demo.targets.build.executor = 'third-party:build'
+  await write('node_modules/third-party/package.json', {
+    exports: { '.': './index.cjs' }, executors: './executors.json',
+  })
+  await write('node_modules/third-party/index.cjs', 'throw new Error("Public entry must not load")')
+  await write('node_modules/third-party/executors.json', { executors: { build: { implementation: './build.cjs' } } })
+  await write('node_modules/third-party/build.cjs', 'module.exports = () => ({ success: true })')
+  await runExecutor(workspace, 'demo', 'build', root)
+})
+
+test('Nx selectors reject uppercase package names instead of silently failing to match', async t => {
+  const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+  for (const selector of ['@NX', '@Nx/webpack', 'Nx', 'nx\n']) {
+    await write('isox.json', { nx: { executors: [selector] } })
+    await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Invalid workspace configuration/)
+  }
+})

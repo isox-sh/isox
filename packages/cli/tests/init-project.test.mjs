@@ -220,3 +220,16 @@ test('init rejects duplicate project names even with an outdated discovery cache
   assert.match(result.stderr, /Project test already exists/)
   assert.ok(!(await readdir(root)).includes('test'))
 })
+
+test('initializers resolve plugins whose exports hide package.json', async t => {
+  const root = await fixture(t)
+  const directory = join(root, 'node_modules/private-plugin')
+  await mkdir(directory)
+  await writeFile(join(directory, 'package.json'), JSON.stringify({ exports: { '.': './public.cjs' }, init: './init.cjs' }))
+  await writeFile(join(directory, 'init.cjs'), `module.exports = async (_, context) => {
+    await require('node:fs/promises').mkdir(context.projectRoot)
+  }`)
+  const result = run(root, 'init', 'private-plugin', 'created')
+  assert.equal(result.status, 0, result.stderr)
+  assert.ok((await readdir(root)).includes('created'))
+})

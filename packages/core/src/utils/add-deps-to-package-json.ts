@@ -14,7 +14,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function validateDeps(value: unknown, field: string): asserts value is Record<string, string> {
   if (!isRecord(value) || Object.entries(value).some(([name, version]) =>
-    !name.trim() || typeof version !== 'string' || !version.trim(),
+    name.length > 214 || !/^(?:@[a-z0-9~][a-z0-9._~-]*\/)?[a-z0-9~][a-z0-9._~-]*$/.test(name)
+    || ['node_modules', 'favicon.ico'].includes(name) || typeof version !== 'string' || !version.trim(),
   )) {
     throw new Error(`Invalid ${field}: expected package names mapped to non-empty version strings.`)
   }

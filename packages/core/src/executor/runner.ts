@@ -1,6 +1,7 @@
 import { dirname, resolve } from 'node:path'
 
 import { logger, LogLevels } from '../logger'
+import { resolvePackageJson } from '../utils/resolve-package-json'
 import { readWorkspaceSettings } from '../workspace/settings'
 import { resolveCommandOptions } from './configuration'
 
@@ -175,7 +176,7 @@ function resolveExecutorPackage(packageName: string, root: string, allowShorthan
   let resolutionError: unknown
   for (const pkg of candidates) {
     try {
-      return { pkg, pkgJsonPath: require.resolve(`${pkg}/package.json`, { paths: [root] }) }
+      return { pkg, pkgJsonPath: resolvePackageJson(pkg, root) }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') {
         throw error
