@@ -286,8 +286,10 @@ test('initializers resolve plugins whose exports hide package.json', async t => 
   await mkdir(directory)
   await writeFile(join(directory, 'package.json'), JSON.stringify({
     exports: { '.': './public.cjs' },
-    init: './init.cjs'
+    generators: './metadata/generators.json'
   }))
+  await mkdir(join(directory, 'metadata'))
+  await writeFile(join(directory, 'metadata/generators.json'), JSON.stringify({ generators: { init: { implementation: '../init.cjs' } } }))
   await writeFile(join(directory, 'init.cjs'), `module.exports = async (_, context) => {
     await require('node:fs/promises').mkdir(context.projectRoot)
   }`)

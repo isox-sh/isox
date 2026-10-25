@@ -1,10 +1,10 @@
 import { lstat, realpath, rm } from 'node:fs/promises'
-import { createRequire } from 'node:module'
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
+import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
-import { findWorkspaceRoot, logger, parseWorkspace, readJson, resolvePackageJson } from '@isox-sh/core'
+import { findWorkspaceRoot, logger, parseWorkspace, readJson } from '@isox-sh/core'
 
-import type { ProjectAdder } from '@isox-sh/core'
+import { loadGenerator } from '../../shared/generators'
+
 import type { CAC } from 'cac'
 
 async function addToProject(packageName: string, projectName: string): Promise<void> {
@@ -36,20 +36,7 @@ async function addToProject(packageName: string, projectName: string): Promise<v
 
   // Require an existing project and reject symlinked configuration before loading a plugin.
   await readJson('project.json', { projectRoot })
-  const workspaceRequire = createRequire(join(workspaceRoot, 'package.json'))
-  const packageFile = resolvePackageJson(packageName, workspaceRoot)
-  const manifest = workspaceRequire(packageFile)
-
-  if (typeof manifest.add !== 'string' || !manifest.add) {
-    throw new Error(`Package ${packageName} does not define an add implementation.`)
-  }
-
-  const implementation = workspaceRequire(resolve(dirname(packageFile), manifest.add))
-  const add: ProjectAdder = implementation.default ?? implementation
-
-  if (typeof add !== 'function') {
-    throw new Error(`Add generator ${packageName} does not export a function.`)
-  }
+  const add = loadGenerator(packageName, 'add', workspaceRoot)
 
   try {
     await add({}, {

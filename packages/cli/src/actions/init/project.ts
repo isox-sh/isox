@@ -1,10 +1,11 @@
 import { lstat, realpath, rm } from 'node:fs/promises'
-import { createRequire } from 'node:module'
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 
-import { findWorkspaceRoot, logger, parseWorkspace, resolvePackageJson } from '@isox-sh/core'
+import { findWorkspaceRoot, logger, parseWorkspace } from '@isox-sh/core'
 
-import type { InitializerOptions, ProjectInitializer } from '@isox-sh/core'
+import { loadGenerator } from '../../shared/generators'
+
+import type { InitializerOptions } from '@isox-sh/core'
 
 function isInside(root: string, path: string): boolean {
   const rel = relative(root, path)
@@ -55,20 +56,7 @@ export async function initializeProject(packageName: string, projectPath: string
     throw new Error('--importPath must be a non-empty import name without whitespace, colons, or wildcards.')
   }
 
-  const workspaceRequire = createRequire(join(workspaceRoot, 'package.json'))
-  const packageFile = resolvePackageJson(packageName, workspaceRoot)
-  const manifest = workspaceRequire(packageFile)
-
-  if (typeof manifest.init !== 'string' || !manifest.init) {
-    throw new Error(`Package ${packageName} does not define an init implementation.`)
-  }
-
-  const implementation = workspaceRequire(resolve(dirname(packageFile), manifest.init))
-  const initializer: ProjectInitializer = implementation.default ?? implementation
-
-  if (typeof initializer !== 'function') {
-    throw new Error(`Initializer ${packageName} does not export a function.`)
-  }
+  const initializer = loadGenerator(packageName, 'init', workspaceRoot)
 
   // Refresh discovery before checking names; projects may have been added by hand.
   const cacheFile = join(workspaceRoot, '.isox', 'workspace.json')

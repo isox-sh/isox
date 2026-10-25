@@ -180,25 +180,35 @@ export async function generatePackageJson(
     await walk(JSON.parse(data.toString()) as Json)
   }
 
-  if (typeof manifest.executors === 'string') {
-    const source = resolve(context.projectRoot, manifest.executors)
+  for (const field of ['executors', 'generators']) {
+    const manifestPath = manifest[field]
+
+    if (manifestPath === undefined) {
+      continue
+    }
+
+    if (typeof manifestPath !== 'string' || !manifestPath.trim()) {
+      throw new Error(`Invalid ${field} manifest path.`)
+    }
+
+    const source = resolve(context.projectRoot, manifestPath)
 
     if (!inside(context.projectRoot, await canonical(source))) {
-      throw new Error('Executor manifest must be inside the project.')
+      throw new Error(`${field} manifest must be inside the project.`)
     }
 
-    const executorManifest = await readManifest(source)
-    const registry = executorManifest.executors
+    const pluginManifest = await readManifest(source)
+    const registry = pluginManifest[field]
 
     if (!registry || typeof registry !== 'object' || Array.isArray(registry)) {
-      throw new Error('Invalid executors manifest.')
+      throw new Error(`Invalid ${field} manifest.`)
     }
 
-    const target = targetFor(manifest.executors)
+    const target = targetFor(manifestPath)
 
     for (const definition of Object.values(registry)) {
-      if (!definition || typeof definition !== 'object' || Array.isArray(definition) || typeof definition.implementation !== 'string') {
-        throw new Error('Package generation requires native executor implementation entries.')
+      if (!definition || typeof definition !== 'object' || Array.isArray(definition) || typeof definition.implementation !== 'string' || !definition.implementation.trim()) {
+        throw new Error(`Package generation requires ${field} implementation entries.`)
       }
 
       let implementation = resolve(dirname(source), definition.implementation)
@@ -216,7 +226,7 @@ export async function generatePackageJson(
         const isOutputAsset = assets.has(schemaPath) && inside(outDir, actualSchema)
 
         if (!inside(context.projectRoot, actualSchema) && !isOutputAsset) {
-          throw new Error('Executor schema must be inside the project.')
+          throw new Error(`${field} schema must be inside the project.`)
         }
 
         const schemaTarget = targetFor(schemaPath)
@@ -241,8 +251,8 @@ export async function generatePackageJson(
       await copySchema(source)
     }
 
-    extra.set(target, Buffer.from(`${JSON.stringify(executorManifest, null, 2)}\n`))
-    manifest.executors = `./${slash(relative(outDir, target))}`
+    extra.set(target, Buffer.from(`${JSON.stringify(pluginManifest, null, 2)}\n`))
+    manifest[field] = `./${slash(relative(outDir, target))}`
   }
 
   for (const name of ['README.md', 'LICENSE', 'LICENSE.md', 'NOTICE']) {
@@ -267,7 +277,7 @@ export async function generatePackageJson(
     delete publishConfig.exports
   }
 
-  for (const field of ['main', 'module', 'types', 'typings', 'bin', 'exports', 'typesVersions', 'init', 'add']) {
+  for (const field of ['main', 'module', 'types', 'typings', 'bin', 'exports', 'typesVersions']) {
     if (manifest[field] !== undefined && !(field === 'exports' && publishedExports !== undefined)) {
       manifest[field] = rewrite(manifest[field])
     }
@@ -302,7 +312,7 @@ export async function generatePackageJson(
     manifest.imports = rewriteImports(manifest.imports)
   }
 
-  if (manifest.main === undefined && manifest.executors === undefined) {
+  if (manifest.main === undefined && manifest.executors === undefined && manifest.generators === undefined) {
     const main = ['index.js', 'index.mjs', 'index.cjs'].find(file => available().has(resolve(outDir, file)))
 
     if (main) {
@@ -310,7 +320,7 @@ export async function generatePackageJson(
     }
   }
 
-  if (manifest.types === undefined && manifest.typings === undefined && manifest.executors === undefined) {
+  if (manifest.types === undefined && manifest.typings === undefined && manifest.executors === undefined && manifest.generators === undefined) {
     const types = [
       'index.d.ts',
       'index.d.mts',

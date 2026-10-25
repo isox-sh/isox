@@ -4,10 +4,11 @@
   "license": "MIT",
   "description": "Native TypeScript compiler executor for Isox.",
   "executors": "./executors.json",
-  "init": "../../dist/js/generators/init.js",
+  "generators": "./generators.json",
   "files": [
     "dist",
-    "executors.json"
+    "executors.json",
+    "generators.json"
   ],
   "dependencies": {
     "jsonc-parser": "^3.3.1",

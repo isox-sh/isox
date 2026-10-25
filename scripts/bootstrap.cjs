@@ -38,7 +38,7 @@ function seed(name) {
   const files = []
 
   seededFiles.set(name, files)
-  for (const file of ['package.json', 'executors.json']) {
+  for (const file of ['package.json', 'executors.json', 'generators.json']) {
     if (existsSync(resolve(source, file))) {
       const metadata = rewriteOutputPaths(JSON.parse(readFileSync(resolve(source, file), 'utf8')), name)
 

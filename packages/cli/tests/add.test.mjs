@@ -32,8 +32,9 @@ async function fixture(t) {
   await write('node_modules/plugin/package.json', {
     name: 'plugin',
     exports: { '.': './public.cjs' },
-    add: './add.cjs'
+    generators: './metadata/generators.json'
   })
+  await write('node_modules/plugin/metadata/generators.json', { generators: { add: { implementation: '../add.cjs' } } })
   await write('node_modules/plugin/add.cjs', `module.exports = async (options, context) => {
     const fs = require('node:fs/promises')
     await fs.writeFile(require('node:path').join(context.projectRoot, 'added.json'), JSON.stringify({ options, projectName: context.projectName, projectRoot: context.projectRoot, workspaceRoot: context.workspaceRoot }))
@@ -139,10 +140,10 @@ test('add reports missing arguments, unsupported options, and missing or invalid
   await f.write('node_modules/plugin/package.json', { name: 'plugin' })
   const missing = f.run(f.root, 'add', 'plugin', 'named-project')
 
-  assert.match(missing.stderr, /does not define an add implementation/)
+  assert.match(missing.stderr, /does not define a generators manifest/)
   await f.write('node_modules/plugin/package.json', {
     name: 'plugin',
-    add: './add.cjs'
+    generators: './metadata/generators.json'
   })
   await f.write('node_modules/plugin/add.cjs', 'module.exports = {}')
   const invalid = f.run(f.root, 'add', 'plugin', 'named-project')
@@ -167,4 +168,17 @@ test('add requires a workspace and refuses a symlinked workspace cache', async t
 
   assert.equal(missing.status, 1)
   assert.match(missing.stderr, /No Isox workspace/)
+})
+
+test('add rejects malformed generator registries and missing implementations before modifying projects', async t => {
+  const f = await fixture(t)
+
+  for (const registry of [null, [], {}, { generators: [] }, { generators: {} }, { generators: { add: './add.cjs' } }, { generators: { add: { implementation: '' } } }]) {
+    await f.write('node_modules/plugin/metadata/generators.json', registry)
+    const result = f.run(f.root, 'add', 'plugin', 'named-project')
+
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /Invalid generators manifest|must define an implementation/)
+    await assert.rejects(stat(join(f.projectRoot, 'added.json')), { code: 'ENOENT' })
+  }
 })

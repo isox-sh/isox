@@ -189,7 +189,7 @@ It preserves package metadata and production/optional/peer dependencies, strips
 scripts, development dependencies, workspace and package-manager settings, and
 infers runtime dependencies from the project's compiled sources. Source metadata
 is never rewritten. Existing
-`main`, `module`, `types`/`typings`, `bin`, `exports`, initializer, and type-version
+`main`, `module`, `types`/`typings`, `bin`, `exports`, and type-version
 paths are translated and checked against generated output. Existing exports win
 when additional subpaths are merged. Conditional root exports cannot be merged
 with additional subpaths until expressed as a subpath map.
@@ -200,8 +200,9 @@ Declarations emitted into a separate `declarationDir` are copied under `types/`
 in the distributable package, with declaration-map paths adjusted. Explicit and
 wildcard declaration exports are rewritten to that location.
 
-For command-only plugins, the executor copies and rewrites `executors.json`
-and its schemas, preserving implementation paths without creating a root entry
+For plugins, the executor copies and rewrites the registries referenced by
+`executors` and `generators` (usually `executors.json` and `generators.json`) and
+their schemas, preserving implementation paths without creating a root entry
 point. Package-local README, license, and notice files are included when present.
 `workspace:*`, `workspace:^`, and `workspace:~` become publishable versions using
 package manifests of discovered Isox projects. Workspace aliases and

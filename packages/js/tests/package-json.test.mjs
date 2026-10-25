@@ -77,7 +77,7 @@ test('generates package metadata, workspace versions, exports, and additional en
   assert.equal(projectRoot.endsWith('demo package'), true)
 })
 
-test('packages executor-only plugins with executor implementations and schemas, without root exports', async t => {
+test('packages plugin registries with implementations and schemas, without root exports', async t => {
   const { write, read, context } = await fixture(t)
 
   await write('src/generators/add.ts', 'export default async () => {}')
@@ -86,7 +86,19 @@ test('packages executor-only plugins with executor implementations and schemas, 
     name: '@fixture/plugin',
     version: '0.1.0',
     executors: './executors.json',
-    add: './dist/generators/add.js'
+    generators: './metadata/generators.json'
+  })
+  await write('metadata/generators.json', {
+    generators: {
+      add: {
+        implementation: '../dist/generators/add',
+        schema: './../schemas/example.json'
+      },
+      custom: {
+        implementation: '../dist/generators/add.js',
+        description: 'A named generator'
+      }
+    }
   })
   await write('executors.json', {
     executors: {
@@ -109,12 +121,57 @@ test('packages executor-only plugins with executor implementations and schemas, 
   assert.equal(generated.types, undefined)
   assert.equal(generated.exports, undefined)
   assert.equal(generated.executors, './executors.json')
-  assert.equal(generated.add, './generators/add.js')
+  assert.equal(generated.generators, './metadata/generators.json')
+  assert.deepEqual(JSON.parse(await read('dist/metadata/generators.json')), {
+    generators: {
+      add: {
+        implementation: './../generators/add.js',
+        schema: './../schemas/example.json'
+      },
+      custom: {
+        implementation: './../generators/add.js',
+        description: 'A named generator'
+      }
+    }
+  })
+  assert.equal(JSON.parse(await read('metadata/generators.json')).generators.add.implementation, '../dist/generators/add')
   const executors = JSON.parse(await read('dist/executors.json'))
 
   assert.equal(executors.executors.example.implementation, './commands/example/example.command.js')
   assert.equal(executors.executors.example.schema, './schemas/example.json')
   assert.deepEqual(JSON.parse(await read('dist/support/definitions.json')), { type: 'object' })
+})
+
+test('packages generator-only plugins without inferring root entry points', async t => {
+  const { write, read, context } = await fixture(t)
+
+  await write('package.json', {
+    name: '@fixture/generator',
+    version: '1.0.0',
+    generators: './generators.json'
+  })
+  await write('generators.json', { generators: { init: { implementation: './dist/index.js' } } })
+  assert.deepEqual(await tsc({ generatePackageJson: true }, context), { success: true })
+  const manifest = JSON.parse(await read('dist/package.json'))
+
+  assert.equal(manifest.generators, './generators.json')
+  assert.equal(manifest.main, undefined)
+  assert.equal(manifest.types, undefined)
+  assert.equal(JSON.parse(await read('dist/generators.json')).generators.init.implementation, './index.js')
+})
+
+test('package generation rejects malformed generator registries and implementations outside generated output', async t => {
+  const { write, context } = await fixture(t)
+
+  await write('package.json', {
+    name: '@fixture/generator',
+    version: '1.0.0',
+    generators: './generators.json'
+  })
+  for (const registry of [{}, { generators: [] }, { generators: { init: {} } }, { generators: { init: { implementation: '../outside.js' } } }]) {
+    await write('generators.json', registry)
+    await assert.rejects(tsc({ generatePackageJson: true }, context), /Invalid generators manifest|requires generators implementation entries|does not match generated output/)
+  }
 })
 
 test('validates package entries and preserves the last successful manifest on compilation failure', async t => {

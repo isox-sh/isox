@@ -4,10 +4,11 @@
   "license": "MIT",
   "description": "Conventional commit releases and changelogs for Isox.",
   "executors": "./executors.json",
-  "add": "../../dist/semver/generators/add.js",
+  "generators": "./generators.json",
   "files": [
     "dist",
-    "executors.json"
+    "executors.json",
+    "generators.json"
   ],
   "dependencies": {
     "ajv": "^8.20.0",

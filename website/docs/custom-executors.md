@@ -28,6 +28,7 @@ Use this layout for executor plugins in this repository:
 packages/<plugin>/
 ├── package.json
 ├── executors.json
+├── generators.json
 ├── project.json
 ├── src/
 │   ├── executors/
@@ -102,12 +103,12 @@ Publish the build directory and manifest using these `package.json` fields:
 ```json
 {
   "executors": "./executors.json",
-  "init": "./dist/generators/init.js",
-  "files": ["dist", "executors.json"]
+  "generators": "./generators.json",
+  "files": ["dist", "executors.json", "generators.json"]
 }
 ```
 
-Omit `init` when the plugin has no initializer. Keep package-level workspace
+Omit `generators` when the plugin has no generators. Keep package-level workspace
 schemas, such as core's `schemas/project.schema.json`, separate from executor
 options schemas.
 
@@ -197,8 +198,32 @@ and the built-in shell-command executor.
 
 ## Project initializers
 
-Packages can also declare `"init": "./dist/generators/init.js"` in `package.json` to support
-`isox init <package> <path>`. The module exports a function (directly or as its
+Declare `"generators": "./generators.json"` in `package.json`, alongside the
+`executors` registry. The `generators.json` file maps generator names to their
+implementations:
+
+```json
+{
+  "generators": {
+    "init": {
+      "implementation": "./dist/generators/init.js",
+      "description": "Create a project."
+    },
+    "add": {
+      "implementation": "./dist/generators/add.js",
+      "description": "Configure an existing project."
+    }
+  }
+}
+```
+
+Paths are relative to `generators.json`. Include only the generators your plugin
+provides. Move former top-level `init` and `add` package fields into this registry;
+those package fields are no longer used. The CLI currently invokes `init` through
+`isox init <package> <path>` and `add` through `isox add <package> <project>`.
+Additional names can be recorded for future generators but have no CLI command yet.
+
+The `init` module exports a function (directly or as its
 default export) matching core's `ProjectInitializer` type. It receives options
 such as `importPath` and a context containing `workspaceRoot`, `projectRoot`,
 `projectName`, and `logger`. The CLI resolves the package from the existing
@@ -207,7 +232,7 @@ The initializer creates the project files and updates any shared configuration.
 
 ## Adding plugins to existing projects
 
-Declare `"add": "./dist/generators/add.js"` in a plugin's `package.json` to support
+Declare an `add` entry in the plugin's `generators.json` to support
 `isox add <package> <project>`. Keep its implementation in `src/generators/add.ts`.
 The exported function implements core's `ProjectAdder` type:
 
@@ -233,8 +258,9 @@ remain intact.
 Generators own their edits and should preserve existing configuration, handle
 repeat calls, and reject conflicting targets. The release plugin supplies an
 example: `isox add @isox-sh/semver my-package` adds its `version` target.
-The TypeScript package builder rewrites `add` paths into the published output,
-just as it does for `init`.
+The TypeScript package builder copies `generators.json` and rewrites all
+implementation and optional schema paths into the published output. Generator
+schemas are metadata; the CLI does not apply schema validation or defaults.
 
 ## Testing plugins
 
