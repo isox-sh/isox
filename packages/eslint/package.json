@@ -1,0 +1,33 @@
+{
+  "name": "@isox-sh/eslint",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Native ESLint lint executor for Isox.",
+  "executors": "./executors.json",
+  "files": [
+    "dist",
+    "executors.json"
+  ],
+  "dependencies": {
+    "@isox-sh/core": "workspace:*",
+    "eslint": "^10.13.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git",
+    "directory": "packages/eslint"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/eslint",
+    "linkDirectory": true
+  },
+  "engines": {
+    "node": "^24.0.0 || >=26.0.0"
+  }
+}

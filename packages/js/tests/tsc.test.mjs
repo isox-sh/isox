@@ -11,7 +11,7 @@ const { tmpdir } = require('node:os')
 const { dirname, join, resolve } = require('node:path')
 
 const { createLogger, LogLevels } = require('@isox-sh/core')
-const { default: tsc } = require('../dist/commands/tsc/tsc.command')
+const { default: tsc } = require('../../../dist/js/executors/tsc/tsc.executor')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox typescript '))
@@ -49,7 +49,7 @@ test('returns failure for compiler diagnostics and missing configurations', asyn
 test('rejects invalid config paths before spawning the compiler', async (t) => {
   const { context } = await fixture(t)
   for (const tsConfig of ['', ' ', 42, null, []]) {
-    await assert.rejects(tsc({ tsConfig }, context), /tsConfig must be a non-empty string/)
+    await assert.rejects(tsc({ tsConfig }, context), /Invalid tsc options/)
   }
 })
 
@@ -61,7 +61,7 @@ test('CLI loads the manifest and merges configurations using workspace-relative 
   await writeFile(join(root, 'isox.json'), '{}')
   await write('project.json', {
     name: 'demo',
-    commands: {
+    executors: {
       build: {
         executor: '@isox-sh/js:tsc',
         options: { tsConfig: 'missing.json' },
@@ -71,8 +71,8 @@ test('CLI loads the manifest and merges configurations using workspace-relative 
   })
   const link = join(root, 'node_modules/@isox-sh/js')
   await mkdir(dirname(link), { recursive: true })
-  await symlink(resolve(__dirname, '..'), link, process.platform === 'win32' ? 'junction' : 'dir')
-  const cli = resolve(__dirname, '../../cli/dist/index.js')
+  await symlink(resolve(__dirname, '../../../dist/js'), link, process.platform === 'win32' ? 'junction' : 'dir')
+  const cli = resolve(__dirname, '../../../dist/cli/index.js')
   const result = spawnSync(process.execPath, [cli, 'build', 'demo', '--prod'], { cwd: projectRoot, encoding: 'utf8' })
   assert.equal(result.status, 0, result.stderr)
   assert.match(await readFile(join(projectRoot, 'production/index.js'), 'utf8'), /42/)

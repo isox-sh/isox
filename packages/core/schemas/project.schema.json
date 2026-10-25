@@ -20,10 +20,10 @@
       "items": { "type": "string", "pattern": "^[^\\s:]+$" },
       "description": "Names of projects this project depends on. Dependency scheduling is not yet implemented."
     },
-    "commands": {
+    "executors": {
       "type": "object",
       "propertyNames": { "pattern": "^[^\\s:]+$" },
-      "additionalProperties": { "$ref": "#/definitions/command" },
+      "additionalProperties": { "$ref": "#/definitions/executor" },
       "description": "Commands available through isox <command> <target>, where target is the project name."
     },
     "tags": {
@@ -34,7 +34,7 @@
     }
   },
   "definitions": {
-    "command": {
+    "executor": {
       "type": "object",
       "required": ["executor"],
       "properties": {

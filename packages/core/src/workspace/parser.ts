@@ -8,7 +8,7 @@ import { parseProjectDefinition } from './configuration'
 
 import type { ProjectDefinition } from './configuration'
 
-export type { CommandConfiguration, ProjectDefinition } from './configuration'
+export type { ExecutorConfiguration, ProjectDefinition } from './configuration'
 
 export interface ProjectConfiguration extends ProjectDefinition {
   name: string
@@ -28,7 +28,7 @@ export async function parseWorkspace(cwd: string): Promise<WorkspaceGraph> {
 
   const files = await fg('**/project.json', {
     cwd,
-    ignore: ['**/node_modules/**', '**/.git/**', '**/.isox/**'],
+    ignore: ['**/node_modules/**', '**/.git/**', '**/.isox/**', 'tmp/**'],
   })
   const projects: Record<string, ProjectConfiguration> = Object.create(null)
 
@@ -40,6 +40,7 @@ export async function parseWorkspace(cwd: string): Promise<WorkspaceGraph> {
     } catch (error) {
       throw new SyntaxError(`Invalid project configuration in ${file}: invalid JSON.`, { cause: error })
     }
+
     const content = parseProjectDefinition(parsed, file)
 
     const root = dirname(file)
@@ -47,6 +48,7 @@ export async function parseWorkspace(cwd: string): Promise<WorkspaceGraph> {
     if (typeof name !== 'string' || !/^[^\s:]+$/.test(name)) {
       throw new Error(`Invalid project name in ${file}.`)
     }
+
     if (Object.hasOwn(projects, name)) {
       throw new Error(`Duplicate project name ${name} in ${file}.`)
     }

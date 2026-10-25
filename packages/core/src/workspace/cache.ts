@@ -9,7 +9,7 @@ import { findWorkspaceRoot } from './root'
 
 import type { WorkspaceGraph } from './parser'
 
-const cacheVersion = 4
+const cacheVersion = 5
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -23,6 +23,7 @@ function isWorkspaceCache(value: unknown): value is WorkspaceGraph & { version: 
       if (!isRecord(project) || project.name !== name || typeof project.root !== 'string') {
         return false
       }
+
       const definition = { ...project }
       delete definition.root
       return !isNxProjectSchema(definition.$schema) && isProjectDefinition(definition)
@@ -48,6 +49,7 @@ export async function readWorkspaceCache(root: string): Promise<WorkspaceGraph |
     logger.warn(`Invalid workspace cache at ${file}, rebuilding.`)
     return undefined
   }
+
   if (!isWorkspaceCache(cached)) {
     logger.warn(`Invalid or outdated workspace cache at ${file}, rebuilding.`)
     return undefined

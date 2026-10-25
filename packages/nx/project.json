@@ -1,0 +1,23 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "nx",
+  "dependencies": [
+    "core"
+  ],
+  "executors": {
+    "build": {
+      "executor": "js:tsc",
+      "options": {
+        "tsConfig": "packages/nx/tsconfig.json",
+        "generatePackageJson": true
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    },
+    "lint": {
+      "executor": "eslint:lint"
+    }
+  },
+  "tags": []
+}

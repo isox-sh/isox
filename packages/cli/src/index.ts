@@ -24,6 +24,7 @@ async function main(): Promise<void> {
     cli.outputHelp()
     return
   }
+
   await cli.runMatchedCommand()
 }
 

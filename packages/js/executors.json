@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "tsc": {
+      "implementation": "../../dist/js/executors/tsc/tsc.executor.js",
+      "schema": "../../dist/js/executors/tsc/tsc.schema.json",
+      "description": "Compile a TypeScript project using TypeScript 7."
+    }
+  }
+}

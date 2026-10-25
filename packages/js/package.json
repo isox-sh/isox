@@ -3,15 +3,17 @@
   "version": "0.0.1",
   "license": "MIT",
   "description": "Native TypeScript compiler executor for Isox.",
-  "commands": "./commands.json",
+  "executors": "./executors.json",
+  "init": "../../dist/js/generators/init.js",
   "files": [
     "dist",
-    "commands.json",
-    "schemas"
+    "executors.json"
   ],
   "dependencies": {
-    "@typescript/native": "npm:typescript@^7.0.2",
-    "@isox-sh/core": "workspace:*"
+    "@isox-sh/core": "workspace:*",
+    "jsonc-parser": "^3.3.1",
+    "fast-glob": "^3.3.3",
+    "ajv": "^8.20.0"
   },
   "repository": {
     "type": "git",
@@ -24,9 +26,33 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/js",
+    "linkDirectory": true,
+    "exports": {
+      "./helpers": {
+        "types": "./helpers/index.d.ts",
+        "default": "./helpers/index.js"
+      },
+      "./helpers/package-json": {
+        "types": "./helpers/package-json.d.ts",
+        "default": "./helpers/package-json.js"
+      },
+      "./*": "./*"
+    }
   },
   "engines": {
     "node": ">=24.0.0"
+  },
+  "exports": {
+    "./helpers": {
+      "types": "./src/helpers/index.ts",
+      "default": "./src/helpers/index.ts"
+    },
+    "./helpers/package-json": {
+      "types": "./src/helpers/package-json.ts",
+      "default": "./src/helpers/package-json.ts"
+    },
+    "./*": "./*"
   }
 }

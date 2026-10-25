@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { test } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { addDepsToPackageJson, createLogger } = require('../dist')
+const { addDepsToPackageJson, createLogger } = require('../../../dist/core')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-deps-'))

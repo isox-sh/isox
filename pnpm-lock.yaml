@@ -171,13 +171,19 @@ importers:
         version: 10.0.1(eslint@10.13.0)
       '@isox-sh/core':
         specifier: workspace:*
-        version: link:packages/core
+        version: link:dist/core
+      '@isox-sh/eslint':
+        specifier: workspace:*
+        version: link:dist/eslint
       '@isox-sh/js':
         specifier: workspace:*
-        version: link:packages/js
+        version: link:dist/js
+      '@isox-sh/nx':
+        specifier: workspace:*
+        version: link:dist/nx
       '@isox-sh/vitest':
         specifier: workspace:*
-        version: link:packages/vitest
+        version: link:dist/vitest
       '@stylistic/eslint-plugin':
         specifier: ^5.10.0
         version: 5.10.0(eslint@10.13.0)
@@ -210,10 +216,11 @@ importers:
     dependencies:
       '@isox-sh/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../dist/core
       cac:
         specifier: ^7.1.0
         version: 7.1.0
+    publishDirectory: ../../dist/cli
 
   packages/core:
     dependencies:
@@ -223,24 +230,50 @@ importers:
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3
+    publishDirectory: ../../dist/core
+
+  packages/eslint:
+    dependencies:
+      '@isox-sh/core':
+        specifier: workspace:*
+        version: link:../../dist/core
+      eslint:
+        specifier: ^10.13.0
+        version: 10.13.0
+    publishDirectory: ../../dist/eslint
 
   packages/js:
     dependencies:
       '@isox-sh/core':
         specifier: workspace:*
-        version: link:../core
-      '@typescript/native':
-        specifier: npm:typescript@^7.0.2
-        version: typescript@7.0.2
+        version: link:../../dist/core
+      ajv:
+        specifier: ^8.20.0
+        version: 8.20.0
+      fast-glob:
+        specifier: ^3.3.3
+        version: 3.3.3
+      jsonc-parser:
+        specifier: ^3.3.1
+        version: 3.3.1
+    publishDirectory: ../../dist/js
+
+  packages/nx:
+    dependencies:
+      '@isox-sh/core':
+        specifier: workspace:*
+        version: link:../../dist/core
+    publishDirectory: ../../dist/nx
 
   packages/vitest:
     dependencies:
       '@isox-sh/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../dist/core
       vitest:
         specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(vite@8.3.5(@types/node@26.6.5))
+    publishDirectory: ../../dist/vitest
 
 packages:
 
@@ -902,6 +935,9 @@ packages:
 
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
+
+  jsonc-parser@3.3.1:
+    resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
 
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
@@ -1821,6 +1857,8 @@ snapshots:
   json-schema-traverse@1.0.0: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
+
+  jsonc-parser@3.3.1: {}
 
   keyv@5.6.0:
     dependencies:

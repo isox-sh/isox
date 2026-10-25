@@ -8,9 +8,9 @@ import { dirname, join, resolve } from 'node:path'
 import { test } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { default: runVitest } = require('../dist/commands/test/test.command')
+const { default: runVitest } = require('../../../dist/vitest/executors/test/test.executor')
 const { createLogger, LogLevels } = require('@isox-sh/core')
-const cli = resolve(import.meta.dirname, '../../cli/dist/index.js')
+const cli = resolve(import.meta.dirname, '../../../dist/cli/index.js')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox vitest '))
@@ -22,12 +22,12 @@ async function fixture(t) {
     await writeFile(path, typeof value === 'string' ? value : JSON.stringify(value))
   }
   await write('isox.json', {})
-  await write('apps/demo project/project.json', { name: 'demo', commands: { test: { executor: 'vitest:test' } } })
+  await write('apps/demo project/project.json', { name: 'demo', executors: { test: { executor: 'vitest:test' } } })
   await write('apps/demo project/tests/example.test.mjs', "import { test, expect } from 'vitest'\ntest('passes', () => expect(1).toBe(1))")
   await write('unrelated/failure.test.mjs', "throw new Error('must not scan sibling projects')")
   for (const [name, target] of [
     ['vitest', dirname(require.resolve('vitest/package.json'))],
-    ['@isox-sh/vitest', resolve(import.meta.dirname, '..')],
+    ['@isox-sh/vitest', resolve(import.meta.dirname, '../../../dist/vitest')],
   ]) {
     const link = join(root, 'node_modules', name)
     await mkdir(dirname(link), { recursive: true })
@@ -65,7 +65,7 @@ test('supports scoped executors and configuration overrides with workspace-relat
   const { root, write, run } = await fixture(t)
   await write('apps/demo project/project.json', {
     name: 'demo',
-    commands: {
+    executors: {
       test: {
         executor: '@isox-sh/vitest:test',
         options: { configFile: 'missing.config.mjs' },

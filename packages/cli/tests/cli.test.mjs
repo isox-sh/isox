@@ -10,7 +10,7 @@ const { mkdtemp, mkdir, readFile, writeFile, rm } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { dirname, join, resolve } = require('node:path')
 
-const cliPath = resolve(__dirname, '../dist/index.js')
+const cliPath = resolve(__dirname, '../../../dist/cli/index.js')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-test-'))
@@ -23,7 +23,7 @@ async function fixture(t) {
   return { root, write }
 }
 
-async function executorFixture(t, source, manifestKey = 'commands') {
+async function executorFixture(t, source, manifestKey = 'executors') {
   const fixtureData = await fixture(t)
   const { write } = fixtureData
   await write('isox.json', {})
@@ -31,7 +31,7 @@ async function executorFixture(t, source, manifestKey = 'commands') {
     name: 'demo',
     dependencies: [],
     custom: { owner: 'demo-team' },
-    commands: { build: { executor: '@fixture/plugin:build', options: { answer: 42 }, custom: { region: 'eu' } } },
+    executors: { build: { executor: '@fixture/plugin:build', options: { answer: 42 }, custom: { region: 'eu' } } },
   })
   await write('node_modules/@fixture/plugin/package.json', {
     name: '@fixture/plugin',
@@ -58,7 +58,7 @@ for (const executor of ['@isox-sh/core:run-command', 'core:run-command']) {
     await write('isox.json', {})
     await write('apps/demo/project.json', {
       name: 'demo',
-      commands: { build: { executor, options: { command: 'node build.cjs' } } },
+      executors: { build: { executor, options: { command: 'node build.cjs' } } },
     })
     await write('build.cjs', "require('node:fs').writeFileSync('result.txt', 'built')")
     assert.throws(() => require.resolve('@isox-sh/core/package.json', { paths: [root] }), { code: 'MODULE_NOT_FOUND' })
@@ -74,10 +74,10 @@ test('CLI prefers workspace core and reports invalid manifests without falling b
   const { root, write } = await fixture(t)
   await write('isox.json', {})
   await write('project.json', {
-    name: 'demo', commands: { build: { executor: '@isox-sh/core:run-command' } },
+    name: 'demo', executors: { build: { executor: '@isox-sh/core:run-command' } },
   })
-  await write('node_modules/@isox-sh/core/package.json', { name: '@isox-sh/core', commands: './commands.json' })
-  await write('node_modules/@isox-sh/core/commands.json', { commands: { 'run-command': { implementation: './run.cjs' } } })
+  await write('node_modules/@isox-sh/core/package.json', { name: '@isox-sh/core', executors: './executors.json' })
+  await write('node_modules/@isox-sh/core/executors.json', { executors: { 'run-command': { implementation: './run.cjs' } } })
   await write('node_modules/@isox-sh/core/run.cjs', `module.exports = () => {
     console.log('workspace core selected')
     return { success: true }
@@ -89,7 +89,7 @@ test('CLI prefers workspace core and reports invalid manifests without falling b
   await write('node_modules/@isox-sh/core/package.json', { name: '@isox-sh/core' })
   const invalid = spawnSync(process.execPath, [cliPath, 'build', 'demo'], { cwd: root, encoding: 'utf8' })
   assert.equal(invalid.status, 1)
-  assert.match(invalid.stderr, /Package @isox-sh\/core does not define a commands manifest/)
+  assert.match(invalid.stderr, /Package @isox-sh\/core does not define an executors manifest/)
 })
 
 test('CLI verbose mode enables diagnostics and error stacks', async (t) => {
@@ -130,13 +130,13 @@ test('CLI runs from root and nested directories with workspace options and conte
       assert.equal(context.projectName, 'demo')
       assert.equal(context.commandName, 'build')
       assert.equal(context.command.executor, '@fixture/plugin:build')
-      assert.equal(context.workspace.projects.demo.commands.build.options.answer, 42)
+      assert.equal(context.workspace.projects.demo.executors.build.options.answer, 42)
       assert.deepEqual(context.workspace.projects.demo.dependencies, [])
       assert.equal(context.workspace.projects.demo.root, 'apps/demo')
       assert.equal(context.project, context.workspace.projects.demo)
       assert.deepEqual(context.project.custom, { owner: 'demo-team' })
       assert.deepEqual(context.command.custom, { region: 'eu' })
-      assert.equal(context.command, context.project.commands.build)
+      assert.equal(context.command, context.project.executors.build)
       assert.equal(typeof context.logger.info, 'function')
       for (const key of ['root', 'cwd', 'targetName', 'target', 'projectsConfigurations', 'isVerbose']) {
         assert.equal(Object.hasOwn(context, key), false)
@@ -198,7 +198,7 @@ test('CLI shorthand supports custom commands and leading global options', async 
   `)
   await write('apps/demo/project.json', {
     name: 'demo',
-    commands: {
+    executors: {
       'check-types': { executor: '@fixture/plugin:build', options: { answer: 42 } },
     },
   })

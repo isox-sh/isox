@@ -1,0 +1,9 @@
+{
+  "executors": {
+    "run-command": {
+      "implementation": "../../dist/core/executors/run-command/run-command.executor.js",
+      "schema": "../../dist/core/executors/run-command/run-command.schema.json",
+      "description": "Run a shell command from the workspace root or a configured directory."
+    }
+  }
+}

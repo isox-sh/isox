@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
@@ -6,7 +6,7 @@ import { Ajv } from 'ajv'
 
 import { isNxProjectSchema, migrateNxProject } from './nx'
 
-export interface CommandConfiguration {
+export interface ExecutorConfiguration {
   [key: string]: unknown
   executor: string
   options?: Record<string, unknown>
@@ -20,12 +20,13 @@ export interface ProjectDefinition {
   $schema?: string
   name?: string
   dependencies?: string[]
-  commands?: Record<string, CommandConfiguration>
+  executors?: Record<string, ExecutorConfiguration>
   tags?: string[]
 }
 
 const ajv = new Ajv({ allErrors: true })
-const schemaPath = join(__dirname, '../../schemas/project.schema.json')
+const schemaPath = [join(__dirname, '../schemas/project.schema.json'), join(__dirname, '../../schemas/project.schema.json')]
+  .find(path => existsSync(path))!
 const schema = JSON.parse(readFileSync(schemaPath, 'utf8'))
 export const isProjectDefinition = ajv.compile<ProjectDefinition>(schema)
 
@@ -34,8 +35,10 @@ export function parseProjectDefinition(content: unknown, file: string): ProjectD
     && isNxProjectSchema((content as Record<string, unknown>).$schema)) {
     content = migrateNxProject(content as Record<string, unknown>, file, pathToFileURL(schemaPath).href)
   }
+
   if (!isProjectDefinition(content)) {
     throw new Error(`Invalid project configuration in ${file}: ${ajv.errorsText(isProjectDefinition.errors, { dataVar: 'project' })}`)
   }
+
   return content
 }

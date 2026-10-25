@@ -4,21 +4,25 @@
   "dependencies": [
     "core"
   ],
-  "commands": {
+  "executors": {
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/vitest/tsconfig.json"
+        "tsConfig": "packages/vitest/tsconfig.json",
+        "assets": [
+          {
+            "input": "packages/vitest/src",
+            "glob": "executors/**/*.schema.json"
+          }
+        ],
+        "generatePackageJson": true
       }
     },
     "test": {
       "executor": "vitest:test"
     },
     "lint": {
-      "executor": "core:run-command",
-      "options": {
-        "command": "pnpm exec eslint packages/vitest --max-warnings 0"
-      }
+      "executor": "eslint:lint"
     }
   },
   "tags": []

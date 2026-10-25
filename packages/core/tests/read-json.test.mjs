@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import { test } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { createLogger, readJson, writeJson } = require('../dist')
+const { createLogger, readJson, writeJson } = require('../../../dist/core')
 
 async function fixture(t) {
   const workspaceRoot = await mkdtemp(join(tmpdir(), 'isox-read-json-'))

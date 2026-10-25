@@ -7,15 +7,15 @@ const __dirname = import.meta.dirname
 const assert = require('node:assert/strict')
 const { resolve } = require('node:path')
 const { pathToFileURL } = require('node:url')
-const { parseProjectDefinition } = require('../dist/workspace/configuration')
-const isoxSchema = pathToFileURL(resolve(__dirname, '../schemas/project.schema.json')).href
+const { parseProjectDefinition } = require('../../../dist/core/workspace/configuration')
+const isoxSchema = pathToFileURL(resolve(__dirname, '../../../dist/core/schemas/project.schema.json')).href
 
 test('accepts the Isox project definition and preserves executor options', () => {
   const project = {
     $schema: '../core/schemas/project.schema.json',
     name: 'cli',
     dependencies: ['core'],
-    commands: {
+    executors: {
       build: {
         executor: 'js:tsc',
         options: { tsConfig: 'packages/cli/tsconfig.json' },
@@ -33,16 +33,16 @@ test('validates project fields against the published schema with file-specific e
     { name: 'two words' },
     { dependencies: 'core' },
     { dependencies: ['core', 'core'] },
-    { commands: [] },
-    { commands: { build: {} } },
-    { commands: { build: { executor: 'invalid' } } },
-    { commands: { build: { executor: 'pkg:build', options: [] } } },
-    { commands: { build: { executor: 'pkg:build', configurations: [] } } },
-    { commands: { build: { executor: 'pkg:build', configurations: { production: null } } } },
-    { commands: { build: { executor: 'pkg:build', configurations: { production: [] } } } },
-    { commands: { build: { executor: 'pkg:build', defaultConfiguration: 42 } } },
-    { commands: { build: { executor: 'pkg:build', defaultConfiguration: '' } } },
-    { commands: { 'bad:name': { executor: 'pkg:build' } } },
+    { executors: [] },
+    { executors: { build: {} } },
+    { executors: { build: { executor: 'invalid' } } },
+    { executors: { build: { executor: 'pkg:build', options: [] } } },
+    { executors: { build: { executor: 'pkg:build', configurations: [] } } },
+    { executors: { build: { executor: 'pkg:build', configurations: { production: null } } } },
+    { executors: { build: { executor: 'pkg:build', configurations: { production: [] } } } },
+    { executors: { build: { executor: 'pkg:build', defaultConfiguration: 42 } } },
+    { executors: { build: { executor: 'pkg:build', defaultConfiguration: '' } } },
+    { executors: { 'bad:name': { executor: 'pkg:build' } } },
     { tags: [42] },
   ]) {
     assert.throws(
@@ -58,7 +58,7 @@ test('preserves additional project and command properties for consumers', () => 
     sourceRoot: 'apis/dashboard/src',
     projectType: 'application',
     custom: { owner: 'dashboard-team', enabled: true, values: [1, null] },
-    commands: {
+    executors: {
       build: {
         executor: '@nx/js:tsc',
         options: { main: 'apis/dashboard/src/index.ts' },
@@ -107,7 +107,7 @@ test('migrates recognized Nx schemas in memory and preserves options and metadat
     assert.deepEqual(migrated, {
       ...metadata,
       $schema: isoxSchema,
-      commands: targets,
+      executors: targets,
       dependencies: implicitDependencies,
     })
     assert.deepEqual(project, original)
@@ -134,7 +134,7 @@ test('validates migrated fields and rejects ambiguous mappings with file-specifi
     { targets: [] },
     { targets: { build: { executor: 'invalid' } } },
     { implicitDependencies: 'shared' },
-    { targets: {}, commands: {} },
+    { targets: {}, executors: {} },
     { implicitDependencies: [], dependencies: [] },
   ]) {
     assert.throws(() => parseProjectDefinition({ $schema, ...fields }, 'apis/dashboard/project.json'),

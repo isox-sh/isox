@@ -17,16 +17,17 @@
     "node": "^24.0.0 || >=26.0.0"
   },
   "scripts": {
-    "isox": "node packages/cli/dist/index.js",
+    "isox": "node dist/cli/index.js",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix --max-warnings 0",
-    "test": "pnpm bootstrap && pnpm isox test core && pnpm isox test cli && pnpm isox test js && pnpm isox test vitest",
+    "test": "pnpm bootstrap && pnpm isox test core && pnpm isox test cli && pnpm isox test js && pnpm isox test eslint && pnpm isox test vitest && pnpm isox test nx",
     "bootstrap": "node scripts/bootstrap.cjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@isox-sh/core": "workspace:*",
     "@isox-sh/js": "workspace:*",
+    "@isox-sh/nx": "workspace:*",
     "@isox-sh/vitest": "workspace:*",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/node": "^26.6.5",
@@ -36,6 +37,7 @@
     "globals": "^17.13.0",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.72.0",
-    "vitest": "^5.0.5"
+    "vitest": "^5.0.5",
+    "@isox-sh/eslint": "workspace:*"
   }
 }

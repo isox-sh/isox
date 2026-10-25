@@ -1,0 +1,32 @@
+{
+  "name": "@isox-sh/nx",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Nx executor compatibility plugin for Isox.",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@isox-sh/core": "workspace:*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git",
+    "directory": "packages/nx"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/nx",
+    "linkDirectory": true
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "main": "../../dist/nx/index.js",
+  "types": "../../dist/nx/index.d.ts"
+}

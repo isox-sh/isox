@@ -46,6 +46,7 @@ function supportsColors(stream: LogStream): boolean {
   if (process.env.FORCE_COLOR !== undefined) {
     return process.env.FORCE_COLOR !== '0'
   }
+
   return !process.env.NO_COLOR && process.env.TERM !== 'dumb' && stream.isTTY === true
 }
 
@@ -87,6 +88,7 @@ export function createLogger(options: LoggerOptions = {}): Logger {
     if (level > instance.level) {
       return
     }
+
     for (const reporter of reporters) {
       reporter.log({ type, level, tag, args })
     }
@@ -107,6 +109,7 @@ export function createLogger(options: LoggerOptions = {}): Logger {
       reporters,
     }),
   }
+
   return instance
 }
 

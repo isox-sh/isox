@@ -3,11 +3,10 @@
   "version": "0.0.1",
   "license": "MIT",
   "description": "Native Vitest test executor for Isox.",
-  "commands": "./commands.json",
+  "executors": "./executors.json",
   "files": [
     "dist",
-    "commands.json",
-    "schemas"
+    "executors.json"
   ],
   "dependencies": {
     "@isox-sh/core": "workspace:*",
@@ -24,7 +23,9 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/vitest",
+    "linkDirectory": true
   },
   "engines": {
     "node": "^24.0.0 || >=26.0.0"

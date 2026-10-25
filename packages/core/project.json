@@ -2,21 +2,25 @@
   "$schema": "./schemas/project.schema.json",
   "name": "core",
   "dependencies": [],
-  "commands": {
+  "executors": {
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/core/tsconfig.json"
+        "tsConfig": "packages/core/tsconfig.json",
+        "assets": [
+          {
+            "input": "packages/core/src",
+            "glob": "executors/**/*.schema.json"
+          }
+        ],
+        "generatePackageJson": true
       }
     },
     "test": {
       "executor": "vitest:test"
     },
     "lint": {
-      "executor": "core:run-command",
-      "options": {
-        "command": "pnpm exec eslint packages/core --max-warnings 0"
-      }
+      "executor": "eslint:lint"
     }
   },
   "tags": []

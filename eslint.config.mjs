@@ -6,13 +6,15 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default defineConfig(
-  globalIgnores(['**/dist/**', '**/build/**', '**/coverage/**', '**/.cache/**', '**/.isox/**']),
+  globalIgnores(['**/dist/**', '**/build/**', '**/coverage/**', '**/.cache/**', '**/.isox/**', 'tmp/**']),
   {
     files: ['**/*.{js,cjs,mjs,ts,cts,mts}'],
     extends: [js.configs.recommended],
     languageOptions: { globals: globals.node },
     plugins: { '@stylistic': stylistic, 'simple-import-sort': simpleImportSort },
     rules: {
+      'curly': ['error', 'all'],
+      '@stylistic/brace-style': ['error', '1tbs', { allowSingleLine: false }],
       '@stylistic/semi': ['error', 'never'],
       'simple-import-sort/imports': ['error', {
         groups: [

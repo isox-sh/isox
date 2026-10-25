@@ -45,7 +45,7 @@ custom executors, scripts, and application code as well as CLI invocations.
 
 For gradual migration, Isox can read existing Nx-schema `project.json` files
 directly. A recognized Nx `$schema` triggers in-memory conversion of `targets`
-to `commands` and `implicitDependencies` to `dependencies`. Options and custom
+to `executors` and `implicitDependencies` to `dependencies`. Options and custom
 metadata survive; `$schema` becomes a file URL to the bundled Isox schema in the
 converted workspace cache. Source files stay unchanged. Recognized schemas
 include local `nx/schemas/project-schema.json` and legacy
@@ -55,7 +55,7 @@ No schema is downloaded during discovery.
 
 Migration is selected by `$schema`, not by field names alone. Files with no
 schema or another schema are treated as Isox definitions with optional extra
-metadata. A file defining both `targets` and `commands`, or both dependency field
+metadata. A file defining both `targets` and `executors`, or both dependency field
 names, must be resolved before automatic conversion. This does not resolve
 inferred targets, target defaults, or targets using only shell-command shorthand;
 commands still need explicit executor references and effective options.
@@ -81,7 +81,7 @@ and executor context without giving them built-in scheduling behavior:
   "$schema": "../../node_modules/@isox-sh/core/schemas/project.schema.json",
   "name": "cli",
   "dependencies": ["core"],
-  "commands": {
+  "executors": {
     "build": {
       "executor": "@isox-sh/core:run-command",
       "options": {
@@ -108,7 +108,7 @@ source of truth if migrating against a different Isox version.
 - Names must be unique and contain no whitespace or colons. An omitted name
   defaults to the containing directory's name. The project root is derived from
   the location of `project.json`; do not add a `root` field.
-- Rename `targets` to `commands`. A command requires `executor` and accepts optional
+- Rename `targets` to `executors`. A command requires `executor` and accepts optional
   `options` plus additional metadata. Executors use `package:executor` references; options must be objects.
 - Convert dependencies to explicit Isox project names in `dependencies`.
   Resolve any Nx patterns, exclusions, or implicit/inferred relationships before
@@ -158,7 +158,38 @@ dependencies when those relationships exist in package manifests. Isox's own
 Isox build command that invokes `pnpm build` must not invoke a script that calls
 the same Isox build command again.
 
+### Native TypeScript builds
+
+Use `js:tsc` from `@isox-sh/js` for native TypeScript 7 builds. Keep output and
+compiler settings in tsconfig; translate Nx `outputPath` to `compilerOptions.outDir`
+and `rootDir` to the matching compiler option. Remove executor options such as
+Nx `main` and `transformers`; unknown native options fail rather than being ignored.
+`noEmitOnError` is always enabled. Emitting configs require a safe workspace-local
+output directory. This executor does not schedule dependency builds.
+
+Native asset patterns require a workspace-relative `input`, a `glob`, optional
+output-relative `output`, and optional `ignore`. Cleanup removes only stale owned,
+unchanged files and preserves unrelated output. Define `generatePackageJson: true`
+explicitly when a distributable manifest is required; it defaults to false and
+requires a source package.json with name/version. Preserve metadata there rather
+than copying Nx package-generation options verbatim. `generateExportsField` and
+output-relative `additionalEntryPoints` can add exports. Existing exports are
+validated and preserved. Lockfile generation and inferred runtime dependencies
+are not supported.
+
+For watch mode, add an Isox configuration containing `watch: true` and select it
+with `--config=watch`. There is no standalone forwarded `--watch` CLI flag.
+Rebuilds refresh tsconfig, assets, and package metadata; recoverable errors keep
+the stream alive. Signal/cancellation closes the watcher and compiler children.
+See [the JS executor contract](../typescript.md) for exact defaults,
+workspace version handling, cleanup restrictions, and watch sampling limits.
+
 ### Temporarily retained Nx 23 executors
+
+Install `@isox-sh/nx` in the workspace to retain Nx executors during migration.
+When `nx.json` exists, `isox init` adds the adapter to `package.json` as a dev
+dependency matching the CLI version, preserving any existing version. Run the
+workspace's package manager to install dependencies and update the lockfile.
 
 Executor packages matching a scope or package name in `isox.json`'s `nx.executors`
 array use the Nx adapter. Init includes `@nx` in that array when the root contains
@@ -168,7 +199,7 @@ such as:
 ```json
 {
   "name": "shared",
-  "commands": {
+  "executors": {
     "build": {
       "executor": "@nx/js:tsc",
       "options": {
@@ -259,20 +290,21 @@ behavior rather than keeping an accidental dependency on Nx scheduling.
 An executor returns `{ success: boolean }`, a promise of that result, or an async
 iterable of such results. Every yielded result must succeed; empty iterables,
 missing results, and exceptions fail the command. Export a CommonJS callable
-function or a callable default export. Declare `"commands": "./commands.json"` in the
+function or a callable default export. Declare `"executors": "./executors.json"` in the
 package manifest. The command manifest has this shape:
 
 ```json
 {
-  "commands": {
-    "build": { "implementation": "./dist/commands/build/build.command.js" }
+  "executors": {
+    "build": { "implementation": "./dist/executors/build/build.executor.js" }
   }
 }
 ```
 
 Implementation paths are relative to the executor manifest. Place native command
-implementations in `src/commands/<name>/<name>.command.ts`. Native executors
-use `commands` manifests; `executors` and `builders` are reserved for the Nx adapter. Ensure the executor package's `package.json`
+implementations in `src/executors/<name>/<name>.executor.ts`. Native executors
+use `executors` manifests. Nx packages also use `executors` (or legacy `builders`)
+manifests; `nx.executors` selects which packages receive the Nx context. Ensure the executor package's `package.json`
 can be resolved from the workspace root, including under pnpm's dependency
 isolation. Build local executor packages before invoking their compiled files.
 

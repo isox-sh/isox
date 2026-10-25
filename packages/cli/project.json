@@ -4,21 +4,19 @@
   "dependencies": [
     "core"
   ],
-  "commands": {
+  "executors": {
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/cli/tsconfig.json"
+        "tsConfig": "packages/cli/tsconfig.json",
+        "generatePackageJson": true
       }
     },
     "test": {
       "executor": "vitest:test"
     },
     "lint": {
-      "executor": "core:run-command",
-      "options": {
-        "command": "pnpm exec eslint packages/cli --max-warnings 0"
-      }
+      "executor": "eslint:lint"
     }
   },
   "tags": []

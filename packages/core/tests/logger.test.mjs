@@ -5,7 +5,7 @@ import { test } from 'vitest'
 const require = createRequire(import.meta.url)
 const assert = require('node:assert/strict')
 const { PassThrough } = require('node:stream')
-const { createLogger, logger, LogLevels } = require('../dist')
+const { createLogger, logger, LogLevels } = require('../../../dist/core')
 
 test('logger defaults to info and tags messages without buffering repeated events', () => {
   const logs = []
@@ -79,7 +79,9 @@ test('log levels can change at runtime and tagged loggers inherit the current le
 
 test('default reporter formats messages and errors using Node utilities', () => {
   let output = ''
-  const stream = { write: chunk => { output += chunk } }
+  const stream = { write: chunk => {
+ output += chunk
+} }
   const instance = createLogger({ stdout: stream, stderr: stream, colors: false })
   instance.withTag('build').info('Built %s in %dms', 'core', 12)
   assert.equal(output, '[Isox:build] INFO Built core in 12ms\n')
@@ -97,8 +99,12 @@ test('plain reporter sends info to stdout and warnings and errors to stderr', ()
   const stderr = new PassThrough()
   let output = ''
   let errors = ''
-  stdout.on('data', chunk => { output += chunk })
-  stderr.on('data', chunk => { errors += chunk })
+  stdout.on('data', chunk => {
+ output += chunk
+})
+  stderr.on('data', chunk => {
+ errors += chunk
+})
   const instance = createLogger({ stdout, stderr, colors: false })
   instance.info('task started')
   instance.success('task completed')
@@ -115,7 +121,9 @@ test('plain reporter sends info to stdout and warnings and errors to stderr', ()
 
 test('colored reporter highlights levels and scoped tags while preserving message formatting', () => {
   let output = ''
-  const stream = { write: chunk => { output += chunk } }
+  const stream = { write: chunk => {
+ output += chunk
+} }
   const instance = createLogger({
     stdout: stream, stderr: stream, colors: true, level: LogLevels.debug,
   }).withTag('build')
@@ -133,11 +141,17 @@ test('automatic colors follow each stream and environment overrides', () => {
   const keys = ['FORCE_COLOR', 'NO_COLOR', 'TERM']
   const original = keys.map(key => process.env[key])
   try {
-    for (const key of keys) delete process.env[key]
+    for (const key of keys) {
+delete process.env[key]
+}
     let output = ''
     let errors = ''
-    const stdout = { isTTY: true, write: chunk => { output += chunk } }
-    const stderr = { write: chunk => { errors += chunk } }
+    const stdout = { isTTY: true, write: chunk => {
+ output += chunk
+} }
+    const stderr = { write: chunk => {
+ errors += chunk
+} }
     const instance = createLogger({ stdout, stderr })
     instance.info('terminal')
     instance.error('redirected')
@@ -153,7 +167,9 @@ test('automatic colors follow each stream and environment overrides', () => {
       [{ NO_COLOR: '1' }, true, true],
       [{ FORCE_COLOR: '1' }, false, false],
     ]) {
-      for (const key of keys) delete process.env[key]
+      for (const key of keys) {
+delete process.env[key]
+}
       Object.assign(process.env, env)
       output = ''
       errors = ''
@@ -165,8 +181,11 @@ test('automatic colors follow each stream and environment overrides', () => {
     }
   } finally {
     keys.forEach((key, index) => {
-      if (original[index] === undefined) delete process.env[key]
-      else process.env[key] = original[index]
+      if (original[index] === undefined) {
+delete process.env[key]
+} else {
+process.env[key] = original[index]
+}
     })
   }
 })

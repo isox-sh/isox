@@ -6,11 +6,11 @@ const require = createRequire(import.meta.url)
 const __dirname = import.meta.dirname
 const assert = require('node:assert/strict')
 const { spawnSync } = require('node:child_process')
-const { mkdtemp, mkdir, readFile, writeFile, rm, stat } = require('node:fs/promises')
+const { mkdtemp, mkdir, readFile, writeFile, rm, stat, symlink } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { dirname, join, resolve } = require('node:path')
 
-const cliPath = resolve(__dirname, '../dist/index.js')
+const cliPath = resolve(__dirname, '../../../dist/cli/index.js')
 
 async function fixture(t, nx = false) {
   const root = await mkdtemp(join(tmpdir(), 'isox-configurations-'))
@@ -20,8 +20,12 @@ async function fixture(t, nx = false) {
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, typeof content === 'string' ? content : JSON.stringify(content))
   }
+  if (nx) {
+    await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
+    await symlink(resolve(__dirname, '../../../dist/nx'), join(root, 'node_modules/@isox-sh/nx'), 'dir')
+  }
   const pkg = nx ? '@nx/fixture' : '@fixture/plugin'
-  const manifestKey = nx ? 'executors' : 'commands'
+  const manifestKey = 'executors'
   const command = {
     executor: `${pkg}:build`,
     options: { keep: 42, mode: 'base', nested: { base: true }, list: ['base'], enabled: true },
@@ -36,7 +40,7 @@ async function fixture(t, nx = false) {
   const project = {
     name: 'demo',
     ...(nx ? { $schema: '../../node_modules/nx/schemas/project-schema.json' } : {}),
-    [nx ? 'targets' : 'commands']: { build: command },
+    [nx ? 'targets' : 'executors']: { build: command },
   }
   await write('isox.json', { nx: { executors: ['@nx'] } })
   await write('apps/demo/project.json', project)
@@ -51,7 +55,7 @@ async function fixture(t, nx = false) {
         configurationName: context.configurationName,
         baseOptions: command.options,
         taskGraph: context.taskGraph,
-        graphOptions: nx ? context.projectGraph.nodes.demo.data.targets.build.options : context.workspace.projects.demo.commands.build.options,
+        graphOptions: nx ? context.projectGraph.nodes.demo.data.targets.build.options : context.workspace.projects.demo.executors.build.options,
       }))
       return { success: true }
     }
@@ -93,7 +97,7 @@ for (const nx of [false, true]) {
       }
     }
     const cached = JSON.parse(await readFile(join(root, '.isox/workspace.json'), 'utf8'))
-    assert.deepEqual(cached.projects.demo.commands.build, command)
+    assert.deepEqual(cached.projects.demo.executors.build, command)
     assert.deepEqual(JSON.parse(await readFile(join(root, 'apps/demo/project.json'), 'utf8')), project)
   })
 }

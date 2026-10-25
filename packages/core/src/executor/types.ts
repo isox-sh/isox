@@ -1,5 +1,5 @@
 import type { Logger } from '../logger'
-import type { CommandConfiguration, ProjectConfiguration, WorkspaceGraph } from '../workspace/parser'
+import type { ExecutorConfiguration, ProjectConfiguration, WorkspaceGraph } from '../workspace/parser'
 
 export interface ExecutorContext {
   workspaceRoot: string
@@ -8,14 +8,18 @@ export interface ExecutorContext {
   commandName: string
   configurationName?: string
   project: ProjectConfiguration
-  command: CommandConfiguration
+  command: ExecutorConfiguration
   workspace: WorkspaceGraph
   logger: Logger
   verbose: boolean
+  /** Cooperative cancellation for long-running native commands. */
+  signal?: AbortSignal
 }
 
 export interface ExecutorResult {
   success: boolean
+  /** A rebuild result from a continuing command; failure is recoverable. */
+  continuous?: boolean
 }
 
 export type ExecutorOutput = ExecutorResult | AsyncIterable<ExecutorResult>

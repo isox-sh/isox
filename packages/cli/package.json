@@ -6,7 +6,7 @@
     "node": ">=24.0.0"
   },
   "bin": {
-    "isox": "./dist/index.js"
+    "isox": "../../dist/cli/index.js"
   },
   "files": [
     "dist"
@@ -34,6 +34,8 @@
   ],
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/cli",
+    "linkDirectory": true
   }
 }

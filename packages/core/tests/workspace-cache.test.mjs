@@ -8,7 +8,7 @@ const { mkdtemp, mkdir, readFile, readdir, writeFile, rm, stat } = require('node
 const { tmpdir } = require('node:os')
 const { dirname, join } = require('node:path')
 const { fileURLToPath } = require('node:url')
-const { parseWorkspace, resetWorkspace } = require('../dist')
+const { parseWorkspace, resetWorkspace } = require('../../../dist/core')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-cache-test-'))
@@ -48,14 +48,14 @@ test('caches the complete workspace and reuses it without reading project files'
     tags: ['app'],
     custom: { owner: 'demo-team', enabled: true },
     sourceRoot: 'apps/demo/src',
-    commands: { build: { executor: 'plugin:build', options: { nested: { value: 42 } }, custom: ['extra'] } },
+    executors: { build: { executor: 'plugin:build', options: { nested: { value: 42 } }, custom: ['extra'] } },
   }
   await write('apps/demo/project.json', project)
   await write('libs/lib/project.json', { name: 'lib' })
   await write('.isox/ignored/project.json', { name: 'ignored' })
   const discovered = await parseWorkspace(root)
   const cached = JSON.parse(await readFile(cacheFile, 'utf8'))
-  assert.equal(cached.version, 4)
+  assert.equal(cached.version, 5)
   assert.deepEqual(cached.projects.demo, { ...project, root: 'apps/demo' })
   assert.deepEqual(Object.keys(cached.projects).sort(), ['demo', 'lib'])
 
@@ -84,7 +84,7 @@ test('migrates Nx projects into the cache without modifying project files and re
 
   const workspace = await parseWorkspace(root)
   const migrated = workspace.projects.dashboard
-  assert.deepEqual(migrated.commands, project.targets)
+  assert.deepEqual(migrated.executors, project.targets)
   assert.deepEqual(migrated.dependencies, project.implicitDependencies)
   assert.deepEqual(migrated.custom, project.custom)
   assert.equal(migrated.sourceRoot, project.sourceRoot)
@@ -111,16 +111,16 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
     { version: 1, projects: {} },
     { version: 2, projects: { stale: { name: 'stale', root: '.' } } },
     { version: 3, projects: { stale: { name: 'stale', root: '.' } } },
-    { version: 4, projects: { demo: { name: 'demo', root: '.', $schema: 'nx/schemas/project-schema.json', targets: {} } } },
-    { version: 4, projects: { demo: { name: 'demo', root: '.', commands: [] } } },
+    { version: 5, projects: { demo: { name: 'demo', root: '.', $schema: 'nx/schemas/project-schema.json', targets: {} } } },
+    { version: 5, projects: { demo: { name: 'demo', root: '.', executors: [] } } },
     { version: 999, projects: {} },
-    { version: 4, projects: [] },
-    { version: 4, projects: { demo: { name: 'different', root: 'apps/demo' } } },
+    { version: 5, projects: [] },
+    { version: 5, projects: { demo: { name: 'different', root: 'apps/demo' } } },
   ]) {
     await write('.isox/workspace.json', content)
     const workspace = await parseWorkspace(root)
     assert.equal(workspace.projects.demo.root, 'apps/demo')
-    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 4)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 5)
   }
 })
 
@@ -156,4 +156,18 @@ test('reset removes a corrupt cache', async (t) => {
   await write('.isox/workspace.json', '{broken')
   await resetWorkspace(root)
   await assert.rejects(stat(join(root, '.isox')), { code: 'ENOENT' })
+})
+
+test('rebuilds caches using the former commands field', async (t) => {
+  const { root, write, cacheFile } = await fixture(t)
+  const executors = { build: { executor: 'plugin:build' } }
+  await write('apps/demo/project.json', { name: 'demo', executors })
+  await write('.isox/workspace.json', {
+    version: 4,
+    projects: { demo: { name: 'demo', root: 'apps/demo', commands: executors } },
+  })
+  const workspace = await parseWorkspace(root)
+  assert.deepEqual(workspace.projects.demo.executors, executors)
+  assert.equal(Object.hasOwn(workspace.projects.demo, 'commands'), false)
+  assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 5)
 })

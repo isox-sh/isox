@@ -7,7 +7,7 @@ const assert = require('node:assert/strict')
 const { mkdtemp, mkdir, writeFile, rm } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { basename, dirname, join } = require('node:path')
-const { createLogger, findWorkspaceRoot, LogLevels, parseWorkspace, runExecutor } = require('../dist')
+const { createLogger, findWorkspaceRoot, LogLevels, parseWorkspace, runExecutor } = require('../../../dist/core')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-test-'))
@@ -20,13 +20,13 @@ async function fixture(t) {
   return { root, write }
 }
 
-async function executorFixture(t, source, manifestKey = 'commands') {
+async function executorFixture(t, source, manifestKey = 'executors') {
   const fixtureData = await fixture(t)
   const { root, write } = fixtureData
   await write('isox.json', {})
   await write('apps/demo/project.json', {
     name: 'demo',
-    commands: { build: { executor: '@fixture/plugin:build', options: { answer: 42 } } },
+    executors: { build: { executor: '@fixture/plugin:build', options: { answer: 42 } } },
   })
   await write('node_modules/@fixture/plugin/package.json', {
     name: '@fixture/plugin',
@@ -41,30 +41,30 @@ async function executorFixture(t, source, manifestKey = 'commands') {
 
 test('prefers first-party shorthand, falls back to third-party packages, and preserves manifest errors', async (t) => {
   const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
-  workspace.projects.demo.commands.build.executor = 'js:build'
-  await write('node_modules/@isox-sh/js/package.json', { commands: './commands.json' })
-  await write('node_modules/@isox-sh/js/commands.json', { commands: { build: { implementation: './build.cjs' } } })
+  workspace.projects.demo.executors.build.executor = 'js:build'
+  await write('node_modules/@isox-sh/js/package.json', { executors: './executors.json' })
+  await write('node_modules/@isox-sh/js/executors.json', { executors: { build: { implementation: './build.cjs' } } })
   await write('node_modules/@isox-sh/js/build.cjs', 'module.exports = () => ({ success: true })')
   await runExecutor(workspace, 'demo', 'build', root)
 
-  await write('node_modules/js/package.json', { commands: './commands.json' })
-  await write('node_modules/js/commands.json', { commands: { build: { implementation: './build.cjs' } } })
+  await write('node_modules/js/package.json', { executors: './executors.json' })
+  await write('node_modules/js/executors.json', { executors: { build: { implementation: './build.cjs' } } })
   await write('node_modules/js/build.cjs', 'module.exports = () => ({ success: false })')
   await runExecutor(workspace, 'demo', 'build', root)
-  workspace.projects.demo.commands.build.executor = 'js:missing'
+  workspace.projects.demo.executors.build.executor = 'js:missing'
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Executor missing not found in @isox-sh\/js/)
 
-  workspace.projects.demo.commands.build.executor = '@isox-sh/js:build'
+  workspace.projects.demo.executors.build.executor = '@isox-sh/js:build'
   await runExecutor(workspace, 'demo', 'build', root)
 
-  await write('node_modules/third-party/package.json', { commands: '../@isox-sh/js/commands.json' })
-  workspace.projects.demo.commands.build.executor = 'third-party:build'
+  await write('node_modules/third-party/package.json', { executors: '../@isox-sh/js/executors.json' })
+  workspace.projects.demo.executors.build.executor = 'third-party:build'
   await runExecutor(workspace, 'demo', 'build', root)
 
-  await write('node_modules/broken/package.json', { commands: '../@isox-sh/js/commands.json' })
+  await write('node_modules/broken/package.json', { executors: '../@isox-sh/js/executors.json' })
   await write('node_modules/@isox-sh/broken/package.json', { name: '@isox-sh/broken' })
-  workspace.projects.demo.commands.build.executor = 'broken:build'
-  await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Package @isox-sh\/broken does not define a commands manifest/)
+  workspace.projects.demo.executors.build.executor = 'broken:build'
+  await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Package @isox-sh\/broken does not define an executors manifest/)
 })
 
 test('finds the workspace marker from the root and nested directories', async (t) => {
@@ -102,6 +102,7 @@ test('discovers nested and root projects, derives names and roots, and ignores d
   await write('apps/first/project.json', { tags: ['library'] })
   await write('apps/second/project.json', { name: 'named', dependencies: ['first'] })
   await write('node_modules/ignored/project.json', { name: 'ignored' })
+  await write('tmp/isox-e2e-fixture/packages/test/project.json', { name: 'ignored' })
   const { projects } = await parseWorkspace(root)
   assert.deepEqual(Object.keys(projects).sort(), ['first', 'named', basename(root)].sort())
   assert.equal(projects.first.root, 'apps/first')
@@ -138,12 +139,12 @@ test('malformed project JSON identifies its file and preserves the parse error',
 })
 
 for (const [label, source, key] of [
-  ['synchronous result', 'module.exports = () => ({ success: true })', 'commands'],
-  ['promise result', 'exports.default = async () => ({ success: true })', 'commands'],
+  ['synchronous result', 'module.exports = () => ({ success: true })', 'executors'],
+  ['promise result', 'exports.default = async () => ({ success: true })', 'executors'],
   ['async iterable', `module.exports = async function* () {
     yield { success: true }
     yield { success: true }
-  }`, 'commands'],
+  }`, 'executors'],
 ]) {
   test(`executes a plugin with a ${label}`, async (t) => {
     const { root, workspace } = await executorFixture(t, source, key)
@@ -171,9 +172,9 @@ for (const [label, source] of [
 
 test('reports malformed and missing executors', async (t) => {
   const { root, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
-  workspace.projects.demo.commands.build.executor = 'invalid'
+  workspace.projects.demo.executors.build.executor = 'invalid'
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Invalid executor format/)
-  workspace.projects.demo.commands.build.executor = '@fixture/plugin:missing'
+  workspace.projects.demo.executors.build.executor = '@fixture/plugin:missing'
   await assert.rejects(
     runExecutor(workspace, 'demo', 'build', root),
     /Executor missing not found/,
@@ -195,7 +196,7 @@ test('executor uses an injected logger and enables verbose context at debug leve
   await runExecutor(workspace, 'demo', 'build', root, logger)
   assert.deepEqual(logs.map(entry => entry.type), ['debug', 'info', 'success'])
   logs.length = 0
-  workspace.projects.demo.commands.build.options = { fail: true }
+  workspace.projects.demo.executors.build.options = { fail: true }
   await assert.rejects(
     runExecutor(workspace, 'demo', 'build', root, logger),
     /Task failed for demo/,
@@ -205,11 +206,55 @@ test('executor uses an injected logger and enables verbose context at debug leve
 
 test('native executors reject builders manifests', async (t) => {
   const { root, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })', 'builders')
-  await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /does not define a commands manifest/)
+  await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /does not define an executors manifest/)
 })
 
 test('runner rejects missing projects and commands in the public API', async (t) => {
   const { root, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
   await assert.rejects(runExecutor(workspace, 'missing', 'build', root), /Project missing not found/)
   await assert.rejects(runExecutor(workspace, 'demo', 'toString', root), /Command toString not found/)
+})
+
+test('selected Nx executors report how to install the optional plugin', async (t) => {
+  const { root, write, workspace } = await executorFixture(t, 'throw new Error("must not load")', 'executors')
+  await write('isox.json', { nx: { executors: ['@fixture'] } })
+  await assert.rejects(runExecutor(workspace, 'demo', 'build', root), /Nx executors require @isox-sh\/nx.*npm install --save-dev @isox-sh\/nx/)
+})
+
+test('Nx selection loads the workspace plugin and preserves unscoped nx executor resolution', async (t) => {
+  const { root, write, workspace } = await executorFixture(t, 'throw new Error("must not load")', 'executors')
+  await write('isox.json', { nx: { executors: ['nx'] } })
+  workspace.projects.demo.executors.build.executor = 'nx:build'
+  await write('node_modules/nx/package.json', { name: 'nx' })
+  await write('node_modules/@isox-sh/nx/package.json', { main: './index.cjs' })
+  await write('node_modules/@isox-sh/nx/index.cjs', `exports.runNxExecutor = (options, context, packagePath) => {
+    const assert = require('node:assert/strict')
+    assert.deepEqual(options, { answer: 42 })
+    assert.equal(context.command.executor, 'nx:build')
+    assert.equal(context.projectName, 'demo')
+    assert.equal(packagePath, require('node:fs').realpathSync(require('node:path').join(context.workspaceRoot, 'node_modules/nx/package.json')))
+    return { success: true }
+  }`)
+  await runExecutor(workspace, 'demo', 'build', root)
+})
+
+for (const [label, source, expected] of [
+  ['broken dependency', 'require("missing-adapter-dependency")', /Cannot find module 'missing-adapter-dependency'/],
+  ['missing export', 'module.exports = {}', /does not export runNxExecutor/],
+]) {
+  test(`Nx plugin reports a ${label} without masking it as an installation error`, async (t) => {
+    const { root, write, workspace } = await executorFixture(t, 'throw new Error("must not load")', 'executors')
+    await write('isox.json', { nx: { executors: ['@fixture'] } })
+    await write('node_modules/@isox-sh/nx/package.json', { main: './index.cjs' })
+    await write('node_modules/@isox-sh/nx/index.cjs', source)
+    await assert.rejects(runExecutor(workspace, 'demo', 'build', root), expected)
+  })
+}
+
+test('native commands do not load the installed Nx plugin', async (t) => {
+  const { root, write, workspace } = await executorFixture(t, 'module.exports = () => ({ success: true })')
+  await write('isox.json', { nx: { executors: ['@nx'] } })
+  await write('node_modules/@isox-sh/nx/package.json', { main: './index.cjs' })
+  await write('node_modules/@isox-sh/nx/index.cjs', 'throw new Error("Nx plugin must not load")')
+  await runExecutor(workspace, 'demo', 'build', root)
 })

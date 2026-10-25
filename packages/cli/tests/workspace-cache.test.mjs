@@ -10,7 +10,7 @@ const { mkdtemp, mkdir, readFile, writeFile, rm, stat } = require('node:fs/promi
 const { tmpdir } = require('node:os')
 const { dirname, join, resolve } = require('node:path')
 
-const cliPath = resolve(__dirname, '../dist/index.js')
+const cliPath = resolve(__dirname, '../../../dist/cli/index.js')
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-cache-test-'))
@@ -28,12 +28,12 @@ test('reset removes the whole cache from nested directories and the next CLI run
   const { root, write, cacheFile } = await fixture(t)
   const project = {
     name: 'demo',
-    commands: { build: { executor: 'fixture-plugin:build', options: { success: true } } },
+    executors: { build: { executor: 'fixture-plugin:build', options: { success: true } } },
   }
   await write('apps/demo/project.json', project)
-  await write('node_modules/fixture-plugin/package.json', { commands: './commands.json' })
-  await write('node_modules/fixture-plugin/commands.json', {
-    commands: { build: { implementation: './executor.cjs' } },
+  await write('node_modules/fixture-plugin/package.json', { executors: './executors.json' })
+  await write('node_modules/fixture-plugin/executors.json', {
+    executors: { build: { implementation: './executor.cjs' } },
   })
   await write('node_modules/fixture-plugin/executor.cjs', 'module.exports = options => ({ success: options.success })')
   const cwd = join(root, 'apps/demo')
@@ -42,7 +42,7 @@ test('reset removes the whole cache from nested directories and the next CLI run
   let result = run('run', 'demo:build')
   assert.equal(result.status, 0, result.stderr)
   assert.ok((await stat(cacheFile)).isFile())
-  project.commands.build.options.success = false
+  project.executors.build.options.success = false
   await write('apps/demo/project.json', project)
   result = run('run', 'demo:build')
   assert.equal(result.status, 0, result.stderr)
@@ -59,7 +59,7 @@ test('reset removes the whole cache from nested directories and the next CLI run
   assert.equal(result.status, 1)
   assert.match(result.stderr, /Task failed for demo/)
   const recreated = JSON.parse(await readFile(cacheFile, 'utf8'))
-  assert.equal(recreated.projects.demo.commands.build.options.success, false)
+  assert.equal(recreated.projects.demo.executors.build.options.success, false)
 })
 
 test('reset works with a corrupt cache and rejects locations without a workspace marker', async (t) => {

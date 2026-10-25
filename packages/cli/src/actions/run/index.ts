@@ -12,6 +12,7 @@ export function registerRunAction(cli: CAC): void {
       if (!/^[^:]+:[^:]+$/.test(targetStr)) {
         throw new Error('Invalid target format. Use project:target')
       }
+
       const [projectName, targetName] = targetStr.split(':')
       await runProjectCommand(targetName, projectName, options)
     })

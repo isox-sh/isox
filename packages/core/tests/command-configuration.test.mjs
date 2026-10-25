@@ -4,7 +4,7 @@ import { test } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const assert = require('node:assert/strict')
-const { resolveCommandOptions } = require('../dist/executor/configuration')
+const { resolveCommandOptions } = require('../../../dist/core/executor/configuration')
 
 test('configurations override base options without deep merging or mutating the definition', () => {
   const command = {

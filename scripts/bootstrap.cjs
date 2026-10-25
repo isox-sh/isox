@@ -1,33 +1,109 @@
 const { spawnSync } = require('node:child_process')
-const { readFileSync } = require('node:fs')
+const { copyFileSync, existsSync, globSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } = require('node:fs')
 const { dirname, resolve } = require('node:path')
 
+const { linkDependency, recordSeedOwnership } = require('./bootstrap-files.cjs')
+
 const root = resolve(__dirname, '..')
+const seededFiles = new Map()
+const packageNames = ['core', 'js', 'cli', 'eslint', 'vitest', 'nx']
 const compilerPackage = require.resolve('@typescript/native/package.json')
 const compiler = require(compilerPackage)
 const executable = resolve(dirname(compilerPackage), compiler.bin.tsc)
 
-async function bootstrap() {
-  // Seed the runtime and compiler executor before Isox can build itself.
-  // Build options still come from each package's project.json.
-  for (const name of ['core', 'js']) {
-    const projectRoot = resolve(root, 'packages', name)
-    const project = JSON.parse(readFileSync(resolve(projectRoot, 'project.json'), 'utf8'))
-    const command = project.commands.build
-    if (!['js:tsc', '@isox-sh/js:tsc'].includes(command.executor)) {
-      throw new Error(`Bootstrap requires the TypeScript executor for ${name}.`)
-    }
-    const tsConfig = command.options?.tsConfig
-    const configPath = tsConfig === undefined ? resolve(projectRoot, 'tsconfig.json') : resolve(root, tsConfig)
-    const result = spawnSync(process.execPath, [executable, '--project', configPath], { cwd: root, stdio: 'inherit' })
-    if (result.error) throw result.error
-    if (result.status !== 0) throw new Error(`Bootstrap failed for ${name}.`)
+// Source manifests point to root dist; seeded manifests resolve within their output package.
+function rewriteOutputPaths(value, name) {
+  const prefix = `../../dist/${name}/`
+  if (typeof value === 'string' && value.startsWith(prefix)) {
+    return `./${value.slice(prefix.length)}`
   }
 
-  const { parseWorkspace, resetWorkspace, runExecutor } = require('../packages/core/dist')
-  await resetWorkspace(root)
+  if (Array.isArray(value)) {
+    return value.map(entry => rewriteOutputPaths(entry, name))
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, rewriteOutputPaths(entry, name)]))
+  }
+
+  return value
+}
+
+function seed(name) {
+  const source = resolve(root, 'packages', name)
+  const output = resolve(root, 'dist', name)
+  mkdirSync(output, { recursive: true })
+  const files = []
+  seededFiles.set(name, files)
+  for (const file of ['package.json', 'executors.json']) {
+    if (existsSync(resolve(source, file))) {
+      const metadata = rewriteOutputPaths(JSON.parse(readFileSync(resolve(source, file), 'utf8')), name)
+      if (file === 'package.json') {
+        delete metadata.publishConfig.directory
+        delete metadata.publishConfig.linkDirectory
+      }
+      files.push(resolve(output, file))
+      writeFileSync(resolve(output, file), `${JSON.stringify(metadata, null, 2)}\n`)
+    }
+  }
+
+  for (const [directory, pattern] of [['src', 'executors/**/*.schema.json'], ['.', 'schemas/**/*.json']]) {
+    for (const file of globSync(pattern, { cwd: resolve(source, directory) })) {
+      const destination = resolve(output, file)
+      mkdirSync(dirname(destination), { recursive: true })
+      copyFileSync(resolve(source, directory, file), destination)
+      files.push(destination)
+    }
+  }
+
+  const manifest = JSON.parse(readFileSync(resolve(source, 'package.json'), 'utf8'))
+  // Compiled packages share dependency links outside their owned output directories.
+  for (const dependency of Object.keys(manifest.dependencies ?? {})) {
+    const installed = resolve(source, 'node_modules', dependency)
+    if (!existsSync(installed)) {
+      throw new Error(`Missing dependency ${dependency}; run pnpm install before bootstrap.`)
+    }
+    linkDependency(resolve(root, 'dist/node_modules', dependency), realpathSync(installed))
+  }
+  linkDependency(resolve(root, 'dist/node_modules', manifest.name), output)
+}
+
+function compileSeed(name) {
+  const projectRoot = resolve(root, 'packages', name)
+  const project = JSON.parse(readFileSync(resolve(projectRoot, 'project.json'), 'utf8'))
+  const command = project.executors.build
+  if (!['js:tsc', '@isox-sh/js:tsc'].includes(command.executor)) {
+    throw new Error(`Bootstrap requires the TypeScript executor for ${name}.`)
+  }
+
+  const configPath = resolve(root, command.options?.tsConfig ?? `packages/${name}/tsconfig.json`)
+  const result = spawnSync(process.execPath, [executable, '--project', configPath], { cwd: root, stdio: 'inherit' })
+  if (result.error) {
+    throw result.error
+  }
+
+  if (result.status !== 0) {
+    throw new Error(`Bootstrap failed for ${name}.`)
+  }
+}
+
+async function bootstrap() {
+  for (const name of packageNames) {
+    seed(name)
+  }
+
+  // Core and JS must exist before Isox can execute its own package builds.
+  for (const name of ['core', 'js']) {
+    compileSeed(name)
+  }
+
+  const { parseWorkspace, runExecutor } = require('../dist/core')
+  // Refresh discovery without discarding output ownership or active build locks.
+  rmSync(resolve(root, '.isox/workspace.json'), { force: true })
   const workspace = await parseWorkspace(root)
-  for (const name of ['core', 'js', 'cli', 'vitest']) {
+  await recordSeedOwnership(root, seededFiles)
+
+  for (const name of ['core', 'js', 'cli', 'eslint', 'vitest', 'nx']) {
     await runExecutor(workspace, name, 'build', root)
   }
 }
