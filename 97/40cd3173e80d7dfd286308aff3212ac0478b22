@@ -1,0 +1,41 @@
+packages/core/schemas/isox.schema.json
+  s_51871bdcdb3b4c::t_1f30bd5f379d93 25
+packages/core/src/executor/runner.ts
+  s_51871bdcdb3b4c::t_6f0f1ac353af04 4,179
+packages/cli/src/actions/init/project.ts
+  s_51871bdcdb3b4c::t_6f0f1ac353af04 5,50
+packages/core/src/utils/add-deps-to-package-json.ts
+  s_51871bdcdb3b4c::t_9a098ca99a85fa 17-18
+packages/core/tests/bootstrap.test.mjs
+  s_51871bdcdb3b4c::t_709e56d8e5aba0 264
+  s_51871bdcdb3b4c::t_40b1f56c3c067c 261-263,265-280
+packages/core/src/utils/resolve-package-json.ts
+  s_51871bdcdb3b4c::t_6f0f1ac353af04 1-23
+packages/core/src/index.ts
+  s_51871bdcdb3b4c::t_6f0f1ac353af04 24
+packages/cli/tests/init-project.test.mjs
+  s_51871bdcdb3b4c::t_c0320090ae9bdc 223-235
+packages/core/tests/add-deps-to-package-json.test.mjs
+  s_51871bdcdb3b4c::t_021dda3c3124c8 75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9740cd3173e80d7dfd286308aff3212ac0478b22",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
