@@ -1,0 +1,30 @@
+packages/semver/src/executors/version/version.schema.json
+  s_5d3ad8740834ec::t_0d3c82e3d05e3e 24,65
+packages/semver/README.md
+  s_5d3ad8740834ec::t_399df8d3dbd765 97-100
+packages/semver/src/executors/version/version.executor.ts
+  s_5d3ad8740834ec::t_0d3c82e3d05e3e 42-43,88-92
+website/docs/semver.md
+  s_5d3ad8740834ec::t_0d3c82e3d05e3e 322,333-336,381-384,402,411-413
+packages/semver/tests/version-options.test.mjs
+  s_5d3ad8740834ec::t_afd09fc0f4430a 186-191,206-219,225-240,246-254,260-263,268
+  s_5d3ad8740834ec::t_d439f6fe157d67 220-224,241-245,255-259,264-267,269-273
+packages/semver/src/executors/version/plan.ts
+  s_5d3ad8740834ec::t_0d3c82e3d05e3e 56-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d4f13cf4f31b96ff336748d908719b393eddcb76",
+  "prompts": {},
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
