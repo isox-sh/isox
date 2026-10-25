@@ -1,0 +1,69 @@
+packages/cli/src/shared/run-project-command.ts
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 12,27
+website/docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_d5ade7243d8803 159-161
+website/docs/cli.md
+  s_51871bdcdb3b4c::t_d199ffa6a3404f 22-46,91-92,97
+website/docs/concepts.mdx
+  s_51871bdcdb3b4c::t_d5ade7243d8803 68-70
+packages/cli/tests/configurations.test.mjs
+  s_51871bdcdb3b4c::t_53bc1db6eba7b1 156-207
+website/docs/eslint.md
+  s_51871bdcdb3b4c::t_53bc1db6eba7b1 48-49
+  s_51871bdcdb3b4c::t_ec94ad3d17ed3b 38-47,50-52
+packages/cli/src/actions/affected/index.ts
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 16,30
+  s_51871bdcdb3b4c::t_9675f502335c5b 3
+packages/cli/src/actions/run-many/index.ts
+  s_51871bdcdb3b4c::t_9675f502335c5b 3
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 16,49
+packages/cli/src/shared/run-projects.ts
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 8,36-37
+  s_51871bdcdb3b4c::t_ec94ad3d17ed3b 38
+  s_51871bdcdb3b4c::t_b5accc92735c7e 20,35
+  s_51871bdcdb3b4c::t_7eec1a643a4101 39
+packages/cli/src/actions/run/index.ts
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 1,8,18
+packages/cli/tests/cli.test.mjs
+  s_51871bdcdb3b4c::t_53bc1db6eba7b1 225,232
+packages/cli/src/shared/executor-options.ts
+  s_51871bdcdb3b4c::t_9675f502335c5b 25-28
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 1-24,29
+packages/cli/src/actions/command/index.ts
+  s_51871bdcdb3b4c::t_001c1a7c846ad2 1,4,8,12-14
+packages/core/src/executor/runner.ts
+  s_51871bdcdb3b4c::t_ec94ad3d17ed3b 29
+  s_51871bdcdb3b4c::t_ff92c79388241b 87-89
+  s_51871bdcdb3b4c::t_a1b5cf60332559 86
+website/docs/troubleshooting.mdx
+  s_51871bdcdb3b4c::t_d5ade7243d8803 62-65
+packages/eslint/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_c9ed606e0d8884 42,47,75
+  s_51871bdcdb3b4c::t_5b61597f7bbb92 160,177
+  s_51871bdcdb3b4c::t_2572117bc7cfbd 119-159,163,173
+  s_51871bdcdb3b4c::t_bbd98927500b8d 161-162,164-172,174-176
+  s_51871bdcdb3b4c::t_e0edcd3c543a4d 178
+website/docs/core-api.md
+  s_51871bdcdb3b4c::t_a036bcb4ae52d9 79-82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3795a4923df179aae70aa6d84d399d79c63f98f",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
