@@ -216,8 +216,9 @@ fails the build even if TypeScript has already emitted updated files.
 
 ## Watch mode
 
-Run `isox build web --config=watch` for the configuration above. The CLI does not
-forward a standalone `--watch` flag. Watch mode runs a daemon-free rebuild loop,
+Run `isox build web --watch`, or use `isox build web --config=watch` for the
+configuration above. The CLI forwards `--watch` as the executor's `watch: true`
+option. Watch mode runs a daemon-free rebuild loop,
 using content snapshots and complete TypeScript 7 compilations rather than the
 compiler's terminal watch messages. It refreshes compiler configuration each
 cycle and detects source additions/deletions, assets, package metadata, workspace

@@ -32,7 +32,7 @@ isox affected --target=lint --fix
 
 Hyphenated names become camelCase (`--max-warnings` becomes `maxWarnings`). Bare
 flags are `true`, `--no-<name>` is `false`, numeric values become numbers, and
-repeated flags become arrays. Executors validate the options they support.
+repeated flags become arrays. Executors may validate the options they support.
 Isox's own flags, such as `--verbose`, `--config`, and `--parallel`, stay with the CLI.
 `init`, `add`, `reset`, and `plan` reject unknown flags.
 
@@ -43,7 +43,10 @@ or names that overlap with CLI flags:
 isox build my-app --options '{"release":"001","settings":{"minify":true}}'
 ```
 
-Explicit flags take precedence over `--options`. In multi-project execution,
+Forwarded executor-option flags take precedence over `--options`. Reserved CLI
+flags do not override executor options: for example, `run-many --parallel=4`
+with `--options '{"parallel":2}'` runs up to four projects concurrently while
+passing `parallel: 2` to each executor. In multi-project execution,
 overrides apply only to the requested target; pre/post targets keep their own options.
 
 For `affected`, `plan`, and `run-many`, `--pre-targets` and `--post-targets` accept

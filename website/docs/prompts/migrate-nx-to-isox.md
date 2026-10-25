@@ -195,8 +195,9 @@ and resolved against project, workspace, and local package versions. Computed
 module names require explicit dependency metadata. Lockfile generation is not
 supported.
 
-For watch mode, add an Isox configuration containing `watch: true` and select it
-with `--config=watch`. There is no standalone forwarded `--watch` CLI flag.
+For watch mode, run `isox build <project> --watch`, or add an Isox configuration
+containing `watch: true` and select it with `--config=watch`. The CLI forwards
+`--watch` as the executor's `watch: true` option.
 Rebuilds refresh tsconfig, assets, and package metadata; recoverable errors keep
 the stream alive. Signal/cancellation closes the watcher and compiler children.
 See [the JS executor contract](/docs/typescript) for exact defaults,

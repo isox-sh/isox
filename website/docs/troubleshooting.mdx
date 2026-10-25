@@ -60,7 +60,7 @@ installed workspace copy takes precedence, including when that copy is invalid.
 ## An option or configuration is rejected
 
 Execution commands forward unknown flags as executor options. Check the executor's
-supported options when one is rejected; a typo now reaches its validation.
+supported options when one is rejected; each executor decides whether to validate them.
 For TypeScript watch mode, use `isox build web --watch`, or put `watch: true` in a
 named configuration and run `isox build web --config=watch`.
 
