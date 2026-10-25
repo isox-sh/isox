@@ -7,6 +7,17 @@ icon: "code"
 
 Native TypeScript 7 compiler executor for Isox. Requires Node.js 24+.
 
+## Install
+
+Install the plugin in your workspace:
+
+```sh
+npm install --save-dev @isox-sh/js
+```
+
+The plugin includes its compiler. A separate TypeScript installation is only
+needed for your own `tsc` invocations or other tools that import TypeScript.
+
 ## Usage
 
 Create a project inside an existing Isox workspace:
@@ -16,7 +27,7 @@ isox init @isox-sh/js packages/test --importPath=@org/test
 isox build test
 ```
 
-Install `@isox-sh/js` in the workspace first. The initializer creates
+The initializer creates
 `project.json` with a build command, `tsconfig.json` for editors,
 `tsconfig.build.json` for compilation, and `src/index.ts`. Both configs extend
 the workspace's `tsconfig.base.json`, which is created if missing.
@@ -104,7 +115,7 @@ files, so new declarations trigger a rebuild after dependencies are compiled.
 | `generateExportsField` | `false` | Add inferred root and configured subpath exports |
 | `additionalEntryPoints` | None | Map export subpaths to output-relative paths or condition maps |
 | `watch` | `false` | Keep rebuilding after input changes |
-| `pollInterval` | `500` | Watch snapshot interval in milliseconds, minimum 100 |
+| `pollInterval` | `500` | Watch snapshot interval in milliseconds, from 100 to 60000 |
 
 Unknown options fail with a migration error. Nx `main`, `outputPath`, `rootDir`,
 and transformer options are not accepted as executor options: move compiler
@@ -121,6 +132,27 @@ Changing an output directory does not delete the former directory. `isox reset`
 also discards ownership records, so existing untracked output is preserved.
 A stale build lock or output reservation after a forced process kill can be removed with `isox reset`
 once no builds are running.
+
+### TypeScript state files
+
+Files in `.isox/tsc/` support output cleanup and concurrent builds. They do not let Isox
+skip a task whose outputs are already present. Keep `.isox/` out of version control.
+
+| File | Purpose |
+| --- | --- |
+| `<hash>.json` | Records the project and config paths, output roots, and content hashes of owned files |
+| `<hash>.json.lock` | Prevents simultaneous builds of the same project |
+| `<hash>.json.claim` | Reserves output roots while a build is in progress |
+| `<hash>.json.tsbuildinfo` | Compiler build information for incremental or composite configs; recreated for complete output tracking |
+| `config-*/tsconfig.json` | Temporary config mapping source aliases to dependency declarations; removed after compilation |
+
+The hash identifies the project's absolute root path. The JSON state lets cleanup
+remove stale output only when its content still matches the recorded hash. Locks
+and claims are removed when the build finishes, including normal failure cleanup.
+Do not edit these files by hand. After a forced stop, see
+[stale build locks](/docs/troubleshooting#a-typescript-output-lock-remains-after-a-forced-stop).
+
+### Assets
 
 Asset `input` paths resolve from the workspace root. `output` paths resolve from
 `outDir`; `glob` and `ignore` patterns resolve from `input`. Assets cannot escape
@@ -238,12 +270,7 @@ stop polling and active compiler process groups. CLI interruption exits with 130
 or 143. Core reports each rebuild without logging final completion while watching.
 Isox does not schedule dependency builds; build prerequisites explicitly.
 
-In this repository, run `pnpm bootstrap` after installing dependencies to build
-core, this executor, and the CLI from a clean checkout. Subsequent builds use
-`pnpm isox build js`. Tests live in `packages/js/tests/` and run with
-`pnpm isox test js`.
-
-### Reusing package generation in plugins
+## Reusing package generation in plugins
 
 Import the shared generator from `@isox-sh/js/helpers` (or
 `@isox-sh/js/helpers/package-json`). Its `PackageJsonOptions` and

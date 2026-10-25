@@ -60,7 +60,7 @@ to the children and return exit codes 130/143.
   and explicitly declared project dependencies. Type-only imports and tests count.
   Dynamically selected plugins need explicit dependencies; executor selections
   alone do not add edges. Unknown references and cycles fail with an explanation.
-  See [dependency discovery](/docs/configuration#project-definitions).
+  See [dependency discovery](/docs/configuration#dependency-discovery).
 - Projects without the requested command, with `plan.enabled: false`, or tagged `ci=off` are
   excluded from selection. Explicit `run-many --projects-json` runs exactly its
   list, including projects excluded from automatic selection.
@@ -81,6 +81,12 @@ Set `plan.enabled` to `false` in `project.json` to exclude it from `affected`,
 It defaults to `true`. Direct commands such as `isox test tools` and exact
 `--projects-json` lists can still run the project. The existing `ci=off` tag also
 excludes projects for backward compatibility, even with `plan.enabled: true`.
+
+This is a selection filter. The project remains in the dependency graph, and its
+changes still propagate to dependents. It cannot hide a cycle. To skip only one
+target, leave that target undefined on the project instead.
+
+### Shared and ignored files
 
 For shared tools inside a project, add workspace-relative globs to `isox.json`:
 

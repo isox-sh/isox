@@ -122,7 +122,11 @@ are copied through the configured assets.
 ```typescript
 import type { Executor } from '@isox-sh/core'
 
-const build: Executor<{ outputDir: string }> = async (options, context) => {
+interface BuildOptions {
+  outputDir: string
+}
+
+const build: Executor<BuildOptions> = async (options, context) => {
   context.logger.info(`Building ${context.projectName} into ${options.outputDir}`)
   // Run the build here, then report its result.
   return { success: true }
@@ -162,19 +166,22 @@ commands on SIGINT/SIGTERM; `js:tsc` also cancels its compiler process group.
 
 The native [`js:tsc` executor](/docs/typescript) supports owned-output cleanup,
 asset copying, optional package.json/exports generation, and watch configurations.
-Use `isox build <project> --config=watch` with `watch: true` in that configuration.
+Use `isox build <project> --watch`, or select a configuration containing
+`watch: true` with `--config=watch`.
 The full contract and migration limits are documented in the
 [TypeScript executor guide](/docs/typescript).
 
 ## Programmatic execution
 
 For programmatic execution, call
-`runExecutor(workspace, projectName, commandName, workspaceRoot, logger?, configurationName?)`.
+`runExecutor(workspace, projectName, commandName, workspaceRoot, logger?, configurationName?, signal?, optionOverrides?)`.
 The runner selects and merges options from the workspace configuration. Omit the
 configuration name to use the command's default. `context.command` and the
 workspace graph retain the unmerged command definition; the executor's first
 argument contains the merged options. `runExecutor` accepts an optional
-`AbortSignal` as its seventh argument.
+`AbortSignal` as its seventh argument and option overrides as its eighth. Overrides
+replace selected configuration values at the top level. See the
+[core API](/docs/core-api#core-api) for an invocation example.
 
 ## Executor resolution
 

@@ -343,8 +343,9 @@ the workspace root works.
 
 Change scripts, documentation, editor tasks, and CI from `nx run project:build`
 to `isox build project` (or `isox run project:build`). The syntax is
-`isox <command> <target>`, where target is a project name. `init`, `run`, `reset`,
-`affected`, `plan`, and `run-many` are reserved; use `isox run project:reset` for
+`isox <command> <project>`, where the command is an entry under `targets`.
+`init`, `add`, `run`, `reset`, `affected`, `plan`, and `run-many` are reserved;
+use `isox run project:reset` for
 a project command named `reset`.
 
 Replace `nx affected` and `nx run-many` workflows with `isox affected` and
@@ -352,10 +353,12 @@ Replace `nx affected` and `nx run-many` workflows with `isox affected` and
 project lists across weighted workers. Follow the [affected and CI guide](/docs/affected-and-ci)
 for Git selection, tags, named configurations, and pre/post stages. Prepare
 prerequisite outputs explicitly in each worker; the graph does not schedule
-dependency builds. Preserve required build ordering and coverage; do not silently
+dependency builds. For versioning and publishing, assess the native
+[`semver:version` and `semver:github` executors](/docs/semver) against the existing
+release workflow. Preserve required build ordering and coverage; do not silently
 skip checks. Report unresolved needs for remote caching, generators beyond the
-available project initializers, release tooling, module-boundary rules, watch
-orchestration, or artifact transfer.
+available project initializers and add hooks, release features beyond the native
+plugin, module-boundary rules, watch orchestration, or artifact transfer.
 
 Remove unused Nx scripts, configuration, and dependencies only after checking
 remaining imports, retained adapters, and working commands. Do not leave a shell

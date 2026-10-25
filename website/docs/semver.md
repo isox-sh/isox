@@ -8,8 +8,11 @@ icon: "tag"
 and `semver:github` for creating GitHub releases. Both also accept the fully
 scoped names, such as `@isox-sh/semver:version`.
 
+Requires Node.js 24 or 26+ and a Git repository. Install the plugin at the
+workspace root, then add its target to a project with a versioned `package.json`:
+
 ```sh
-pnpm add -D @isox-sh/semver
+npm install --save-dev @isox-sh/semver
 isox add @isox-sh/semver my-package
 ```
 
@@ -17,8 +20,11 @@ The `add` generator adds this target to an existing `project.json`:
 
 ```json
 {
-  "version": {
-    "executor": "semver:version"
+  "name": "my-package",
+  "targets": {
+    "version": {
+      "executor": "semver:version"
+    }
   }
 }
 ```
@@ -33,11 +39,20 @@ a conflicting target. Discovery is refreshed automatically.
 Run `isox version <project-name> --dry-run` to preview. The generator uses default
 release options and does not add publishing hooks or perform a release.
 
+Choose a workflow:
+
+- [Independent versions](#configure-a-release) for packages released separately.
+- [Alpha and other prereleases](#alpha-and-other-prereleases) for preview packages.
+- [Synchronized versions](#synchronized-versions) for one release across the workspace.
+
+The [options reference](#version-executor-options) lists defaults. The
+[publishing example](#publish-an-alpha-package-and-create-a-github-release) shows
+how to build, publish to npm, and create a GitHub release in order.
+
 ## Configure a release
 
 To enable pushing and GitHub releases, extend the generated target and add a
 `github` target:
-
 
 ```json
 {
@@ -481,8 +496,12 @@ and configure Git author name/email. GitHub Actions needs push credentials when
 isox run-many --target=version --parallel=1
 ```
 
-For independent releases, only projects with a `version` target are selected. Use `--projects` to select a
-subset. Each project examines commits since its own release tag, so unrelated
+Use `run-many` for independent releases. For synchronized versions, invoke only
+the coordinating target, such as `isox version workspace`.
+
+Only projects with a `version` target are selected by `run-many`; normal tag
+filters still apply. Use `--projects` to select a subset. Each independent project
+examines commits since its own release tag, so unrelated
 commits are skipped. For releases, this also avoids relying on an affected base
 that might omit changes since an earlier release.
 

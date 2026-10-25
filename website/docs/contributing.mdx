@@ -39,7 +39,7 @@ Package tests live in their owning package's `tests/` directory. Repository-wide
 action, bootstrap, and packaging tests live in the root `tests/` directory and run
 with `pnpm isox test workspace`. After bootstrapping,
 `pnpm isox run-many --target=test` runs every project's test target, including the
-package suites, end-to-end suite, and website validation. Use
+package suites, workspace tooling tests, end-to-end suite, and website validation. Use
 `pnpm isox test <project>` to run one suite, such as `pnpm isox test cli`.
 Rebuild changed packages before running their tests.
 
@@ -100,10 +100,11 @@ pnpm isox test vitest
 pnpm isox test nx
 ```
 
-The syntax is `isox <command> <target>`, where target is the project's name.
+The syntax is `isox <command> <project>`: `build` is the target, and `cli` is the project.
 Any command defined in that project's `targets` object can be used.
-`isox run cli:build` also works. `init`, `run`, `reset`, `affected`, `plan`, and `run-many` are reserved CLI commands;
-use `isox run <project>:<command>` for project commands with those names.
+`isox run cli:build` also works. `init`, `add`, `run`, `reset`, `affected`, `plan`,
+and `run-many` are reserved CLI commands; use `isox run <project>:<command>` for
+project commands with those names.
 
 Package builds use [`@isox-sh/js:tsc`](/docs/typescript), written as `js:tsc`
 in our project files. Compiler settings stay in each package's `tsconfig.build.json`;
@@ -133,8 +134,8 @@ refresh discovery on the next run.
 ## Build outputs
 
 All repository packages build into `<repository>/dist/<package>`, including
-`dist/core`, `dist/js`, `dist/eslint`, `dist/vitest`, `dist/nx`, `dist/e2e`, and
-`dist/cli`. These directories contain runnable package artifacts: JavaScript,
+`dist/core`, `dist/js`, `dist/eslint`, `dist/vitest`, `dist/nx`, `dist/e2e`,
+`dist/semver`, and `dist/cli`. These directories contain runnable package artifacts: JavaScript,
 declarations, rewritten package manifests, executor manifests, and schemas.
 Source files and tests stay under `packages/<package>`.
 
@@ -185,7 +186,9 @@ The global `isox` command links to this checkout's built CLI.
 [`--install-links=false`](https://docs.npmjs.com/cli/v12/commands/npm-install/#install-links)
 keeps the local package linked. After changing source code, rerun
 `node ./scripts/bootstrap.cjs` from the repository root to update the build used
-by the global command.
+by the global command. Executor plugins still resolve from the workspace where
+you run Isox. A workspace-installed core also takes precedence over the CLI's
+copy, so testing a local CLI alone does not replace that workspace's plugins.
 
 Use it from a workspace containing `isox.json`, `project.json` files, and installed
 executor plugins:
@@ -234,8 +237,13 @@ for direct CLI commands and Mintlify hosting setup.
 
 ## Pull requests
 
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Create a branch, make a focused change, and run the affected build, lint, and test
+targets. For documentation changes, run `pnpm isox test website`.
+
+Use a Conventional Commit message, such as `fix(core): Handle missing configurations`.
+Use the owning project name as the scope. The
+[release plugin](/docs/semver#how-versions-are-calculated) uses commit types and
+breaking-change markers to determine versions.
+
+Open a pull request describing the behavior changed and the checks you ran.
+Include screenshots when a change affects the website's layout.

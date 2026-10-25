@@ -20,6 +20,13 @@ icon: "terminal"
 | `isox reset` | Remove `.isox`; the next command rebuilds discovery data |
 | `isox --help` | Show usage |
 
+In `isox build web`, `build` is the target name and `web` is the project name.
+Use `isox run web:build` when you prefer an explicit reference, or when the target
+name conflicts with a built-in CLI command such as `add` or `init`.
+Prefix examples with `npx`, `pnpm exec`, or `yarn` for a local CLI installation.
+
+## Executor option overrides
+
 Use `--verbose` for debug logging and error stacks. Execution commands forward
 unknown flags to the executor as option overrides:
 
@@ -48,6 +55,8 @@ flags do not override executor options: for example, `run-many --parallel=4`
 with `--options '{"parallel":2}'` runs up to four projects concurrently while
 passing `parallel: 2` to each executor. In multi-project execution,
 overrides apply only to the requested target; pre/post targets keep their own options.
+
+## Pre and post stages
 
 For `affected`, `plan`, and `run-many`, `--pre-targets` and `--post-targets` accept
 comma- or newline-separated command lists. Use `--pre-targets-json` and
@@ -105,7 +114,9 @@ can be selected per invocation. Executor CLI flags override the selected configu
 Isox stores discovered projects in `.isox/workspace.json`. After adding, changing,
 renaming, or removing project files, run `isox reset`. The cache stores project
 configuration, not build outputs or task results. `affected`, `plan`, and
-`run-many` always rescan project files and refresh the cache.
+`run-many` always rescan project files and refresh the cache. Reset removes the
+whole `.isox` directory, including TypeScript ownership records and build locks;
+stop active builds first. It does not delete compiled output.
 
 See [workspace configuration](/docs/configuration) for discovery details and
 [Nx migration](/docs/nx-migration) for temporary adapter support.

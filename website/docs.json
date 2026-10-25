@@ -168,6 +168,10 @@
       "destination": "/docs/vitest"
     },
     {
+      "source": "/semver",
+      "destination": "/docs/semver"
+    },
+    {
       "source": "/core-api",
       "destination": "/docs/core-api"
     },

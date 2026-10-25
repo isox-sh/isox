@@ -60,6 +60,10 @@ installation, prefix commands with `npx`, `pnpm exec`, or `yarn`.
 
 ## Local and global installations
 
+Prefer a local installation so collaborators and CI use the version recorded in
+your workspace's lockfile. The examples use `npx isox`; `pnpm exec isox` and
+`yarn isox` run the locally installed CLI too.
+
 For a global CLI installation:
 
 ```sh
@@ -96,7 +100,6 @@ For an existing npm workspace named `@example/web` with a `build` script, create
 ```json
 {
   "name": "web",
-  "dependencies": [],
   "targets": {
     "build": {
       "executor": "@isox-sh/core:run-command",
@@ -104,8 +107,7 @@ For an existing npm workspace named `@example/web` with a `build` script, create
         "command": "npm run build --workspace @example/web"
       }
     }
-  },
-  "tags": []
+  }
 }
 ```
 
@@ -129,6 +131,23 @@ Commands run from the workspace root by default. Set `options.cwd` on
 `run-command` to choose another directory. Shell commands inherit environment
 variables and terminal streams; a nonzero exit fails the command. Avoid scripts
 that call the same Isox command recursively.
+
+## Add tooling to a project
+
+Install the executor plugin, then add its target to the project's `targets`.
+Some plugins also provide an `add` generator. For example, the release plugin can
+configure an existing project named `web`:
+
+```sh
+npm install --save-dev @isox-sh/semver
+npx isox add @isox-sh/semver web
+npx isox version web --dry-run
+```
+
+`add` looks up an existing project by name; `init <package> <path>` creates a new
+project directory. Neither command installs the plugin package. For versioning,
+the project must have a `package.json` with a valid name and version and live in
+a Git repository. See [releases](/docs/semver) before running a real release.
 
 Next, see the [CLI reference](/docs/cli), [workspace configuration](/docs/configuration),
 and [TypeScript executor](/docs/typescript).

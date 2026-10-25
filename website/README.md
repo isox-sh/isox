@@ -10,9 +10,9 @@ at `/`; [docs/introduction.mdx](docs/introduction.mdx) starts the documentation 
 
 ```text
 website/
-├── docs.json          # Mintlify configuration
-├── project.json       # Isox serve and test commands
-├── index.mdx          # Homepage at /
+├── docs.json         # Mintlify configuration
+├── project.json      # Isox serve and test commands
+├── index.mdx         # Homepage at /
 ├── custom.css        # Homepage styles
 ├── images/           # Shared brand assets
 └── docs/             # Guides at /docs/...
@@ -37,16 +37,6 @@ the build and internal links, including heading anchors. Both commands are
 defined in `project.json` and download Mintlify's tooling on first use. Validation
 uses a pinned CLI version.
 
-To work directly from this directory without building the local Isox CLI:
-
-```sh
-pnpm dlx mint@4.2.1125 dev
-pnpm dlx mint@4.2.1125 validate
-pnpm dlx mint@4.2.1125 broken-links --check-anchors
-```
-
-Use `dev --port 3333` to select a port or `dev --no-open` to skip opening a browser.
-
 ## Editing pages
 
 Keep guides in `website/docs/`. The contributing guide uses `.mdx` because
@@ -65,8 +55,7 @@ and dark wordmarks. Edit `index.mdx` for the homepage and `docs/` for the guides
 
 The existing Isox CI plan picks up the website's `test` target automatically.
 Website changes select this project, and the shared CI worker runs its Mintlify
-build and link checks. Mintlify builds and hosts the site from its source files;
-the former static GitHub Pages upload is removed.
+build and link checks. Mintlify builds and hosts the site from its source files.
 
 ## Hosting
 
@@ -89,7 +78,8 @@ switching hosting. See Mintlify's
 - [TypeScript executor](docs/typescript.md) — project initialization, compiler options, assets, package generation, and watch mode.
 - [ESLint executor](docs/eslint.md) — project linting, fixes, and warning limits.
 - [Vitest executor](docs/vitest.md) — test commands and configuration.
-- [Core API and shell commands](docs/core-api.md) — programmatic execution, schemas, JSON helpers, and logging.
+- [Releases](docs/semver.md) — conventional commits, prereleases, synchronized versions, and publishing hooks.
+- [Core API](docs/core-api.md) — programmatic execution, schemas, JSON helpers, and logging.
 - [Custom executors and initializers](docs/custom-executors.md) — plugin manifests, context, results, and cancellation.
 - [Plugin end-to-end testing](docs/plugin-testing.md) — reusable test workspaces with configurable local plugins.
 - [Troubleshooting](docs/troubleshooting.mdx) — discovery, configuration, build, and CI selection problems.

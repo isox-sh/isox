@@ -46,9 +46,24 @@ For a custom config location, set `options.configFile` to a workspace-relative
 or absolute path. Named Isox configurations can override that path. The project
 root remains the same when selecting a different config file.
 
-## Repository development
+For example, a project can keep its tests under `tests/`:
 
-In this repository, tests stay inside each package's `tests/` directory.
-Run `pnpm bootstrap` once, then `pnpm isox test vitest` to test this executor.
-After bootstrapping, `pnpm isox run-many --target=test` runs every project's test
-target, including package suites, the end-to-end suite, and website validation.
+```js apps/web/vitest.config.mjs
+export default {
+  test: {
+    include: ['tests/**/*.test.mjs'],
+  },
+}
+```
+
+Select a different config for one invocation with:
+
+```sh
+isox test web --config-file=apps/web/vitest.integration.config.mjs
+```
+
+`--config-file` selects the Vitest file; Isox's `--config` selects a named target
+configuration. The executor supports only `configFile` and always runs tests once.
+Flags such as `--watch` and `--coverage` are not forwarded to the Vitest CLI.
+Configure coverage in the Vitest file, or use a [shell target](/docs/shell-commands)
+when you need a different Vitest invocation.

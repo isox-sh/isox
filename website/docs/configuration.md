@@ -7,18 +7,25 @@ icon: "sliders"
 
 ## Workspace root
 
-Run `isox init` at the root of a new workspace to create `isox.json` containing
-`{ "version": "0.0.1" }` with the version read from the installed CLI's
-`package.json`. If that directory contains an `nx.json` file, init also adds
-`"nx": { "executors": ["@nx"] }` and adds `@isox-sh/nx` to `package.json` as a
-dev dependency matching the CLI version, preserving any existing plugin version.
-Run your package manager's install command afterward. Init writes to the current
-directory and refuses to overwrite an existing `isox.json`. Existing unversioned markers still work. The CLI
-searches the current directory and its parents for the nearest `isox.json` file.
-It discovers projects, resolves plugins, and runs executors from that directory,
-so commands work from nested project directories too. A missing marker produces
-an error. The file also supports `nx.executors` to select additional packages
-that use the Nx executor adapter.
+Run `isox init` at the workspace root to create `isox.json`. The file records the
+installed CLI's version; an existing marker containing only `{}` also works.
+Init writes to the current directory and refuses to overwrite an existing marker.
+
+The CLI searches upward for the nearest `isox.json`, then discovers projects and
+resolves plugins from that directory. Commands work from nested project directories
+too. `isox.json` and `project.json` use JSON; TypeScript configs may use JSONC.
+
+| Workspace setting | Purpose |
+| --- | --- |
+| `affected.defaultBase` | Default Git revision for affected selection; defaults to `origin/main` |
+| `affected.globalFiles` | Additional workspace-relative globs whose changes affect all projects |
+| `affected.ignoreFiles` | Globs excluded before global-file and project matching |
+| `nx.executors` | Package names or scopes routed through the optional Nx adapter |
+
+When `nx.json` is present, init adds `@nx` to `nx.executors` and adds
+`@isox-sh/nx` to development dependencies, preserving an existing plugin version.
+Run your package manager's install command afterward. See
+[Nx migration](/docs/nx-migration) for the adapter's limits.
 
 ## Default base branch
 
@@ -43,39 +50,45 @@ that explicit revision.
 
 ## Project definitions
 
-Existing Isox projects using the former `executors` field should rename it to
-`targets`. Plugin `executors.json` registries and `nx.executors` settings keep
-their existing names. Older workspace caches are rebuilt automatically.
-
-The project definition uses `name`, `dependencies` (project names), `targets`,
-`tags`, and optional `plan.weight`. Each command specifies an `executor`, optional `options`, and optional
-`configurations` and `defaultConfiguration`. The
-project root comes from the file's location; an omitted name defaults to that
-directory's name. Dependencies and tags are optional. For example:
+Each project has a `project.json`. Its location determines the project root.
+The entries under `targets` are the commands you can run with Isox:
 
 ```json
 {
-  "$schema": "../core/schemas/project.schema.json",
-  "name": "cli",
-  "dependencies": ["core"],
+  "$schema": "../../node_modules/@isox-sh/core/schemas/project.schema.json",
+  "name": "web",
   "plan": { "weight": 3 },
   "targets": {
     "build": {
       "executor": "js:tsc",
       "options": {
-        "tsConfig": "packages/cli/tsconfig.build.json"
+        "tsConfig": "apps/web/tsconfig.build.json"
       }
     }
   },
-  "tags": []
+  "tags": ["type=frontend"]
 }
 ```
 
-The schema is shipped at `@isox-sh/core/schemas/project.schema.json`; set `$schema`
-to its relative path for editor validation and completion. Isox validates files
-against the same schema when discovering projects. Core also exports the
-`ProjectDefinition` and `ExecutorConfiguration` TypeScript types. The example
-above uses the schema path for `packages/cli` in this repository.
+This example belongs in `apps/web/project.json` and requires `@isox-sh/js`.
+Install `@isox-sh/core` directly to use the shown editor schema path, or omit
+`$schema`. Isox validates project definitions against its bundled schema either way.
+
+| Project field | Purpose |
+| --- | --- |
+| `name` | Unique project name; defaults to the containing directory name |
+| `targets` | Named commands, each with a required `executor` reference |
+| `dependencies` | Additional Isox project names, merged with inferred dependencies |
+| `tags` | Labels for selection, such as `type=frontend` |
+| `plan.enabled` | Include in automatic selection; defaults to `true` |
+| `plan.weight` | Positive relative cost for CI distribution; defaults to `1` |
+
+All these project fields are optional. Names must contain no whitespace or colons.
+Each target can define `options`, `configurations`, and `defaultConfiguration`.
+Core exports `ProjectDefinition` and `ExecutorConfiguration` TypeScript types.
+
+Projects using the former `executors` field should rename it to `targets`.
+Plugin `executors.json` registries and `nx.executors` settings keep their names.
 
 Project and command objects allow additional properties for use by custom
 executors and other tools. Isox preserves them in the workspace cache and executor
@@ -86,6 +99,11 @@ narrow them to their own types. Defined Isox fields are still validated.
 See [named configurations](/docs/cli#named-configurations) for option overrides and
 [Nx project conversion](/docs/nx-migration#project-conversion) for existing Nx files.
 
+## Dependency discovery
+
+TypeScript configs are optional. Projects without them still participate in
+discovery through package manifests, imports, and explicit dependencies.
+
 Discovery detects project dependencies from TypeScript/JavaScript imports,
 re-exports, literal dynamic imports and require calls, including type-only imports
 and test files. Package names and subpaths map to their owning projects. Relative
@@ -94,8 +112,10 @@ extended configs and project-specific overrides are respected. Aliases can point
 to source files or declared compiler output directories, even before a build.
 Output ownership uses the build target's `options.tsConfig`, including its default
 configuration and inherited `outDir`, `declarationDir`, and `rootDir`. When that
-option is absent or its file does not exist, discovery uses the project's `tsconfig.json` or the shared
-workspace config. Source aliases continue to use the editor configuration.
+option is absent or its file does not exist, discovery uses the project's
+`tsconfig.json`, then the workspace's `tsconfig.base.json` or `tsconfig.json`.
+Source aliases use the project or shared editor config. Existing malformed
+configs produce an error; no config is required for a plain JavaScript project.
 
 Local package references in `dependencies`, `devDependencies`, `optionalDependencies`,
 and `peerDependencies` are also detected. Package aliases and relative workspace
@@ -107,9 +127,12 @@ These are merged with detected dependencies in `.isox/workspace.json`; source
 project files stay unchanged. Comments, ordinary strings, Node builtins, self-imports,
 dependency folders and recognized output directories are excluded. Generated files
 outside the ignored paths and configured output directories are still scanned.
-Merely listing a command's
-executor does not add an edge. Affected planning rejects unknown dependencies and
-reports dependency cycles.
+Merely listing a command's executor does not add an edge. Affected planning
+rejects unknown dependencies and reports dependency cycles. See
+[cycle troubleshooting](/docs/troubleshooting#project-dependency-cycle) when a
+root project or test imports introduce unexpected relationships.
+
+## CI selection
 
 Set `plan.enabled` to `false` to exclude a project from `affected`, `plan`, and
 ordinary `run-many` selection. It defaults to `true`. Direct commands and exact
@@ -137,5 +160,11 @@ cache files are rebuilt automatically. Keep `.isox/` out of version control.
 `affected`, `plan`, and `run-many` always read current project files and refresh
 the cache so branch changes and changed weights cannot produce stale plans.
 
-Project initialization refreshes discovery automatically. See
+Project initialization refreshes discovery automatically. `isox add` invalidates
+the discovery cache after running a generator. See
 [getting started](/docs/getting-started#define-a-project) to create a project.
+
+Reset also removes TypeScript output ownership records and locks. Stop active
+builds first; existing output files remain, but later builds can no longer clean
+stale files tracked only by the removed records. See
+[TypeScript state files](/docs/typescript#typescript-state-files) for their purpose.

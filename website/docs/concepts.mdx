@@ -33,8 +33,9 @@ continue to control dependency installation and package linking.
 
 ## Commands and executors
 
-A **command** is a named entry under a project's `targets` object, such as
-`build`, `lint`, or `test`. An **executor** is the implementation that runs it.
+A **target** (also called a project command) is a named entry under a project's
+`targets` object, such as `build`, `lint`, or `test`. An **executor** is the
+implementation that runs it.
 Commands can have any name; `build` has no special scheduling behavior.
 
 ```json
@@ -104,9 +105,12 @@ or import relationships, run `isox reset` to refresh the next discovery.
 
 `affected`, `plan`, and `run-many` always scan current project files and refresh
 the cache. Creating a project with `isox init <package> <path>` also refreshes it.
+`isox add <package> <project>` invalidates discovery after the generator runs.
 
 This cache stores workspace metadata. Tasks still execute on each invocation.
-The TypeScript executor separately tracks output ownership under `.isox/tsc/`.
+The TypeScript executor separately tracks [output ownership](/docs/typescript#typescript-state-files)
+under `.isox/tsc/`. `isox reset` removes both kinds of state, so stop active builds
+before resetting.
 
 ## Selecting and distributing work
 

@@ -1,5 +1,5 @@
 ---
-title: "Core API and shell commands"
+title: "Core API"
 description: "Discover workspaces, run executors, plan affected work, and use shared configuration and process APIs."
 sidebarTitle: "Core API"
 icon: "brackets-curly"
@@ -25,33 +25,10 @@ of core takes precedence over the CLI's copy when resolving commands.
 
 ## Shell-command executor
 
-Add a command to a project's `project.json`:
-
-```json
-{
-  "name": "web",
-  "targets": {
-    "build": {
-      "executor": "@isox-sh/core:run-command",
-      "options": {
-        "command": "npm run build",
-        "cwd": "apps/web"
-      }
-    }
-  }
-}
-```
-
-Run `isox build web`. The shell command inherits the environment and standard
-streams. `cwd` is optional and resolves relative to the workspace root; an
-absolute path is also accepted. A nonzero exit or termination fails the task.
-
-The executor accepts `command` as a shell string. It does not substitute Nx
-tokens or schedule dependencies.
-If the workspace has no directly resolvable core package, built-in commands use
-the CLI's core dependency. This works with pnpm and global CLI installations.
-A workspace-installed copy takes precedence; invalid workspace packages still
-report errors. Other executor packages must resolve from the workspace root.
+`core:run-command` is included with the CLI. It runs a shell command from the
+workspace root, or from the directory selected by `options.cwd`.
+See [shell commands](/docs/shell-commands) for configuration, tool flags, and
+cancellation behavior.
 
 ## Core API
 
@@ -184,7 +161,11 @@ Read project JSON with the same path restrictions:
 ```typescript
 import { readJson } from '@isox-sh/core'
 
-const settings = await readJson<{ enabled: boolean }>('config/settings.json', context)
+interface Settings {
+  enabled: boolean
+}
+
+const settings = await readJson<Settings>('config/settings.json', context)
 ```
 
 `readJson` accepts UTF-8 JSON, including a leading byte order mark, and does not
@@ -216,14 +197,18 @@ Core exports `createProjectGraph`, `getGitChanges`, `getAffectedProjects`,
 `selectProjects`, and `createProjectMatrix` for programmatic planning:
 
 ```ts
-import { createProjectMatrix, getAffectedProjects, getGitChanges, parseWorkspace, readWorkspaceSettings } from '@isox-sh/core'
+import { createProjectMatrix, findWorkspaceRoot, getAffectedProjects, getGitChanges, parseWorkspace, readWorkspaceSettings } from '@isox-sh/core'
 
+const root = await findWorkspaceRoot()
 const workspace = await parseWorkspace(root, { cache: false })
 const settings = await readWorkspaceSettings(root)
-const changes = await getGitChanges(root, { base: 'origin/main', head: 'HEAD' })
+const changes = await getGitChanges(root)
 const projects = getAffectedProjects(workspace, changes.files, settings.affected)
 const matrix = createProjectMatrix(workspace, projects, [{ target: 'test', maxJobs: 3 }])
 ```
+
+`getGitChanges(root)` honors `affected.defaultBase` and the Git environment
+variables. Pass `base` and `head` options to override them.
 
 `parseWorkspace` accepts an optional logger and `cache: false` to bypass cached
 reads and refresh the saved workspace. `getAffectedProjects` propagates changed

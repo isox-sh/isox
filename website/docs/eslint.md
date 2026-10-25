@@ -7,7 +7,7 @@ icon: "list-check"
 
 ## Install
 
-Install the plugin in your workspace:
+Requires Node.js 24 or 26+. Install the plugin in your workspace:
 
 ```sh
 npm install --save-dev @isox-sh/eslint
@@ -15,6 +15,9 @@ npm install --save-dev @isox-sh/eslint
 
 The plugin includes ESLint. Keep your ESLint configuration and any parsers or
 rule plugins installed in the workspace.
+
+If your `eslint.config.mjs` imports `eslint/config`, install `eslint` directly too
+so that import resolves with package managers that isolate dependencies.
 
 ## Define a lint command
 
@@ -63,5 +66,11 @@ ESLint runs from the workspace root, and default linting selects only the curren
 project. Globs are passed directly to ESLint without shell expansion. Lint errors,
 excess warnings, unmatched patterns, and configuration failures fail the command.
 Cancellation stops the child process through Isox's shared process runner.
+
+For array-valued options, use JSON to preserve the array even with one pattern:
+
+```sh
+isox lint my-app --options '{"lintFilePatterns":["apps/my-app/src/**/*.ts"]}'
+```
 
 These options use the corresponding [ESLint CLI options](https://eslint.org/docs/latest/use/command-line-interface).
