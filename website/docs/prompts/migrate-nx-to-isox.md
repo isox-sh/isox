@@ -172,7 +172,10 @@ the same Isox build command again.
 
 Use `js:tsc` from `@isox-sh/js` for native TypeScript 7 builds. Keep output and
 compiler settings in tsconfig; translate Nx `outputPath` to `compilerOptions.outDir`
-and `rootDir` to the matching compiler option. Remove executor options such as
+relative to the tsconfig directory (or use an absolute path). Nx's `outputPath` is
+workspace-relative: for `packages/web/tsconfig.build.json`, `dist/web` becomes
+`../../dist/web` so the output location is preserved. Also translate
+`rootDir` to the matching compiler option. Remove executor options such as
 Nx `main` and `transformers`; unknown native options fail rather than being ignored.
 `noEmitOnError` is always enabled. Emitting configs require a safe workspace-local
 output directory. This executor does not schedule dependency builds.

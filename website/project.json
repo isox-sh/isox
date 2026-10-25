@@ -5,7 +5,7 @@
     "serve": {
       "executor": "core:run-command",
       "options": {
-        "command": "pnpm dlx mintlify dev",
+        "command": "pnpm dlx mint@4.2.1125 dev",
         "cwd": "website"
       }
     },

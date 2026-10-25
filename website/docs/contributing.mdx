@@ -39,7 +39,7 @@ pnpm test:e2e # Builds and runs only the end-to-end tests
 Tests live in their owning package's `tests/` directory. `pnpm test` builds the
 workspace and runs the package suites plus the end-to-end suite; after building, use
 `pnpm isox test core`, `pnpm isox test js`, `pnpm isox test cli`,
-`pnpm isox test vitest`, `pnpm isox test nx`, or `pnpm isox test e2e-plugin` for one package suite.
+`pnpm isox test eslint`, `pnpm isox test vitest`, `pnpm isox test nx`, or `pnpm isox test e2e-plugin` for one package suite.
 
 The Vitest end-to-end suite lives in `e2e/` and runs with `pnpm isox test e2e`
 after bootstrap. It uses the public [`@isox-sh/e2e`](/docs/plugin-testing)

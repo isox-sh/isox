@@ -203,7 +203,7 @@ Review date: 2026-10-24.
 - Baseline: 98 package tests passed before this cleanup.
 - Cleanup: file-specific JSON parse errors; preserved inferred application node
   types; enforced the installed Nx 23 runtime boundary; added CI lint and tests.
-- Final checks on Node.js 24.19.0: `pnpm build` and `pnpm lint` passed;
+- Final checks on Node.js 24.19.0: `node scripts/bootstrap.cjs` and `pnpm lint` passed;
   `pnpm isox test core` passed 87 tests and `pnpm isox test cli` passed 17 tests
   (104 total). These exercise the same test commands added to CI.
 - An isolated production webpack build using Nx 23.3.0 passed, including
