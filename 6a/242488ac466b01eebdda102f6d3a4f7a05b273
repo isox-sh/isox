@@ -1,0 +1,32 @@
+website/docs/contributing.mdx
+  s_5d3ad8740834ec::t_db3fc2971245b1 38-40
+tests/packages.test.mjs
+  s_5d3ad8740834ec::t_977a8303f1e558 1-29
+vitest.config.mjs
+  s_5d3ad8740834ec::t_977a8303f1e558 1-6
+tests/action-runtime.test.mjs
+  s_5d3ad8740834ec::t_977a8303f1e558 1-137
+tests/bootstrap.test.mjs
+  s_5d3ad8740834ec::t_977a8303f1e558 1-63
+tests/actions.test.mjs
+  s_5d3ad8740834ec::t_977a8303f1e558 1-11,13-329
+  s_5d3ad8740834ec::t_df21b42fb95eee 12
+project.json
+  s_5d3ad8740834ec::t_977a8303f1e558 27-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6a242488ac466b01eebdda102f6d3a4f7a05b273",
+  "prompts": {},
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
