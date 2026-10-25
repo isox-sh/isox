@@ -1,0 +1,28 @@
+packages/core/src/utils/source-dependencies.ts
+  s_51871bdcdb3b4c::t_404f22a7799e20 16-18,28-43,45-54,66-67,71,73-76,163,167-171,183
+  s_51871bdcdb3b4c::t_6a2bcc53369553 1-2,19-27
+packages/js/src/helpers/package-dependencies.ts
+  s_51871bdcdb3b4c::t_404f22a7799e20 59
+  s_51871bdcdb3b4c::t_6a2bcc53369553 4,58
+packages/core/tests/source-dependencies.test.mjs
+  s_51871bdcdb3b4c::t_c75ad4df00c141 98-114
+packages/core/src/workspace/dependencies.ts
+  s_51871bdcdb3b4c::t_6a2bcc53369553 8,142-143
+  s_51871bdcdb3b4c::t_404f22a7799e20 149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a2be35e55720863821fda761b20641b918d5531",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
