@@ -65,7 +65,11 @@ isox build web --skip-cache # Execute without reading or writing results
 isox reset                 # Clear everything under .isox
 ```
 
-A hit reports `Cache hit for web:build` before replaying saved terminal output.
+For a single project, a hit reports `Cache hit for web:build` before replaying saved terminal output.
+Multi-project runs show `✔ isox run web:build [local cache]` instead. The live
+display hides successful tool output; CI, redirected logs, and verbose execution
+replay it. Cached output contains tool diagnostics, without replaying old task
+start or completion messages.
 A miss is logged before execution only with `--verbose`. Replayed terminal output comes from the
 original execution, including any durations it printed. `--skip-cache` also works
 with `run`, `run-many`, and `affected`; workers apply it to all pre/main/post stages.

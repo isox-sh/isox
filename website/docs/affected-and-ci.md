@@ -117,7 +117,9 @@ explicit refresh. Affected selection validates and reuses per-project dependency
 entries from `.isox/discovery.json`, computing missing or invalid analysis before
 finding dependents. The `sources` SHA uses source paths and metadata; a changed
 project is reanalyzed as a whole, including tests. `--all` and `run-many` selection
-do not request dependency inference, though their executors can.
+do not request dependency inference. Execution additionally resolves
+dependencies when selected targets cache outputs, so selected dependencies finish
+before their consumers. Executors can also request analysis.
 
 Every `run-many` invocation refreshes definitions; its child commands then load
 that definitions cache. These caches do not transfer build outputs between CI
@@ -301,11 +303,14 @@ Gate matrix jobs using `hasPlan` as shown. A plan with different targets does no
 order those targets; separate build and deploy jobs with `needs` when ordering
 is required.
 
-For builds that consume other projects' declarations or generated files, prepare
-prerequisites first and use `parallel: 1` within each build worker. Cached builds
-temporarily move their existing output directories before execution; rebuilding
-a dependency alongside its consumer can make those files unavailable. Separate
-workers can still run concurrently because they have independent checkouts.
+When selected targets cache generated outputs, `run-many` orders selected projects
+by their dependencies before replacing those outputs. Independent projects still
+run concurrently up to `parallel`; consumers wait for selected dependencies to
+finish, including when `parallel` is `1`. This does not add prerequisite projects
+to the selection. Prepare any unselected prerequisites first, including in each
+CI checkout. Builds that replace the running CLI or a selected executor run alone while their outputs change, so
+other workers keep access to their runtime files. Independent application builds
+continue to use the configured parallelism.
 
 ### Migrating nx-extend workflows
 

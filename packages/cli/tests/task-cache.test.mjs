@@ -46,6 +46,7 @@ test('CLI caches child output, forwards bypass to run-many, and reset clears eve
         outputs: ['dist/demo'],
         inputs: ['{projectRoot}/**/*', 'build.cjs'],
         options: { command: 'node build.cjs' },
+        configurations: { production: {} },
       }
     }
   })
@@ -65,11 +66,16 @@ test('CLI caches child output, forwards bypass to run-many, and reset clears eve
   assert.match(restored, /stdout from child/)
   assert.ok(restored.indexOf('Cache hit') < restored.indexOf('stdout from child'))
   assert.doesNotMatch(restored, /Cache miss/)
+  assert.doesNotMatch(restored, /Running core:run-command|Successfully completed/)
   assert.equal(await readFile(join(root, 'dist/demo/file'), 'utf8'), 'built')
   assert.equal(await readFile(join(root, 'runs'), 'utf8'), 'run\n')
   run('run-many', '--target=build', '--projects=demo', '--skip-cache')
   assert.equal(await readFile(join(root, 'runs'), 'utf8'), 'run\nrun\n')
-  assert.match(run('run-many', '--target=build', '--projects=demo'), /Cache hit/)
+  const compactHit = run('run-many', '--target=build', '--projects=demo')
+
+  assert.match(compactHit, /✔ isox run demo:build \[local cache\]/)
+  assert.doesNotMatch(compactHit, /Running core:run-command|Successfully completed/)
+  assert.equal((compactHit.match(/✔ isox run demo:build/g) ?? []).length, 1)
   run('affected', '--all', '--target=build', '--skip-cache')
   assert.equal(await readFile(join(root, 'runs'), 'utf8'), 'run\nrun\nrun\n')
   const directory = join(root, '.isox/tasks')
@@ -82,4 +88,10 @@ test('CLI caches child output, forwards bypass to run-many, and reset clears eve
   run('reset')
   await assert.rejects(readdir(join(root, '.isox')), { code: 'ENOENT' })
   assert.doesNotMatch(run('build', 'demo'), /Cache hit/)
+  run('run-many', '--target=build', '--projects=demo', '--prod')
+  assert.match(run('run-many', '--target=build', '--projects=demo', '--prod'), /✔ isox run demo:build:production \[local cache\]/)
+  const singleHit = run('build', 'demo', '--prod')
+
+  assert.match(singleHit, /Cache hit/)
+  assert.doesNotMatch(singleHit, /✔|Successfully completed/)
 })

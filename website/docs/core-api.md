@@ -125,15 +125,21 @@ Running commands also show a spinner, then settle to success, failure, or
 cancellation with elapsed time. Watch executors stop the initial spinner after
 their first result and report each rebuild separately. Isox pauses its animation
 while a child command owns the terminal, preserving that command's output and
-interactive behavior. Parallel CLI workers use plain status lines to avoid
-competing for the same terminal; `ISOX_PROGRESS=0` also disables animation.
+interactive behavior. Multi-project commands use a live footer with running
+tasks, progress counts, and cache totals. Completed task results stay above the
+footer; failed tasks include their diagnostics. The parent manages the display
+so parallel workers do not compete for the terminal. CI and redirected output
+show the initial project list and stream logs with static completion lines;
+`ISOX_PROGRESS=0` also disables animation.
 Noninteractive tools such as ESLint stream their output through Isox: the spinner
 keeps animating while they are quiet and pauses when diagnostics arrive.
 
 For embedding or tests, `createLogger` creates an independent logger with custom
 levels, tags, or reporters. Set `colors: true` or `colors: false` to override
 automatic color detection and environment settings. Custom reporters receive
-the original arguments without added colors. Pass it as the fifth argument to `runExecutor` to
+the original arguments without added colors. `taskOutput: 'compact'` selects
+compact executor completion messages; reporters receive these with `format: 'task'`.
+Pass the logger as the fifth argument to `runExecutor` to
 control that invocation's logging. For example:
 
 ```typescript

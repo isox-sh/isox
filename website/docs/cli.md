@@ -65,6 +65,31 @@ commas. For example, `--pre-targets-json '["prepare,assets:acc"]'` runs
 `prepare,assets` with its `acc` configuration. Do not combine a list flag with its
 JSON counterpart. See [affected projects and CI](/docs/affected-and-ci) for stage ordering.
 
+`run-many` and executing `affected` show a live progress footer in interactive
+terminals. It lists running tasks with elapsed times and counts pending,
+completed, failed, and cached tasks, plus a completion bar. Cyan indicates running
+work, green indicates success, and red highlights failures and their diagnostics.
+Results are indented beneath the stage heading; diagnostics are indented beneath
+the failed task. Colors respect `NO_COLOR`, `FORCE_COLOR`, and terminal support.
+Completed results stay above the footer:
+
+```text
+   ✔ isox run api:build:production (1.25s)
+   ✔ isox run web:build:production [local cache]
+
+   Successfully ran target build for 2 projects (1.30s)
+   1/2 tasks read from cache
+```
+
+Successful tool output is hidden in the live display. Failed and cancelled tasks
+print their captured diagnostics beneath their result; large output is truncated
+with an explicit notice. The final summary includes failures,
+cancellations, and tasks that never started.
+
+CI, redirected output, and `ISOX_PROGRESS=0` stream tool output and print static
+results and summaries without cursor animation. Use `--verbose` for detailed
+lifecycle messages and streamed output instead of the compact display.
+
 ## Named configurations
 
 Commands can define named option overrides in `configurations` and select a
@@ -120,7 +145,8 @@ edits do not invalidate this cache.
 
 `affected`, `plan`, and `run-many` read current definitions and rewrite
 `workspace.json` on every invocation. Workers spawned by `run-many` then load
-that cache; the parent does not infer dependencies merely to run the project list.
+that cache. Selection does not infer dependencies; execution resolves
+them when selected targets cache outputs, to order selected builds safely.
 Affected selection additionally requests dependency analysis. Results are cached
 separately in `.isox/discovery.json`, checked only when analysis is requested.
 Executors request analysis themselves when needed; selecting all projects does
@@ -146,6 +172,8 @@ See [cache behavior and invalidation](/docs/configuration#discovery-cache) for d
 Affected selection follows inferred and explicitly declared dependencies. Parallel execution uses
 separate child CLI processes, and the GitHub actions distribute exact weighted
 project lists. See [affected projects and CI](/docs/affected-and-ci).
-Declaring `dependencies` does not schedule prerequisite builds; prepare required
-outputs before running workers. Local task caching is opt-in; remote caching,
+Cached builds with declared outputs wait for selected dependencies, even with
+`--parallel=1`. Independent projects can run concurrently. Unselected prerequisites
+are not added; prepare their required outputs before running workers.
+Local task caching is opt-in; remote caching,
 dependency task scheduling and isolation remain on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
