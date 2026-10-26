@@ -108,6 +108,13 @@ output stays plain by default. Set `NO_COLOR=1` or `TERM=dumb` to disable colors
 or use `FORCE_COLOR=1` to force them (`FORCE_COLOR=0` disables them).
 `FORCE_COLOR` takes precedence over the other environment settings.
 
+Running commands also show a spinner, then settle to success, failure, or
+cancellation with elapsed time. Watch executors stop the initial spinner after
+their first result and report each rebuild separately. Isox pauses its animation
+while a child command owns the terminal, preserving that command's output and
+interactive behavior. Parallel CLI workers use plain status lines to avoid
+competing for the same terminal; `ISOX_PROGRESS=0` also disables animation.
+
 For embedding or tests, `createLogger` creates an independent logger with custom
 levels, tags, or reporters. Set `colors: true` or `colors: false` to override
 automatic color detection and environment settings. Custom reporters receive

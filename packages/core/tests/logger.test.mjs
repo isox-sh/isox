@@ -1,11 +1,11 @@
 import { createRequire } from 'node:module'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const assert = require('node:assert/strict')
 const { PassThrough } = require('node:stream')
-const { createLogger, logger, LogLevels } = require('../../../dist/core')
+const { createLogger, logger, LogLevels, pauseProgress } = require('../../../dist/core')
 
 test('logger defaults to info and tags messages without buffering repeated events', () => {
   const logs = []
@@ -244,5 +244,142 @@ test('automatic colors follow each stream and environment overrides', () => {
         process.env[key] = original[index]
       }
     })
+  }
+})
+
+test('terminal progress animates, preserves intervening logs, and stops without leaving a timer', () => {
+  vi.useFakeTimers()
+  vi.stubEnv('TERM', 'xterm')
+  vi.stubEnv('CI', '')
+  vi.stubEnv('ISOX_PROGRESS', '')
+  let output = ''
+  const stream = {
+    isTTY: true,
+    write: chunk => {
+      output += chunk
+    }
+  }
+
+  try {
+    const instance = createLogger({
+      stdout: stream,
+      stderr: stream,
+      colors: false
+    }).withTag('discovery')
+    const stop = instance.progress('Rebuilding workspace')
+
+    assert.match(output, /\[Isox:discovery\] ⠋ Rebuilding workspace/)
+    vi.advanceTimersByTime(80)
+    assert.match(output, /⠙ Rebuilding workspace/)
+    instance.warn('A diagnostic')
+    assert.ok(output.includes('WARN A diagnostic\n[Isox:discovery]'))
+    stop()
+    const completed = output
+
+    stop()
+    vi.advanceTimersByTime(160)
+    assert.equal(output, completed)
+    assert.equal(vi.getTimerCount(), 0)
+    assert.ok(output.endsWith('\r\u001b[2K'))
+  } finally {
+    vi.useRealTimers()
+    vi.unstubAllEnvs()
+  }
+})
+
+test('progress uses plain lines for redirected output, CI, and dumb terminals', () => {
+  try {
+    for (const [isTTY, ci, term] of [[false, '', 'xterm'], [true, 'true', 'xterm'], [true, '', 'dumb']]) {
+      vi.stubEnv('CI', ci)
+      vi.stubEnv('TERM', term)
+      let output = ''
+      const instance = createLogger({
+        colors: false,
+        stdout: {
+          isTTY,
+          write: chunk => {
+            output += chunk
+          }
+        }
+      })
+      const stop = instance.progress('Rebuilding workspace')
+
+      stop()
+      assert.equal(output, '[Isox] INFO Rebuilding workspace\n')
+    }
+  } finally {
+    vi.unstubAllEnvs()
+  }
+})
+
+test('progress respects custom reporters, level filtering, and idempotent cleanup', () => {
+  const entries = []
+  let stops = 0
+  const reporter = {
+    log: entry => entries.push(entry),
+    progress: entry => {
+      entries.push(entry)
+
+      return () => {
+        stops++
+      }
+    }
+  }
+  const instance = createLogger({ reporters: [reporter] })
+  const stop = instance.progress('Rebuilding workspace')
+
+  stop()
+  stop()
+  assert.equal(stops, 1)
+  assert.equal(entries.length, 1)
+  instance.level = LogLevels.warn
+  instance.progress('Hidden progress')()
+  assert.equal(entries.length, 1)
+  createLogger({ reporters: [{ log: entry => entries.push(entry) }] }).progress('Plain progress')()
+  assert.equal(entries.at(-1).args[0], 'Plain progress')
+})
+
+test('nested terminal owners pause animation until both finish without erasing their output', () => {
+  vi.useFakeTimers()
+  vi.stubEnv('TERM', 'xterm')
+  vi.stubEnv('CI', '')
+  vi.stubEnv('ISOX_PROGRESS', '')
+  let output = ''
+  const instance = createLogger({
+    colors: false,
+    stdout: {
+      isTTY: true,
+      write: chunk => {
+        output += chunk
+      }
+    }
+  })
+  const stop = instance.progress('Running a command')
+  const resumeOuter = pauseProgress()
+  const resumeInner = pauseProgress()
+
+  try {
+    assert.ok(output.endsWith('INFO Running a command\n'))
+    const paused = output
+
+    vi.advanceTimersByTime(160)
+    instance.info('Child output')
+    assert.equal(output, `${paused}[Isox] INFO Child output\n`)
+    resumeOuter()
+    const stillPaused = output
+
+    vi.advanceTimersByTime(160)
+    assert.equal(output, stillPaused)
+    resumeInner()
+    assert.match(output, /⠙ Running a command$/)
+    resumeInner()
+    stop()
+    assert.equal(vi.getTimerCount(), 0)
+  } finally {
+    resumeOuter()
+    resumeInner()
+    stop()
+    vi.useRealTimers()
+    vi.unstubAllEnvs()
   }
 })

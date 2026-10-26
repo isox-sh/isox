@@ -1,6 +1,6 @@
 import { dirname, resolve } from 'node:path'
 
-import { logger, LogLevels } from '../logger'
+import { logger, LogLevels, pauseProgress } from '../logger'
 import { resolvePackageJson } from '../utils/resolve-package-json'
 import { readWorkspaceSettings } from '../workspace/settings'
 import { resolveCommandOptions } from './configuration'
@@ -80,8 +80,20 @@ export async function runExecutor(
     }
   }
 
-  taskLogger.info(`Running ${executorName} for ${projectName}...`)
+  const message = `Running ${executorName} for ${projectName}...`
+  const stop = taskLogger.progress?.(message)
+
+  if (!stop) {
+    taskLogger.info(message)
+  }
+
   const startedAt = performance.now()
+  const resume = isNxExecutor ? pauseProgress() : undefined
+  const elapsed = () => ((performance.now() - startedAt) / 1000).toFixed(2)
+  const cancelled = () => {
+    stop?.()
+    taskLogger.warn(`Cancelled ${executorName} for ${projectName} after ${elapsed()}s.`)
+  }
 
   try {
     const result = await executorFn({
@@ -107,6 +119,7 @@ export async function runExecutor(
           }
 
           continuous = true
+          stop?.()
 
           if (output.success) {
             taskLogger.success(`Build completed for ${projectName}. Watching for changes...`)
@@ -122,11 +135,19 @@ export async function runExecutor(
         throw new Error(`Task failed for ${projectName}: executor returned no results.`)
       }
 
-      if (continuous || signal?.aborted) {
+      if (signal?.aborted) {
+        cancelled()
+
+        return
+      }
+
+      if (continuous) {
         return
       }
     } else {
       if (signal?.aborted) {
+        cancelled()
+
         return
       }
 
@@ -135,15 +156,21 @@ export async function runExecutor(
   } catch (error) {
     // Abort-aware APIs reject instead of returning a result; unrelated failures still propagate.
     if (signal?.aborted && (error === signal.reason || (error instanceof Error && error.name === 'AbortError'))) {
+      cancelled()
+
       return
     }
 
+    stop?.()
+    taskLogger.error(`Failed ${executorName} for ${projectName} after ${elapsed()}s.`)
+
     throw error
+  } finally {
+    stop?.()
+    resume?.()
   }
 
-  const duration = ((performance.now() - startedAt) / 1000).toFixed(2)
-
-  taskLogger.success(`Successfully completed ${executorName} for ${projectName} in ${duration}s.`)
+  taskLogger.success(`Successfully completed ${executorName} for ${projectName} in ${elapsed()}s.`)
 }
 
 function isAsyncIterable(output: ExecutorOutput): output is AsyncIterable<ExecutorResult> {
