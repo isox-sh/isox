@@ -1,6 +1,7 @@
+import { compactTaskOutput, reportTaskResult } from '../executor/task-logging'
 import { pauseProgress } from '../logger'
 import { taskHash, validateOutputs } from './hash'
-import { captureOutput, replayOutput } from './output'
+import { captureOutput, replayOutput, withoutOutputCapture } from './output'
 import { claimOutputs, clearOutputs, prepareOutputs, restoreTask, storeTask } from './store'
 
 import type { ExecutorContext } from '../executor/types'
@@ -40,7 +41,12 @@ export async function runCachedTask(
         const resume = pauseProgress()
 
         try {
-          context.logger.success(`Cache hit for ${context.projectName}:${context.commandName} (${hash.slice(0, 12)}).`)
+          if (compactTaskOutput(context)) {
+            reportTaskResult(context, 'success', `cache hit ${hash.slice(0, 12)}`)
+          } else {
+            withoutOutputCapture(() => context.logger.success(`Cache hit for ${context.projectName}:${context.commandName} (${hash.slice(0, 12)}).`))
+          }
+
           replayOutput(logs)
         } finally {
           resume()

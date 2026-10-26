@@ -27,6 +27,11 @@ export function capturingOutput(): boolean {
   return storage.getStore()?.active === true
 }
 
+/** Lifecycle status belongs to this invocation, not a replay of a previous run. */
+export function withoutOutputCapture<T>(run: () => T): T {
+  return storage.exit(run)
+}
+
 /** Async-local routing isolates simultaneous tasks without capturing unrelated logs. */
 export async function captureOutput(run: () => Promise<void>): Promise<CapturedOutput> {
   if (captures++ === 0) {

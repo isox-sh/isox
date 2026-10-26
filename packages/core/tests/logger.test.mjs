@@ -21,6 +21,35 @@ test('logger defaults to info and tags messages without buffering repeated event
   assert.equal(logger.level, LogLevels.info)
 })
 
+test('task results use compact glyphs, honor colors and keep failures on stderr', () => {
+  for (const colors of [false, true]) {
+    let stdout = ''
+    let stderr = ''
+    const instance = createLogger({
+      colors,
+      stdout: {
+        write: text => {
+          stdout += text
+        }
+      },
+      stderr: {
+        write: text => {
+          stderr += text
+        }
+      }
+    })
+
+    instance.task('isox run app:build (1.20s)')
+    instance.task('isox run lib:build (failed)', 'error')
+    instance.task('isox run other:build (cancelled)', 'warn')
+    assert.equal(stdout, `${colors ? '\u001b[32m✔\u001b[39m' : '✔'} isox run app:build (1.20s)\n`)
+    assert.equal(stderr, `${colors ? '\u001b[31m✖\u001b[39m' : '✖'} isox run lib:build (failed)\n${colors ? '\u001b[33m–\u001b[39m' : '–'} isox run other:build (cancelled)\n`)
+    instance.level = LogLevels.silent
+    instance.task('hidden')
+    assert.doesNotMatch(stdout, /hidden/)
+  }
+})
+
 test('logger filters messages at each configured level', () => {
   for (const [level, expected] of [
     [LogLevels.debug, ['debug', 'info', 'success', 'warn', 'error']],

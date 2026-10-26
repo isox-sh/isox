@@ -20,6 +20,7 @@ export interface LogObject {
   level: number
   tag: string
   args: unknown[]
+  format?: 'task'
 }
 
 export interface LogReporter {
@@ -30,6 +31,8 @@ export interface LogReporter {
 export interface LoggerOptions {
   level?: number
   tag?: string
+  /** Render executor lifecycle results as compact task lines. */
+  taskOutput?: 'compact'
   /** Enable colors explicitly, or detect terminal support by default. */
   colors?: boolean
   reporters?: LogReporter[]
@@ -60,11 +63,14 @@ function colorize(text: string, color: number): string {
 export interface Logger {
   level: number
   readonly tag: string
+  readonly taskOutput?: 'compact'
   debug(...args: unknown[]): void
   info(...args: unknown[]): void
   success(...args: unknown[]): void
   warn(...args: unknown[]): void
   error(...args: unknown[]): void
+  /** Compact task status, rendered with a success, failure, or cancellation glyph. */
+  task?(message: string, status?: 'success' | 'error' | 'warn'): void
   /** Start a terminal progress indicator and return an idempotent cleanup function. */
   progress?(message: string): () => void
   withTag(tag: string): Logger
@@ -115,9 +121,11 @@ function consoleReporter(options: LoggerOptions): LogReporter {
         ? options.stderr ?? process.stderr
         : options.stdout ?? process.stdout
       const colors = options.colors ?? supportsColors(stream)
-      const tag = entry.tag ? `[${entry.tag}]` : ''
+      const tag = entry.tag && entry.format !== 'task' ? `[${entry.tag}]` : ''
       const prefix = tag ? `${colors ? colorize(tag, 90) : tag} ` : ''
-      const label = entry.type.toUpperCase()
+      const label = entry.format === 'task'
+        ? entry.type === 'success' ? '✔' : entry.type === 'error' ? '✖' : '–'
+        : entry.type.toUpperCase()
       const level = colors ? colorize(label, levelColors[entry.type]) : label
       const message = formatWithOptions({ colors: false }, ...entry.args)
 
@@ -206,7 +214,7 @@ export function createLogger(options: LoggerOptions = {}): Logger {
   const tag = options.tag ?? 'Isox'
   const reporters = options.reporters ?? [consoleReporter(options)]
 
-  const emit = (type: LogType, args: unknown[]): void => {
+  const emit = (type: LogType, args: unknown[], format?: 'task'): void => {
     const level = LogLevels[type]
 
     if (level > instance.level) {
@@ -218,7 +226,8 @@ export function createLogger(options: LoggerOptions = {}): Logger {
         type,
         level,
         tag,
-        args
+        args,
+        ...(format ? { format } : {})
       })
     }
   }
@@ -226,11 +235,13 @@ export function createLogger(options: LoggerOptions = {}): Logger {
   const instance: Logger = {
     level: options.level ?? LogLevels.info,
     tag,
+    taskOutput: options.taskOutput,
     debug: (...args) => emit('debug', args),
     info: (...args) => emit('info', args),
     success: (...args) => emit('success', args),
     warn: (...args) => emit('warn', args),
     error: (...args) => emit('error', args),
+    task: (message, status = 'success') => emit(status, [message], 'task'),
     progress(message) {
       if (instance.level < LogLevels.info) {
         return () => {}

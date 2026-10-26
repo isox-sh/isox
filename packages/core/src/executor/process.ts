@@ -13,6 +13,10 @@ export interface RunProcessOptions {
   env?: NodeJS.ProcessEnv
   /** Pipe noninteractive tool output so progress can animate until the tool writes. */
   output?: 'inherit' | 'pipe'
+  /** Receive structured status from a Node.js worker over a separate IPC channel. */
+  onMessage?: (message: unknown) => void
+  /** Handle piped output without mixing it with terminal progress. */
+  onOutput?: (chunk: Buffer, stream: 'stdout' | 'stderr') => void
   /** Time before forced termination on POSIX. Wrappers must allow their children to shut down first. */
   gracePeriodMs?: number
 }
@@ -23,8 +27,8 @@ export async function runProcess(file: string, args: string[], options: RunProce
     return { success: false }
   }
 
-  const pipeOutput = options.output === 'pipe' || capturingOutput()
-  let resume = options.output === 'pipe' ? undefined : pauseProgress()
+  const pipeOutput = options.output === 'pipe' || !!options.onOutput || capturingOutput()
+  let resume = options.output === 'pipe' || options.onOutput ? undefined : pauseProgress()
 
   try {
     return await new Promise<ExecutorResult>((resolveResult, reject) => {
@@ -32,17 +36,27 @@ export async function runProcess(file: string, args: string[], options: RunProce
         cwd: options.cwd,
         shell: options.shell,
         env: options.env,
-        stdio: pipeOutput ? ['inherit', 'pipe', 'pipe'] : 'inherit',
+        stdio: options.onMessage
+          ? ['inherit', pipeOutput ? 'pipe' : 'inherit', pipeOutput ? 'pipe' : 'inherit', 'ipc']
+          : pipeOutput ? ['inherit', 'pipe', 'pipe'] : 'inherit',
         detached: process.platform !== 'win32',
       })
-      child.stdout?.on('data', chunk => {
-        resume ??= pauseProgress()
-        process.stdout.write(chunk)
-      })
-      child.stderr?.on('data', chunk => {
-        resume ??= pauseProgress()
-        process.stderr.write(chunk)
-      })
+      for (const stream of ['stdout', 'stderr'] as const) {
+        child[stream]?.on('data', (chunk: Buffer) => {
+          if (options.onOutput) {
+            options.onOutput(chunk, stream)
+
+            return
+          }
+
+          resume ??= pauseProgress()
+          process[stream].write(chunk)
+        })
+      }
+      if (options.onMessage) {
+        child.on('message', options.onMessage)
+      }
+
       const cleanup = handleProcessCancellation(child, options.signal, reject, options.gracePeriodMs)
 
       child.once('error', error => {
