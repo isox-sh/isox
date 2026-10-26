@@ -1,0 +1,29 @@
+tests/ci-build.test.mjs
+  s_5d3ad8740834ec::t_4a8732b73f845f 14-17,22,66-70
+  s_5d3ad8740834ec::t_58d88fa363d2b2 1-13,18-21,23-65,71-76
+.github/workflows/pull-requests.yml
+  s_5d3ad8740834ec::t_33a57d80d3540f 39-41
+website/docs/affected-and-ci.md
+  s_5d3ad8740834ec::t_9bb75f28c22c84 304-309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b02dddaf33ca62b1e6c396bc5592f97e4d9c64ed",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
