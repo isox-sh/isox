@@ -233,6 +233,9 @@ importers:
       ignore:
         specifier: ^7.0.14
         version: 7.0.14
+      minimatch:
+        specifier: ^10.2.6
+        version: 10.2.6
       typescript:
         specifier: npm:@typescript/typescript6@^6.0.2
         version: '@typescript/typescript6@6.0.2'

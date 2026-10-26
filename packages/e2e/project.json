@@ -7,7 +7,10 @@
       "options": {
         "tsConfig": "packages/e2e/tsconfig.build.json",
         "generatePackageJson": true
-      }
+      },
+      "outputs": [
+        "{workspaceRoot}/dist/e2e"
+      ]
     },
     "test": {
       "executor": "vitest:test"

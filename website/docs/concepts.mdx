@@ -99,15 +99,17 @@ dynamically selected plugins. Dependencies contain Isox project names.
 
 ## Discovery caching
 
-Isox stores project definitions and explicitly declared dependencies in
-`.isox/workspace.json`. Single-project commands load it directly, without source
-analysis. Run `isox reset` after project-definition or discovery-rule changes.
+Isox stores project definitions with merged target defaults and explicitly
+declared dependencies in `.isox/workspace.json`. Single-project commands reuse
+those resolved targets without recalculating defaults or analyzing sources. Run
+`isox reset` after project-definition, target-default, or discovery-rule changes.
 Ordinary source and import edits do not change this cache.
 
 Affected selection infers dependency relationships on demand. Executors can also
 request them: the TypeScript builder analyzes its project's dependency closure
 when remapping workspace aliases. These requests validate and reuse per-project
-results in `.isox/discovery.json`. Ordinary commands do not read that file, and
+results in `.isox/discovery.json`. Cacheable targets also request their dependency closure for hashing. Commands
+that need neither dependency analysis nor result caching leave that file alone, and
 inferred edges never enter the definitions cache.
 
 The dependency cache saves import parsing and resolution work. Its `sources` SHA
@@ -123,11 +125,12 @@ inference. Creating a project with `isox init <package> <path>` also refreshes i
 See [discovery boundaries](/docs/configuration#discovery-boundaries) for ignore
 rules, nested workspaces, and symlinks.
 
-Both caches store metadata. Tasks still execute on each invocation; reusing a
-dependency list does not skip compilation. See [cache behavior and examples](/docs/configuration#discovery-cache)
+Both caches store metadata. Reusing a dependency list does not skip compilation.
+Native targets can separately opt into [local task caching](/docs/task-caching),
+which stores outputs and terminal logs under `.isox/tasks`. See [cache behavior and examples](/docs/configuration#discovery-cache)
 for the source fingerprint, resolution probes and invalidation rules.
 The TypeScript executor separately tracks [output ownership](/docs/typescript#typescript-state-files)
-under `.isox/tsc/`. `isox reset` removes both caches and this build state, so stop active builds
+under `.isox/tsc/`. `isox reset` removes all caches and this build state, so stop active builds
 before resetting.
 
 ## Selecting and distributing work

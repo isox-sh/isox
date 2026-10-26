@@ -7,10 +7,14 @@ import { parseArgs } from 'node:util'
 const registry = 'https://registry.npmjs.org/'
 const workspaceRoot = resolve(import.meta.dirname, '..')
 
-function runCommand(command, args, cwd) {
+function runCommand(command, args, cwd, envOverrides = {}) {
   const result = spawnSync(command, args, {
     cwd,
-    stdio: 'inherit'
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      ...envOverrides
+    }
   })
 
   if (result.error) {
@@ -135,8 +139,8 @@ export async function release(options, run = runCommand, env = process.env) {
 
   assertReleaseAllowed(tag, dryRun, env)
 
-  // Versioning happens after the workflow's initial bootstrap. Rebuild with the new versions.
-  run('pnpm', ['bootstrap'], root)
+  // Rebuild release artifacts with the new versions, without trusting cached task results.
+  run('pnpm', ['bootstrap'], root, { ISOX_SKIP_CACHE: '1' })
 
   const packages = await releasePackages(root, version)
 

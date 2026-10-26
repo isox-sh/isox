@@ -20,6 +20,7 @@ too. `isox.json` and `project.json` use JSON; TypeScript configs may use JSONC.
 | `affected.defaultBase` | Default Git revision for affected selection; defaults to `origin/main` |
 | `affected.globalFiles` | Additional workspace-relative globs whose changes affect all projects |
 | `affected.ignoreFiles` | Globs excluded before global-file and project matching |
+| `targetDefaults` | Shared target settings by target name or executor reference |
 | `nx.executors` | Package names or scopes routed through the optional Nx adapter |
 
 When `nx.json` is present, init adds `@nx` to `nx.executors` and adds
@@ -47,6 +48,71 @@ The head still defaults to `ISOX_HEAD` or `HEAD`. `--all` bypasses Git selection
 The core `getGitChanges` API uses the same workspace setting and precedence for
 its `base` option. GitHub Actions that supply an event-specific base keep using
 that explicit revision.
+
+## Target defaults
+
+Use `targetDefaults` in `isox.json` to share target settings across projects:
+
+```json
+{
+  "$schema": "./node_modules/@isox-sh/core/schemas/isox.schema.json",
+  "targetDefaults": {
+    "build": {
+      "cache": true
+    },
+    "js:tsc": {
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "options": {
+        "generatePackageJson": true
+      },
+      "configurations": {
+        "acc": { "clean": false }
+      }
+    },
+    "vitest:test": {
+      "cache": true
+    }
+  }
+}
+```
+
+A project still declares each target and its `executor`. Defaults do not create
+missing targets. Settings merge from least to most specific:
+
+1. Target-name defaults, such as `build`.
+2. Executor defaults, such as `js:tsc`.
+3. The target in `project.json`.
+4. The selected named configuration, for executor options.
+5. CLI executor-option overrides.
+
+`options` merge by property. `configurations` merge by configuration name and then
+by option property, so projects can override one setting without losing the rest.
+Nested option objects and arrays are replaced, not recursively merged or appended.
+Other target fields are replaced, including `inputs` and `outputs`. Explicit
+`false` and empty arrays are preserved. `defaultConfiguration` can be inherited.
+
+First-party shorthand and scoped executor keys match each other: `js:tsc` also
+applies to `@isox-sh/js:tsc`. If both keys exist, the spelling used by the target
+wins conflicting values. Use one spelling per executor to keep settings clear.
+Packages selected through `nx.executors` use their exact executor keys.
+
+For native targets with `cache: true`, `outputs` is optional. When omitted after
+merging, only the successful result and terminal logs are cached. Use `outputs: []`
+to override inherited output directories with logs-only caching. Output paths must match the compiler/tool configuration. The example
+matches the JS initializer's `dist/<project-root>` layout. For a `dist/<project-name>`
+layout, use `"outputs": ["{workspaceRoot}/dist/{projectName}"]`. Override `outputs`
+in any project with a different layout. See [task caching](/docs/task-caching)
+for disposable-directory ownership and input declarations.
+
+Isox merges `targetDefaults` during workspace discovery and stores the effective
+targets in `.isox/workspace.json`. Cached lookups reuse those targets directly.
+After changing defaults, run `isox reset` before a single-project command, or use
+a command that refreshes discovery (`affected`, `plan`, or `run-many`). Project
+definitions and defaults follow the same refresh rules.
+
+Each defaults entry must be an object. Nx's filtered arrays, `namedInputs`,
+`^production` expressions and prerequisite `dependsOn` scheduling are not part of
+this feature. Custom metadata is allowed, but does not enable those behaviors.
 
 ## Project definitions
 
@@ -187,20 +253,21 @@ selection by default.
 
 ## Discovery cache
 
-Isox keeps two caches with different purposes. Neither caches task results or
-skips the compiler, linter, test runner, or other executor work.
+Isox keeps two metadata caches with different purposes. Neither skips executor
+work. Opt-in [task results](/docs/task-caching) are stored separately under `.isox/tasks`.
 
 | File | Contents | When it is checked |
 | --- | --- | --- |
-| `.isox/workspace.json` | Validated project definitions and explicitly declared `dependencies` | Single-project commands load it directly; selection commands refresh it |
-| `.isox/discovery.json` | Per-project dependency-analysis results, fingerprints and resolution probes | Only when affected selection or an executor requests dependencies |
+| `.isox/workspace.json` | Validated project definitions with merged target defaults and explicitly declared `dependencies` | Single-project commands load it directly; selection commands refresh it |
+| `.isox/discovery.json` | Per-project dependency-analysis results, fingerprints and resolution probes | When affected selection, a cacheable task, or an executor requests dependencies |
 
 ### Project definitions
 
-A cache hit in `parseWorkspace` reads only `workspace.json`: no source scanning,
-import analysis, content hashing or source metadata checks. Run `isox reset` after
-adding, editing, moving or removing `project.json` files, or changing which
-projects the ignore rules include, before using a single-project command.
+A cache hit in `parseWorkspace` reads only `workspace.json`, including already
+merged target defaults: no settings reads, source scanning, import analysis,
+content hashing or source metadata checks. Run `isox reset` after adding, editing,
+moving or removing `project.json` files, changing `targetDefaults`, or changing
+which projects the ignore rules include, before using a single-project command.
 Source-body and import edits do not invalidate the definitions cache.
 
 `affected`, `plan`, and `run-many` read current project definitions and rewrite
@@ -222,6 +289,7 @@ request still checks or calculates all remaining projects.
 | `isox affected` or `isox plan` with Git selection | Yes, for the whole workspace |
 | `isox affected --all`, `isox plan --all`, or `isox run-many` selection | No; executors may request it when tasks run |
 | Single-project command using `js:tsc` with aliases to remap | Yes, for that project's dependency closure |
+| Native target with `cache: true` | Yes, for hashing its dependency closure |
 | Other single-project commands | Only if their executor requests it |
 
 Each request reads current workspace package/configuration metadata and discovers
@@ -261,8 +329,8 @@ For example, suppose `web` uses `js:tsc` with workspace aliases. The first
 `isox build web` analyzes the required projects and caches their dependencies.
 Repeating it without changes validates and reuses those entries. Adding a comment
 to `apps/web/src/index.ts` causes `web`'s sources to be reanalyzed on the next build;
-unchanged dependency projects can reuse their entries. The compiler runs every
-time, and `workspace.json` is untouched by dependency analysis.
+unchanged dependency projects can reuse their entries. Without task caching enabled, the compiler runs every
+time. `workspace.json` is untouched by dependency analysis.
 
 ### What the reads entries mean
 
@@ -290,7 +358,7 @@ files appearing or disappearing while import text stays unchanged.
 request recreates `workspace.json`; `discovery.json` is recreated only when
 dependency analysis is requested. Neither file belongs in version control.
 
-The definitions cache uses format 12; the dependency cache has its own version
+The definitions cache uses format 14; the dependency cache has its own version
 and configuration fingerprint. Old or corrupt caches are rebuilt when requested,
 and writes publish complete JSON atomically. Do not edit either cache instead of
 changing project definitions or source inputs.
@@ -300,7 +368,7 @@ Project initialization refreshes discovery automatically. `isox add` invalidates
 validated on their next use. See
 [getting started](/docs/getting-started#define-a-project) to create a project.
 
-Reset also removes TypeScript output ownership records and locks. Stop active
+Reset also removes task results, TypeScript output ownership records and locks. Stop active
 builds first; existing output files remain, but later builds can no longer clean
 stale files tracked only by the removed records. See
 [TypeScript state files](/docs/typescript#typescript-state-files) for their purpose.

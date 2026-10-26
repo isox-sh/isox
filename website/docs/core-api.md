@@ -51,14 +51,18 @@ main().catch(error => {
 Named overrides are merged shallowly over the command's base options. Executors
 receive the merged options and a native `ExecutorContext` containing project,
 command, workspace, root paths, configuration name, verbosity, and logger.
-Context project/command records retain the original configuration.
+Context project/command records include merged workspace target defaults. Named
+configuration and CLI overrides are supplied as executor options without rewriting
+those records.
 
 An optional eighth argument supplies executor option overrides. These replace
 base and named-configuration values at the top level without mutating the workspace.
 The CLI uses this argument for plugin flags such as `--fix`.
 
 Use `resetWorkspace()` to remove the detected workspace's `.isox` directory.
-Discovery reuses cached project definitions until reset or an explicit refresh.
+Discovery merges `isox.json` target defaults once and stores the effective project
+definitions in `workspace.json`. Cache hits reuse them until reset or an explicit
+refresh with `parseWorkspace(root, { cache: false })`.
 It does not analyze imports or cache task results. See
 [discovery caching](/docs/configuration#discovery-cache).
 
@@ -71,9 +75,11 @@ When that signal is aborted, an executor may stop by throwing its abort reason
 or an `AbortError`. Isox treats these as cancellation, lets executor cleanup run,
 and preserves the CLI's SIGINT/SIGTERM exit status. Other errors still fail the task.
 
-`runProcess(file, args, { cwd, signal })` runs a child with inherited standard
-streams and cancels its process tree when aborted. Plugins that need captured
-output can spawn their own child and call
+`runProcess(file, args, { cwd, signal })` runs a child and cancels its process tree
+when aborted. Standard streams are inherited by default; during task-log capture,
+stdout and stderr are piped through Isox for live output and later replay.
+Set `output: 'pipe'` to stream noninteractive output through Isox even without caching.
+Plugins that need to process child output themselves can spawn a child and call
 `handleProcessCancellation(child, signal, onError)`. Spawn it with
 `detached: process.platform !== 'win32'` and call the returned cleanup function
 on both `error` and `close` events. Cancellation sends SIGTERM, then SIGKILL after
@@ -119,13 +125,21 @@ Running commands also show a spinner, then settle to success, failure, or
 cancellation with elapsed time. Watch executors stop the initial spinner after
 their first result and report each rebuild separately. Isox pauses its animation
 while a child command owns the terminal, preserving that command's output and
-interactive behavior. Parallel CLI workers use plain status lines to avoid
-competing for the same terminal; `ISOX_PROGRESS=0` also disables animation.
+interactive behavior. Multi-project commands use a live footer with running
+tasks, progress counts, and cache totals. Completed task results stay above the
+footer; failed tasks include their diagnostics. The parent manages the display
+so parallel workers do not compete for the terminal. CI and redirected output
+show the initial project list and stream logs with static completion lines;
+`ISOX_PROGRESS=0` also disables animation.
+Noninteractive tools such as ESLint stream their output through Isox: the spinner
+keeps animating while they are quiet and pauses when diagnostics arrive.
 
 For embedding or tests, `createLogger` creates an independent logger with custom
 levels, tags, or reporters. Set `colors: true` or `colors: false` to override
 automatic color detection and environment settings. Custom reporters receive
-the original arguments without added colors. Pass it as the fifth argument to `runExecutor` to
+the original arguments without added colors. `taskOutput: 'compact'` selects
+compact executor completion messages; reporters receive these with `format: 'task'`.
+Pass the logger as the fifth argument to `runExecutor` to
 control that invocation's logging. For example:
 
 ```typescript
@@ -270,7 +284,10 @@ literal import references; omit `includeTypes` to collect runtime references onl
 
 `runExecutor` executes one project command. The CLI also offers affected selection,
 weighted planning, and multiple commands in isolated child CLI processes.
-Prerequisite task scheduling, task caching and sandboxing remain planned.
+Native targets can opt into [local task caching](/docs/task-caching).
+The ninth argument to `runExecutor` accepts `TaskCacheOptions`, for example
+`{ skipCache: true }`, independently of the eighth argument's executor overrides.
+Prerequisite task scheduling, remote caching and sandboxing remain planned.
 Separate processes do not isolate filesystem access or make execution hermetic.
 
 The optional Nx adapter lives in the separately installed `@isox-sh/nx` package
@@ -278,3 +295,17 @@ and supports Nx 23 only, for initial migration. Adopt native
 Isox commands before completing migration. See the
 [project documentation](/docs/introduction) and
 [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
+
+## Target defaults for generators
+
+`TargetDefaults` describes shared options, configurations and cache declarations.
+`resolveTargetDefaults(workspace, settings)` returns a graph with merged targets
+without modifying either input. `parseWorkspace` applies it during discovery and
+caches the resulting targets. `runExecutor` executes the supplied graph without
+reapplying defaults. When constructing a graph manually, call
+`resolveTargetDefaults` first if workspace defaults should apply.
+
+Generators can call `addTargetDefaults(executor, defaults, context)` to add missing
+executor-level fields to `isox.json`. It recognizes first-party scoped/shorthand
+aliases, preserves explicit values and unrelated workspace metadata, and leaves
+complete existing entries untouched.

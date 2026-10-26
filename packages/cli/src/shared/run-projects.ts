@@ -1,11 +1,13 @@
-import { getCommandStages, logger, positiveInteger, runProcess, validateProjectCommands } from '@isox-sh/core'
+import { getCommandStages, logger, LogLevels, positiveInteger, runProcess, validateProjectCommands } from '@isox-sh/core'
 
 import { withCancellation } from './cancellation'
+import { createProjectSchedule } from './project-schedule'
+import { createTaskDisplay } from './task-display'
 
-import type { TargetPlanOptions, WorkspaceGraph } from '@isox-sh/core'
+import type { TargetPlanOptions, TaskCacheOptions, WorkspaceGraph } from '@isox-sh/core'
 
 /** Each project gets its own CLI process: plugins may change cwd, environment, or module globals. */
-export async function runProjects(root: string, workspace: WorkspaceGraph, projects: string[], options: TargetPlanOptions, optionOverrides: Record<string, unknown> = {}): Promise<void> {
+export async function runProjects(root: string, workspace: WorkspaceGraph, projects: string[], options: TargetPlanOptions, optionOverrides: Record<string, unknown> = {}, cacheOptions: TaskCacheOptions = {}): Promise<void> {
   const parallel = positiveInteger(options.parallel ?? 1, 'parallel')
 
   validateProjectCommands(workspace, projects, options)
@@ -23,11 +25,36 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
       }
 
       const queue = projects.filter(name => Object.hasOwn(workspace.projects[name].targets ?? {}, stage.target))
-      let next = 0
+
+      if (!queue.length) {
+        continue
+      }
+
+      const verbose = logger.level >= LogLevels.debug
+      const schedule = await createProjectSchedule(root, workspace, queue, stage.target, controller.signal)
+      const display = verbose ? undefined : createTaskDisplay({
+        target: stage.target,
+        total: queue.length
+      })
+
+      if (!display?.interactive) {
+        logger.info(`Running target ${stage.target} for ${queue.length} project${queue.length === 1 ? '' : 's'}:\n\n${queue.map(name => `   - ${name}`).join('\n')}\n`)
+      }
+
       let failure: Error | undefined
       const worker = async () => {
-        while (next < queue.length && !controller.signal.aborted) {
-          const name = queue[next++]
+        while (!controller.signal.aborted) {
+          const name = await schedule.next()
+
+          if (name === undefined) {
+            return
+          }
+
+          const configuration = stage.config ?? workspace.projects[name].targets?.[stage.target].defaultConfiguration
+          const reference = [name, stage.target, configuration].filter(value => value !== undefined).join(':')
+          let success: boolean
+
+          display?.start(name, reference)
 
           try {
             const args = [process.argv[1], 'run']
@@ -41,8 +68,12 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
               args.push(`--config=${stage.config}`)
             }
 
-            if (process.argv.includes('--verbose')) {
+            if (verbose) {
               args.push('--verbose')
+            }
+
+            if (cacheOptions.skipCache) {
+              args.push('--skip-cache')
             }
 
             args.push('--', `${name}:${stage.target}`)
@@ -50,25 +81,40 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
             const result = await runProcess(process.execPath, args, {
               cwd: root,
               signal: controller.signal,
-              // Concurrent workers share one terminal and cannot own independent spinner lines.
-              env: parallel > 1 ? {
+              // The parent presents task results received over IPC.
+              env: {
                 ...process.env,
-                ISOX_PROGRESS: '0'
-              } : undefined,
+                ISOX_PROGRESS: '0',
+                ISOX_TASK_OUTPUT: display ? 'live' : ''
+              },
+              onMessage: display ? message => display.message(name, message) : undefined,
+              onOutput: display ? (chunk, stream) => display.output(name, chunk, stream) : undefined,
               gracePeriodMs: 5_000
             })
+            success = result.success
 
             if (!result.success && !controller.signal.aborted) {
               throw new Error(`Task failed for ${name}:${stage.target}.`)
             }
           } catch (error) {
+            display?.finish(name, false, controller.signal.aborted)
             failure ??= error instanceof Error ? error : new Error(String(error))
             controller.abort()
+
+            return
+          } finally {
+            schedule.done(name)
           }
+
+          display?.finish(name, success, controller.signal.aborted)
         }
       }
 
-      await Promise.all(Array.from({ length: Math.min(parallel, queue.length) }, worker))
+      try {
+        await Promise.all(Array.from({ length: Math.min(parallel, queue.length) }, worker))
+      } finally {
+        display?.stop()
+      }
 
       if (failure) {
         throw failure

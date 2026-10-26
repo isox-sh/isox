@@ -263,6 +263,14 @@ test('run-many isolates projects, bounds concurrency and puts barriers around co
 
   assert.equal(result.status, 0, result.stderr)
   const log = await events(root)
+  assert.match(result.stdout, /Running target build for 3 projects:\n\n {3}- lib\n {3}- app\n {3}- other\n/)
+  assert.doesNotMatch(result.stdout, /Running @fixture|Successfully completed/)
+  for (const name of ['lib', 'app', 'other']) {
+    assert.match(result.stdout, new RegExp(`✔ isox run ${name}:build:production \\(\\d+\\.\\d{2}s\\)`))
+    assert.match(result.stdout, new RegExp(`✔ isox run ${name}:prepare:production`))
+    assert.match(result.stdout, new RegExp(`✔ isox run ${name}:finish \\(`))
+  }
+
   let running = 0
   let peak = 0
 
@@ -327,7 +335,44 @@ test('worker failures stop pending projects and post stages', async t => {
   const result = run('run-many', '--target=build', '--projects-json', '["lib","app"]', '--parallel=1', '--post-targets=finish')
 
   assert.equal(result.status, 1)
+  assert.match(result.stderr, /✖ isox run lib:build \(failed after \d+\.\d{2}s\)/)
+  assert.doesNotMatch(result.stdout, /✔ isox run/)
   assert.deepEqual((await events(root)).map(event => event.project), ['lib', 'lib'])
+})
+
+test('compact workers retain diagnostics, show default configurations, and do not leak presentation into tools', async t => {
+  const { run, project, write } = await affectedFixture(t)
+
+  await project('lib', {
+    targets: {
+      build: {
+        executor: '@fixture/plugin:record',
+        defaultConfiguration: 'acc',
+        configurations: { acc: {} }
+      }
+    }
+  })
+  await write('node_modules/@fixture/plugin/record.cjs', `module.exports = (_, context) => {
+    console.log('tool stdout')
+    console.error('tool stderr')
+    context.logger.warn('executor warning')
+    if (process.env.ISOX_TASK_OUTPUT) throw new Error('worker presentation leaked')
+    return { success: true }
+  }`)
+  const compact = run('run-many', '--target=build', '--projects=lib')
+
+  assert.equal(compact.status, 0, compact.stderr)
+  assert.match(compact.stdout, /tool stdout/)
+  assert.match(compact.stderr, /tool stderr/)
+  assert.match(compact.stderr, /executor warning/)
+  assert.match(compact.stdout, /✔ isox run lib:build:acc \(/)
+  for (const flag of ['--verbose', '--verbose=true']) {
+    const verbose = run('run-many', '--target=build', '--projects=lib', flag)
+
+    assert.equal(verbose.status, 0, verbose.stderr)
+    assert.match(verbose.stdout, /Running @fixture\/plugin:record/)
+    assert.match(verbose.stdout, /Successfully completed/)
+  }
 })
 
 test('workers pass unusual project names literally, including leading option characters', async t => {

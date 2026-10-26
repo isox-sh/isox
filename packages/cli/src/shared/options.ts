@@ -12,6 +12,7 @@ export interface SelectionOptions {
 }
 
 export interface ConfigurationOptions {
+  skipCache?: boolean
   configuration?: string | number
   prod?: boolean
 }

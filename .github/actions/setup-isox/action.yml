@@ -23,6 +23,9 @@ runs:
       shell: bash
       run: pnpm install --frozen-lockfile
 
+    - name: Restore shared Isox state
+      uses: ./actions/cache
+
     - name: Bootstrap Isox packages
       shell: bash
       run: pnpm bootstrap

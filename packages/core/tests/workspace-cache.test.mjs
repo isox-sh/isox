@@ -79,7 +79,7 @@ test('reuses an unchanged discovery snapshot without rewriting the cache', async
   const discovered = await parseWorkspace(root)
   const cached = JSON.parse(await readFile(cacheFile, 'utf8'))
 
-  assert.equal(cached.version, 12)
+  assert.equal(cached.version, 14)
   assert.deepEqual(Object.keys(cached).sort(), ['projects', 'version'])
   assert.deepEqual(cached.projects.demo, {
     ...project,
@@ -187,7 +187,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       }
     },
     {
-      version: 12,
+      version: 14,
       projects: {
         demo: {
           name: 'demo',
@@ -198,7 +198,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       }
     },
     {
-      version: 12,
+      version: 14,
       projects: {
         demo: {
           name: 'demo',
@@ -212,11 +212,11 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       projects: {}
     },
     {
-      version: 12,
+      version: 14,
       projects: []
     },
     {
-      version: 12,
+      version: 14,
       projects: {
         demo: {
           name: 'different',
@@ -229,7 +229,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
     const workspace = await parseWorkspace(root)
 
     assert.equal(workspace.projects.demo.root, 'apps/demo')
-    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 12)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 14)
   }
 })
 
@@ -297,7 +297,7 @@ for (const [field, version] of [['commands', 4], ['executors', 7]]) {
 
     assert.deepEqual(workspace.projects.demo.targets, targets)
     assert.equal(Object.hasOwn(workspace.projects.demo, field), false)
-    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 12)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 14)
     assert.deepEqual(await parseWorkspace(root), workspace)
   })
 }
@@ -431,7 +431,7 @@ test('workspace rebuilds report progress and completion while cache hits stay qu
   assert.equal(entries.some(entry => entry.type === 'success'), false)
 })
 
-test('cached discovery reads only definitions and ignores source, manifest and TypeScript changes', async t => {
+test('cached discovery reads only resolved definitions without probing settings, sources or manifests', async t => {
   const { root, write, cacheFile } = await fixture(t)
 
   await write('app/project.json', { name: 'app' })

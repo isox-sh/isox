@@ -46,6 +46,6 @@ export function registerRunManyAction(cli: CAC): void {
         projects = selectProjects(workspace, candidates, plan.target, plan.tag)
       }
 
-      await runProjects(root, workspace, projects, plan, getExecutorOverrides(cli))
+      await runProjects(root, workspace, projects, plan, getExecutorOverrides(cli), { skipCache: options.skipCache })
     })
 }

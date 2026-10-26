@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readdir, readFile, writeFile } from 'node:fs/promises'
+import { readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
 import { json, readJson } from '@isox-sh/core'
@@ -30,7 +30,7 @@ for (const pathStyle of ['relative', 'absolute']) {
     const project = await readJson('project.json', projectContext)
 
     assert.equal(project.name, 'test')
-    assert.equal(project.targets.build.executor, '@isox-sh/js:tsc')
+    assert.equal(project.targets.build.executor, 'js:tsc')
     assert.deepEqual((await readJson('tsconfig.base.json', workspaceContext)).compilerOptions.paths, {
       '@org/test': ['./packages/test/src/index.ts'],
     })
@@ -43,6 +43,11 @@ for (const pathStyle of ['relative', 'absolute']) {
     await runIsox(['build', 'test'])
     assert.deepEqual((await readdir(outputRoot)).sort(), ['index.d.ts', 'index.js'])
     assert.ok(!(await readdir(projectRoot)).includes('dist'))
+    await rm(outputRoot, { recursive: true })
+    const restored = await runIsox(['build', 'test'])
+
+    assert.match(restored.stdout, /Cache hit for test:build/)
+    assert.deepEqual((await readdir(outputRoot)).sort(), ['index.d.ts', 'index.js'])
     const empty = await runNode(['--eval', 'process.stdout.write(require("@isox-sh/core").json(require("./dist/packages/test/index.js")))'])
 
     assert.equal(empty.stdout, json({}))

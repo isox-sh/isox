@@ -39,7 +39,7 @@ jobs:
           targetOptions: '{"test":{"maxJobs":3,"parallel":1},"build":{"maxJobs":3,"parallel":2},"lint":{"maxJobs":3,"parallel":2}}'
 
   shards:
-    uses: $/.github/workflows/shard.yml
+    uses: ./.github/workflows/shard.yml
     name: Shard ${{ matrix.target }}
     needs:
       - plan

@@ -43,6 +43,11 @@ async function fixture(t) {
     cwd: projectRoot,
     encoding: 'utf8',
     timeout: 30_000,
+    env: {
+      ...process.env,
+      ISOX_SKIP_CACHE: '',
+      ISOX_PROGRESS: '0'
+    },
   })
   const run = (...args) => runCommand('lint', 'demo', ...args)
   const configure = async options => {
@@ -209,4 +214,55 @@ test('validates options and respects cancellation', async t => {
     ...context,
     signal: AbortSignal.abort()
   }), { success: false })
+})
+
+test('caches terminal output without artifacts and invalidates on shared lint configuration changes', async t => {
+  const { write, run } = await fixture(t)
+
+  await write('isox.json', {
+    targetDefaults: {
+      'eslint:lint': {
+        cache: true,
+        inputs: ['{projectRoot}/**/*', '{workspaceRoot}/eslint.config.*']
+      }
+    }
+  })
+  await write('apps/demo project/index.js', 'const unused = 1\n')
+  const first = run('--max-warnings=-1')
+
+  assert.equal(first.status, 0, first.stderr + first.stdout)
+  assert.match(first.stdout, /no-unused-vars/)
+  assert.doesNotMatch(first.stdout, /Cache hit/)
+  const cached = run('--max-warnings=-1')
+
+  assert.equal(cached.status, 0, cached.stderr + cached.stdout)
+  assert.match(cached.stdout, /Cache hit/)
+  assert.match(cached.stdout, /no-unused-vars/)
+  await write('eslint.config.mjs', "export default [{ rules: { 'no-unused-vars': 'error' } }]")
+  const failed = run('--max-warnings=-1')
+
+  assert.equal(failed.status, 1, failed.stderr + failed.stdout)
+  assert.doesNotMatch(failed.stdout, /Cache hit/)
+  assert.equal(run('--max-warnings=-1').status, 1)
+})
+
+test('cached lint targets still apply fixes each time source files need them', async t => {
+  const { projectRoot, write, run } = await fixture(t)
+
+  await write('isox.json', {
+    targetDefaults: {
+      'eslint:lint': {
+        cache: true
+      }
+    }
+  })
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await write('apps/demo project/index.js', 'export const value = 1;\n')
+    const result = run('--fix')
+
+    assert.equal(result.status, 0, result.stderr + result.stdout)
+    assert.doesNotMatch(result.stdout, /Cache hit/)
+    assert.equal(await readFile(join(projectRoot, 'index.js'), 'utf8'), 'export const value = 1\n')
+  }
+
 })

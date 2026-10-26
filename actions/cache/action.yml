@@ -1,0 +1,43 @@
+name: Cache Isox state
+description: Restore shared .isox state and save a fresh snapshot after a successful job.
+inputs:
+  workingDirectory:
+    description: Workspace directory relative to GITHUB_WORKSPACE.
+    default: '.'
+  prefix:
+    description: Cache namespace. Change it to start a new cache family.
+    default: isox-v1
+outputs:
+  cache-key:
+    description: Unique key used to save this job's snapshot.
+    value: ${{ steps.prepare.outputs.key }}
+  cache-prefix:
+    description: Shared prefix used to restore the most recent compatible snapshot.
+    value: ${{ steps.prepare.outputs.prefix }}
+runs:
+  using: composite
+  steps:
+    - name: Prepare Isox cache
+      id: prepare
+      shell: bash
+      env:
+        ISOX_CACHE_ACTION_PATH: ${{ github.action_path }}
+        INPUT_WORKINGDIRECTORY: ${{ inputs.workingDirectory }}
+        INPUT_PREFIX: ${{ inputs.prefix }}
+      run: node "$ISOX_CACHE_ACTION_PATH/prepare.mjs"
+
+    - name: Restore Isox state and register post-job save
+      uses: actions/cache@v5
+      with:
+        # Composite step outputs are unavailable when the nested post action runs.
+        # The cache action saves its key in state, but reads path from its inputs again.
+        path: ${{ github.workspace }}/${{ inputs.workingDirectory }}/.isox
+        key: ${{ steps.prepare.outputs.key }}
+        restore-keys: ${{ steps.prepare.outputs.prefix }}
+
+    - name: Refresh restored project definitions
+      shell: bash
+      env:
+        ISOX_CACHE_ACTION_PATH: ${{ github.action_path }}
+        ISOX_CACHE_PATH: ${{ steps.prepare.outputs.path }}
+      run: node "$ISOX_CACHE_ACTION_PATH/prepare.mjs" refresh

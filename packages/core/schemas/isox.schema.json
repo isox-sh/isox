@@ -17,13 +17,19 @@
           "description": "Workspace-relative glob patterns excluded from affected selection, taking precedence over built-in and additional global files.",
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "globalFiles": {
           "description": "Additional workspace-relative glob patterns whose changes affect every project, including shared tools owned by a project.",
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string", "minLength": 1 }
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
@@ -38,6 +44,16 @@
             "pattern": "^(?:@[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)?|[a-z0-9][a-z0-9._-]*)(?![\\s\\S])"
           }
         }
+      }
+    },
+    "targetDefaults": {
+      "type": "object",
+      "description": "Defaults by target name or executor reference. Executor defaults override target-name defaults; project settings override both.",
+      "propertyNames": {
+        "pattern": "^[^\\s:]+(?::[^\\s:]+)?$"
+      },
+      "additionalProperties": {
+        "$ref": "project.schema.json#/definitions/targetDefaults"
       }
     }
   }

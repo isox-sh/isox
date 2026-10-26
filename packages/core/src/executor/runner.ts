@@ -1,11 +1,15 @@
 import { dirname, resolve } from 'node:path'
 
+import { withoutOutputCapture } from '../cache/output'
+import { runCachedTask } from '../cache/task'
 import { logger, LogLevels, pauseProgress } from '../logger'
 import { resolvePackageJson } from '../utils/resolve-package-json'
 import { readWorkspaceSettings } from '../workspace/settings'
 import { resolveCommandOptions } from './configuration'
+import { compactTaskOutput, reportTaskResult } from './task-logging'
 
-import type { Logger } from '../logger'
+import type { TaskCacheOptions } from '../cache/task'
+import type { Logger, LogType } from '../logger'
 import type { WorkspaceGraph } from '../workspace/parser'
 import type { Executor, ExecutorContext, ExecutorOutput, ExecutorResult } from './types'
 
@@ -27,7 +31,11 @@ export async function runExecutor(
   requestedConfiguration?: string,
   signal?: AbortSignal,
   optionOverrides: Record<string, unknown> = {},
+  cacheOptions: TaskCacheOptions = {},
 ): Promise<void> {
+  const root = resolve(workspaceRoot)
+  const settings = await readWorkspaceSettings(root)
+
   const project = Object.hasOwn(workspace.projects, projectName) ? workspace.projects[projectName] : undefined
 
   if (!project) {
@@ -48,8 +56,6 @@ export async function runExecutor(
   }
 
   const [packageName] = executorName.split(':')
-  const root = resolve(workspaceRoot)
-  const settings = await readWorkspaceSettings(root)
   const matchesNxPackage = (pkg: string): boolean => (settings.nx?.executors ?? []).some(entry =>
     entry === pkg || (entry.startsWith('@') && !entry.includes('/') && pkg.startsWith(`${entry}/`)),
   )
@@ -74,6 +80,20 @@ export async function runExecutor(
     signal,
   }
 
+  const effectiveOptions = {
+    ...options,
+    ...optionOverrides
+  }
+
+  await runCachedTask(context, effectiveOptions, pkgJsonPath, isNxExecutor, cacheOptions, () => executeExecutor(executorFn, context, effectiveOptions, isNxExecutor))
+}
+
+async function executeExecutor(executorFn: Executor, context: ExecutorContext, options: Record<string, unknown>, isNxExecutor: boolean): Promise<boolean> {
+  const { logger: taskLogger, projectName, signal } = context
+  const executorName = context.command.executor
+  const compact = compactTaskOutput(context)
+  const report = (type: LogType, message: string) => withoutOutputCapture(() => taskLogger[type](message))
+
   const assertSuccess = (output: ExecutorResult): void => {
     if (output?.success !== true) {
       throw new Error(`Task failed for ${projectName}`)
@@ -81,10 +101,11 @@ export async function runExecutor(
   }
 
   const message = `Running ${executorName} for ${projectName}...`
-  const stop = taskLogger.progress?.(message)
+  const stopProgress = compact ? undefined : withoutOutputCapture(() => taskLogger.progress?.(message))
+  const stop = stopProgress ? () => withoutOutputCapture(stopProgress) : undefined
 
-  if (!stop) {
-    taskLogger.info(message)
+  if (!stop && !compact) {
+    report('info', message)
   }
 
   const startedAt = performance.now()
@@ -92,14 +113,15 @@ export async function runExecutor(
   const elapsed = () => ((performance.now() - startedAt) / 1000).toFixed(2)
   const cancelled = () => {
     stop?.()
-    taskLogger.warn(`Cancelled ${executorName} for ${projectName} after ${elapsed()}s.`)
+    if (compact) {
+      reportTaskResult(context, 'warn', `cancelled after ${elapsed()}s`)
+    } else {
+      report('warn', `Cancelled ${executorName} for ${projectName} after ${elapsed()}s.`)
+    }
   }
 
   try {
-    const result = await executorFn({
-      ...options,
-      ...optionOverrides
-    }, context)
+    const result = await executorFn(options, context)
 
     if (isAsyncIterable(result)) {
       let hasResult = false
@@ -122,9 +144,9 @@ export async function runExecutor(
           stop?.()
 
           if (output.success) {
-            taskLogger.success(`Build completed for ${projectName}. Watching for changes...`)
+            report('success', `Build completed for ${projectName}. Watching for changes...`)
           } else {
-            taskLogger.error(`Build failed for ${projectName}. Watching for changes...`)
+            report('error', `Build failed for ${projectName}. Watching for changes...`)
           }
         } else {
           assertSuccess(output)
@@ -138,31 +160,39 @@ export async function runExecutor(
       if (signal?.aborted) {
         cancelled()
 
-        return
+        return false
       }
 
       if (continuous) {
-        return
+        return false
       }
     } else {
       if (signal?.aborted) {
         cancelled()
 
-        return
+        return false
       }
 
       assertSuccess(result)
+
+      if (!isNxExecutor && result.continuous === true) {
+        return false
+      }
     }
   } catch (error) {
     // Abort-aware APIs reject instead of returning a result; unrelated failures still propagate.
     if (signal?.aborted && (error === signal.reason || (error instanceof Error && error.name === 'AbortError'))) {
       cancelled()
 
-      return
+      return false
     }
 
     stop?.()
-    taskLogger.error(`Failed ${executorName} for ${projectName} after ${elapsed()}s.`)
+    if (compact) {
+      reportTaskResult(context, 'error', `failed after ${elapsed()}s`)
+    } else {
+      report('error', `Failed ${executorName} for ${projectName} after ${elapsed()}s.`)
+    }
 
     throw error
   } finally {
@@ -170,7 +200,13 @@ export async function runExecutor(
     resume?.()
   }
 
-  taskLogger.success(`Successfully completed ${executorName} for ${projectName} in ${elapsed()}s.`)
+  if (compact) {
+    reportTaskResult(context, 'success', `${elapsed()}s`)
+  } else {
+    report('success', `Successfully completed ${executorName} for ${projectName} in ${elapsed()}s.`)
+  }
+
+  return true
 }
 
 function isAsyncIterable(output: ExecutorOutput): output is AsyncIterable<ExecutorResult> {

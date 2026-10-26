@@ -38,6 +38,27 @@ and keeps `rootDir: "./src"`. Existing workspace `tsconfig.json` files are prese
 The generated `outDir` mirrors the project's workspace-relative path under the
 workspace's `dist/` directory. For example, `packages/test` builds into
 `<workspace>/dist/packages/test`, with JavaScript and declarations there.
+The initializer also registers missing `js:tsc` defaults in `isox.json`:
+
+```json
+{
+  "targetDefaults": {
+    "js:tsc": {
+      "cache": true,
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"]
+    }
+  }
+}
+```
+
+Existing values, including `cache: false`, scoped keys and custom output settings,
+are preserved. If existing defaults use a different output layout, the new
+project gets a local `outputs` override matching its generated `outDir`.
+These defaults apply to every matching target in the workspace.
+Projects with another `outDir` must override `outputs` to match, including any
+separate `declarationDir`. Defaults do not change TypeScript compiler settings.
+See [target defaults](/docs/configuration#target-defaults) and [task caching](/docs/task-caching).
+
 The optional `--importPath` adds `compilerOptions.paths["@org/test"]` pointing to
 the new entry point, preserving existing settings, aliases, and JSONC comments.
 An existing `baseUrl` is respected when computing the mapping.
@@ -109,8 +130,8 @@ can also invalidate analysis.
 
 The dependency source set includes tests and other discovered JS/TS files owned
 by the project, not only the build's `tsconfig` inputs. Ignore rules and configured
-compiler outputs still apply. The compiler runs on every build regardless of
-dependency-cache reuse. See [dependency caching](/docs/configuration#discovery-cache)
+compiler outputs still apply. Dependency-cache reuse alone does not skip compilation. Targets with `cache: true`
+can additionally restore a matching task result without invoking the compiler. See [dependency caching](/docs/configuration#discovery-cache)
 for validation costs and examples.
 
 Build dependencies with declarations enabled before building their consumers;
@@ -146,6 +167,10 @@ Changing an output directory does not delete the former directory. `isox reset`
 also discards ownership records, so existing untracked output is preserved.
 A stale build lock or output reservation after a forced process kill can be removed with `isox reset`
 once no builds are running.
+
+For targets with `cache: true`, core's [output ownership contract](/docs/task-caching#output-ownership-and-recovery)
+takes precedence: declared directories are replaced as a whole, including with
+`clean: false` or `--skip-cache`. Recover any interrupted-task backups before reset.
 
 ### TypeScript state files
 
