@@ -8,8 +8,8 @@ export function cacheSettings({ root, directory = '.', namespace = 'isox-v1', pl
   const workspace = resolve(root, directory)
   const location = relative(resolve(root), workspace)
 
-  if (location === '..' || location.startsWith(`..${sep}`) || isAbsolute(location)) {
-    throw new Error('workingDirectory must be inside GITHUB_WORKSPACE.')
+  if (isAbsolute(directory) || location === '..' || location.startsWith(`..${sep}`) || isAbsolute(location)) {
+    throw new Error('workingDirectory must be relative and inside GITHUB_WORKSPACE.')
   }
 
   if (!/^[a-zA-Z0-9_.-]{1,100}$/.test(namespace)) {

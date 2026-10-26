@@ -60,7 +60,7 @@ test('cache setup rejects locations outside the checkout and invalid namespaces'
     arch: 'X64'
   }
 
-  for (const directory of ['../outside', resolve(root, '..', 'other')]) {
+  for (const directory of ['../outside', resolve(root, '..', 'other'), root, join(root, 'nested')]) {
     assert.throws(() => cacheSettings({
       ...settings,
       directory

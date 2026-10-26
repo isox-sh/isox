@@ -29,7 +29,9 @@ runs:
     - name: Restore Isox state and register post-job save
       uses: actions/cache@v5
       with:
-        path: ${{ steps.prepare.outputs.path }}
+        # Composite step outputs are unavailable when the nested post action runs.
+        # The cache action saves its key in state, but reads path from its inputs again.
+        path: ${{ github.workspace }}/${{ inputs.workingDirectory }}/.isox
         key: ${{ steps.prepare.outputs.key }}
         restore-keys: ${{ steps.prepare.outputs.prefix }}
 
