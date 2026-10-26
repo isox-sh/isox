@@ -1,12 +1,10 @@
 import { readFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve } from 'node:path'
 
-import fg from 'fast-glob'
-
 import { logger } from '../logger'
-import { readWorkspaceCache, writeWorkspaceCache } from './cache'
+import { cacheVersion, readWorkspaceCache, writeWorkspaceCache } from './cache'
 import { parseProjectDefinition } from './configuration'
-import { inferProjectDependencies } from './dependencies'
+import { discoverWorkspace } from './discovery'
 
 import type { Logger } from '../logger'
 import type { ProjectDefinition } from './configuration'
@@ -33,50 +31,67 @@ export async function parseWorkspace(cwd: string, options: ParseWorkspaceOptions
   const cached = options.cache === false ? undefined : await readWorkspaceCache(cwd, taskLogger)
 
   if (cached) {
-    return cached
+    taskLogger.debug(`Loaded workspace cache from ${join(cwd, '.isox', 'workspace.json')}`)
+
+    return { projects: cached.projects }
   }
 
-  const files = await fg('**/project.json', {
-    cwd,
-    dot: true,
-    ignore: ['**/node_modules/**', '**/.git/**', '**/.isox/**', 'tmp/**'],
-  })
-  const projects: Record<string, ProjectConfiguration> = Object.create(null)
+  const message = 'Rebuilding .isox/workspace.json...'
+  const started = performance.now()
+  const stop = taskLogger.progress?.(message)
 
-  for (const file of files.sort()) {
-    const source = await readFile(join(cwd, file), 'utf8')
-    let parsed: unknown
-
-    try {
-      parsed = JSON.parse(source)
-    } catch (error) {
-      throw new SyntaxError(`Invalid project configuration in ${file}: invalid JSON.`, { cause: error })
-    }
-
-    const content = parseProjectDefinition(parsed, file)
-
-    const root = dirname(file)
-    const name = content.name ?? basename(resolve(cwd, root))
-
-    if (typeof name !== 'string' || !/^[^\s:]+$/.test(name)) {
-      throw new Error(`Invalid project name in ${file}.`)
-    }
-
-    if (Object.hasOwn(projects, name)) {
-      throw new Error(`Duplicate project name ${name} in ${file}.`)
-    }
-
-    projects[name] = {
-      ...content,
-      name,
-      root
-    }
+  if (!stop) {
+    taskLogger.info(message)
   }
 
-  const workspace = { projects }
+  try {
+    const snapshot = await discoverWorkspace(cwd)
+    const projects: Record<string, ProjectConfiguration> = Object.create(null)
 
-  await inferProjectDependencies(cwd, workspace)
-  await writeWorkspaceCache(cwd, workspace, taskLogger)
+    for (const file of snapshot.projects) {
+      const source = await readFile(join(cwd, file), 'utf8')
+      let parsed: unknown
 
-  return workspace
+      try {
+        parsed = JSON.parse(source)
+      } catch (error) {
+        throw new SyntaxError(`Invalid project configuration in ${file}: invalid JSON.`, { cause: error })
+      }
+
+      const content = parseProjectDefinition(parsed, file)
+
+      const root = dirname(file)
+      const name = content.name ?? basename(resolve(cwd, root))
+
+      if (typeof name !== 'string' || !/^[^\s:]+$/.test(name)) {
+        throw new Error(`Invalid project name in ${file}.`)
+      }
+
+      if (Object.hasOwn(projects, name)) {
+        throw new Error(`Duplicate project name ${name} in ${file}.`)
+      }
+
+      projects[name] = {
+        ...content,
+        name,
+        root
+      }
+    }
+
+    const workspace = { projects }
+    await writeWorkspaceCache(cwd, {
+      version: cacheVersion,
+      projects
+    }, taskLogger)
+
+    stop?.()
+    const count = Object.keys(projects).length
+    const duration = ((performance.now() - started) / 1000).toFixed(2)
+
+    taskLogger.success(`Rebuilt .isox/workspace.json (${count} project${count === 1 ? '' : 's'}) in ${duration}s.`)
+
+    return workspace
+  } finally {
+    stop?.()
+  }
 }

@@ -18,7 +18,7 @@
       "type": "array",
       "uniqueItems": true,
       "items": { "type": "string", "pattern": "^[^\\s:]+$" },
-      "description": "Additional project dependencies, merged with imports and local package references during discovery. Used to propagate affected changes; prerequisite scheduling is not yet implemented."
+      "description": "Additional project dependencies, merged with imports and local package references during on-demand dependency analysis. Used to propagate affected changes; prerequisite scheduling is not yet implemented."
     },
     "targets": {
       "type": "object",

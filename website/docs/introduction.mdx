@@ -53,6 +53,11 @@ local package references, and explicit declarations. Use that graph to select
 changed projects and their dependents, then distribute work across weighted
 GitHub Actions jobs.
 
+Project definitions are cached separately from dependency-analysis results.
+Only affected selection or executors that need dependencies validate the analysis
+cache. Tasks still execute on every invocation; see
+[how caching works](/docs/configuration#discovery-cache).
+
 <CardGroup cols={2}>
   <Card title="Configure your workspace" icon="sliders" href="/docs/configuration">
     Define projects, metadata, dependencies, and CI weights.

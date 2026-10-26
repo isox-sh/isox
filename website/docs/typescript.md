@@ -99,6 +99,20 @@ wildcard subpaths are supported; aliases within the current project keep using
 source files. The original configs stay unchanged, so editors navigate to source.
 The temporary config is removed after compilation, including failed builds.
 
+Alias remapping requests dependency analysis for this project and its transitive
+dependencies. It validates and reuses per-project entries in
+`.isox/discovery.json`; a valid entry avoids parsing imports again. An included
+source-file edit, including a body or comment edit, invalidates that project's
+source fingerprint and causes its included sources to be reanalyzed. Unchanged
+dependency projects can reuse their entries. Configuration and resolution changes
+can also invalidate analysis.
+
+The dependency source set includes tests and other discovered JS/TS files owned
+by the project, not only the build's `tsconfig` inputs. Ignore rules and configured
+compiler outputs still apply. The compiler runs on every build regardless of
+dependency-cache reuse. See [dependency caching](/docs/configuration#discovery-cache)
+for validation costs and examples.
+
 Build dependencies with declarations enabled before building their consumers;
 Isox does not schedule prerequisite builds yet. Dependency configs come from the
 same command's `tsConfig` option (falling back to `build`, then the project's
@@ -218,6 +232,10 @@ recognized, including aliases. A require created for another package's path is
 not treated as this project's dependency; neither are `require.resolve` calls
 with explicit lookup options for another workspace. Computed module names cannot
 be inferred.
+
+This package-generation analysis uses the build's source inputs and its own
+runtime/type classification. It does not substitute the project dependency lists
+from `discovery.json` for the dependencies written to the published manifest.
 
 `import type`, `export type`, inline type-only bindings, and `import()` type
 expressions add dependencies only for local workspace packages, so published

@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve } from 'node:path'
 
-import { resolveCommandOptions } from '@isox-sh/core'
+import { resolveCommandOptions, resolveWorkspaceDependencies } from '@isox-sh/core'
 import ts from 'typescript'
 
 import { inside } from './files'
@@ -32,8 +32,17 @@ function readConfig(file: string, onRead?: (file: string) => void): ts.ParsedCom
 }
 
 /** Keep source aliases for editors; compile each package against its dependencies' outputs. */
-export function buildConfiguration(tsConfig: string, context: ExecutorContext, onRead?: (file: string) => void) {
-  const workspace = context.workspace?.projects ?? {}
+export async function buildConfiguration(tsConfig: string, context: ExecutorContext, onRead?: (file: string) => void) {
+  const parsed = readConfig(tsConfig, onRead)
+
+  if (!context.workspace || !Object.keys(parsed.options.paths ?? {}).length) {
+    return undefined
+  }
+
+  const { projects: workspace } = await resolveWorkspaceDependencies(context.workspaceRoot, context.workspace, {
+    projects: [context.projectName],
+    logger: context.logger
+  })
   const dependencies = new Set(workspace[context.projectName]?.dependencies ?? [])
 
   for (const name of dependencies) {
@@ -52,7 +61,6 @@ export function buildConfiguration(tsConfig: string, context: ExecutorContext, o
       root: resolve(context.workspaceRoot, project.root)
     }))
     .sort((a, b) => b.root.length - a.root.length)
-  const parsed = readConfig(tsConfig, onRead)
   const base = parsed.options.baseUrl ?? parsed.options.pathsBasePath
   const outputs = new Set<string>()
   const configurations = new Map<string, ts.ParsedCommandLine>()
@@ -137,7 +145,7 @@ export async function withBuildConfig<T>(
   stateFile: string,
   compile: (config: string) => Promise<T>,
 ): Promise<T> {
-  const configuration = buildConfiguration(tsConfig, context)
+  const configuration = await buildConfiguration(tsConfig, context)
 
   if (!configuration) {
     return compile(tsConfig)

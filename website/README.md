@@ -73,7 +73,7 @@ switching hosting. See Mintlify's
 - [Core concepts](docs/concepts.mdx) — projects, executors, configurations, dependencies, and caching.
 - [CLI reference](docs/cli.md) — commands, named configurations, and current scope.
 - [Affected projects and GitHub Actions](docs/affected-and-ci.md) — Git selection, weighted plans, tag filters, and CI workers.
-- [Workspace and project configuration](docs/configuration.md) — workspace roots, schemas, metadata, and discovery caching.
+- [Workspace and project configuration](docs/configuration.md) — workspace roots, schemas, project definitions, and on-demand dependency caching.
 - [Shell commands](docs/shell-commands.mdx) — run existing tools and package scripts with the built-in executor.
 - [TypeScript executor](docs/typescript.md) — project initialization, compiler options, assets, package generation, and watch mode.
 - [ESLint executor](docs/eslint.md) — project linting, fixes, and warning limits.

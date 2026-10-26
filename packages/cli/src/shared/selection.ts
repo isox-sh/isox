@@ -1,4 +1,4 @@
-import { createLogger, createProjectGraph, findWorkspaceRoot, getAffectedProjects, getGitChanges, logger, parseWorkspace, readWorkspaceSettings } from '@isox-sh/core'
+import { createLogger, findWorkspaceRoot, getAffectedProjects, getGitChanges, logger, parseWorkspace, readWorkspaceSettings, resolveWorkspaceDependencies } from '@isox-sh/core'
 
 import type { SelectionOptions } from './options'
 
@@ -19,8 +19,6 @@ export async function loadSelection(options: SelectionOptions) {
   })
 
   if (options.all) {
-    createProjectGraph(workspace)
-
     return {
       root,
       workspace,
@@ -30,12 +28,13 @@ export async function loadSelection(options: SelectionOptions) {
 
   const changes = await getGitChanges(root, options)
   const settings = await readWorkspaceSettings(root)
+  const resolved = await resolveWorkspaceDependencies(root, workspace, { logger: taskLogger })
 
   taskLogger.debug(`Affected comparison: ${changes.mergeBase}..${changes.head} (${changes.files.length} changed files)`)
 
   return {
     root,
-    workspace,
-    projects: getAffectedProjects(workspace, changes.files, settings.affected)
+    workspace: resolved,
+    projects: getAffectedProjects(resolved, changes.files, settings.affected)
   }
 }

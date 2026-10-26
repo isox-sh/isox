@@ -16,7 +16,11 @@
 
 Isox is a lightweight monorepo command runner. Each project defines its commands
 in `project.json`, and an `isox.json` marker identifies the workspace root.
-A local discovery cache keeps subsequent runs fast, with no background daemon.
+Project definitions are cached in `.isox/workspace.json`, with no background
+daemon. Dependency analysis is cached separately in `.isox/discovery.json` and
+checked only when affected selection or an executor needs it. These caches do
+not skip builds or other tasks. See [caching](website/docs/configuration.md#discovery-cache)
+for invalidation rules and when to use `isox reset`.
 
 Run individual projects or select affected projects and their dependents from
 Git changes. Native GitHub Actions distribute exact project lists across weighted

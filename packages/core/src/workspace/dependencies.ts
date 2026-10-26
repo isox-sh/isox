@@ -2,13 +2,23 @@ import { readFile } from 'node:fs/promises'
 import { isBuiltin } from 'node:module'
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 
-import fg from 'fast-glob'
 import ts from 'typescript'
 
 import { resolveCommandOptions } from '../executor/configuration'
 import { readSourceDependencies } from '../utils/source-dependencies'
+import { writeCacheFile } from './cache'
+import { fingerprint, readDependencyCache, resolutionReadsMatch, resolutionSystem, sourceFingerprint } from './dependency-cache'
+import { discoverWorkspace } from './discovery'
 
+import type { Logger } from '../logger'
+import type { ResolutionRead } from './dependency-cache'
 import type { ProjectConfiguration, WorkspaceGraph } from './parser'
+
+export interface DependencyOptions {
+  /** Limit source analysis to these projects and their transitive dependencies. */
+  projects?: string[]
+  logger?: Logger
+}
 
 interface ProjectOutput {
   root: string
@@ -20,6 +30,7 @@ interface ProjectOutput {
 interface ProjectSources {
   project: ProjectConfiguration
   root: string
+  prefix: string
   manifest: Record<string, unknown>
   options: ts.CompilerOptions
 }
@@ -83,8 +94,30 @@ function packageName(specifier: string): string {
   return specifier.startsWith('@') ? specifier.split('/').slice(0, 2).join('/') : specifier.split('/')[0]
 }
 
-/** Merge declared edges with imports and local package references before publishing the cache. */
-export async function inferProjectDependencies(workspaceRoot: string, workspace: WorkspaceGraph): Promise<void> {
+/** Resolve dependencies on request, caching analysis separately from the supplied definitions. */
+export async function resolveWorkspaceDependencies(
+  workspaceRoot: string,
+  definitions: WorkspaceGraph,
+  request: DependencyOptions = {},
+): Promise<WorkspaceGraph> {
+  workspaceRoot = resolve(workspaceRoot)
+  const workspace: WorkspaceGraph = {
+    projects: Object.assign(Object.create(null), Object.fromEntries(
+      Object.entries(definitions.projects).map(([name, project]) => [name, { ...project }]),
+    ))
+  }
+  const pending = new Set(request.projects ?? Object.keys(workspace.projects))
+
+  for (const name of pending) {
+    if (!Object.hasOwn(workspace.projects, name)) {
+      throw new Error(`Project ${name} not found in workspace.`)
+    }
+  }
+
+  if (!pending.size) {
+    return workspace
+  }
+
   const baseConfig = ['tsconfig.base.json', 'tsconfig.json'].map(file => join(workspaceRoot, file)).find(ts.sys.fileExists)
   const sharedOptions = compilerOptions(baseConfig)
   const projects: ProjectSources[] = []
@@ -116,6 +149,7 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
     projects.push({
       project,
       root,
+      prefix: root.endsWith(sep) ? root : `${root}${sep}`,
       manifest,
       options
     })
@@ -133,6 +167,11 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
   }
 
   const outputDirectories = outputs.map(output => output.root)
+  // Configurations and manifests are read fresh on every explicit request. Their
+  // effective values cover extended configs, package names and output ownership.
+  const configuration = fingerprint([ts.version, workspaceRoot, projects, outputs])
+  const cache = await readDependencyCache(workspaceRoot, configuration)
+  let changed = false
   // A shared outDir preserves each project's path relative to rootDir. Never assign
   // the entire shared directory to whichever project happened to be discovered first.
   const ownedOutputs = outputs.flatMap(output => {
@@ -161,6 +200,7 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
     .sort((a, b) => b.root.length - a.root.length)
   const owner = (file: string): string | undefined => roots.find(entry => inside(entry.root, file))?.name
   const edges = new Map(projects.map(({ project }) => [project.name, new Set(project.dependencies ?? [])]))
+
   const add = (project: string, dependency: string | undefined) => {
     if (dependency && dependency !== project) {
       edges.get(project)!.add(dependency)
@@ -184,74 +224,119 @@ export async function inferProjectDependencies(workspaceRoot: string, workspace:
     }
   }
 
-  const files = await fg('**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}', {
-    cwd: workspaceRoot,
-    absolute: true,
-    dot: true,
-    followSymbolicLinks: false,
-    ignore: [
-      '**/node_modules/**', '**/.git/**', '**/.isox/**', '**/dist/**', '**/coverage/**', 'tmp/**',
-      ...outputDirectories.map(output => `${fg.escapePath(relative(workspaceRoot, output).split(sep).join('/'))}/**`),
-    ],
-  })
-  const sources = files.sort().filter(file => projects.some(project => inside(project.root, file)))
+  const files = (await discoverWorkspace(workspaceRoot, { sources: true })).sources
+  const sources = new Map(projects.map(({ project }) => [project.name, [] as string[]]))
 
-  for await (const [file, { all }] of readSourceDependencies(sources)) {
-    const source = projects.find(project => inside(project.root, file))
+  for (const file of files) {
+    const source = projects.find(project => file.startsWith(project.prefix))
 
-    if (!source) {
-      continue
-    }
-
-    const { project, options } = source
-
-    for (const specifier of all) {
-      if (isBuiltin(specifier)) {
-        continue
-      }
-
-      if (specifier.startsWith('.') || isAbsolute(specifier)) {
-        add(project.name, owner(resolve(dirname(file), specifier)))
-        continue
-      }
-
-      // Resolve aliases before package names, including aliases to not-yet-built output.
-      const patterns = Object.keys(options.paths ?? {}).sort((a, b) => {
-        if (a === specifier || b === specifier) {
-          return a === specifier ? -1 : 1
-        }
-
-        return b.split('*')[0].length - a.split('*')[0].length
-      })
-      const pattern = patterns.find(pattern => {
-        const [prefix, suffix = ''] = pattern.split('*')
-
-        return pattern.includes('*') ? specifier.startsWith(prefix) && specifier.endsWith(suffix) && specifier.length >= prefix.length + suffix.length : pattern === specifier
-      })
-
-      if (pattern) {
-        const [prefix, suffix = ''] = pattern.split('*')
-        const wildcard = specifier.slice(prefix.length, specifier.length - suffix.length)
-        const base = options.baseUrl ?? options.pathsBasePath
-        const resolved = ts.resolveModuleName(specifier, file, options, ts.sys).resolvedModule
-        const targets = options.paths![pattern].map(target =>
-          resolve(typeof base === 'string' ? base : workspaceRoot, target.replace('*', wildcard)),
-        )
-
-        // TypeScript selects the first resolving fallback. If outputs do not exist
-        // yet, retain only the first known owner so build ordering still works.
-        add(project.name, resolved ? owner(resolved.resolvedFileName) : targets.map(owner).find(Boolean))
-      } else {
-        add(project.name, packages.get(packageName(specifier)))
-      }
+    if (source && !outputDirectories.some(output => inside(output, file))) {
+      sources.get(source.project.name)!.push(file)
     }
   }
 
-  for (const { project } of projects) {
-    const dependencies = edges.get(project.name)!
+  // Set iteration visits newly found dependencies, so scoped requests analyze
+  // their closure without parsing sources from unrelated projects.
+  for (const name of pending) {
+    const source = projects.find(({ project }) => project.name === name)
+
+    if (!source) {
+      throw new Error(`Unknown project dependency ${name}. Use project names in dependencies.`)
+    }
+
+    const { project, options } = source
+    const projectFiles = sources.get(name)!
+    const sourceKey = await sourceFingerprint(projectFiles)
+    const cached = cache.projects[name]
+
+    if (cached && cached.sources === sourceKey
+      && cached.dependencies.every(dependency => Object.hasOwn(workspace.projects, dependency))
+      && resolutionReadsMatch(cached.reads)) {
+      edges.set(name, new Set(cached.dependencies))
+
+      for (const dependency of cached.dependencies) {
+        pending.add(dependency)
+      }
+
+      continue
+    }
+
+    const reads = new Map<string, ResolutionRead>()
+    const system = resolutionSystem(reads)
+
+    for await (const [file, { all }] of readSourceDependencies(projectFiles)) {
+      for (const specifier of all) {
+        if (isBuiltin(specifier)) {
+          continue
+        }
+
+        if (specifier.startsWith('.') || isAbsolute(specifier)) {
+          add(project.name, owner(resolve(dirname(file), specifier)))
+          continue
+        }
+
+        // Resolve aliases before package names, including aliases to not-yet-built output.
+        const patterns = Object.keys(options.paths ?? {}).sort((a, b) => {
+          if (a === specifier || b === specifier) {
+            return a === specifier ? -1 : 1
+          }
+
+          return b.split('*')[0].length - a.split('*')[0].length
+        })
+        const pattern = patterns.find(pattern => {
+          const [prefix, suffix = ''] = pattern.split('*')
+
+          return pattern.includes('*') ? specifier.startsWith(prefix) && specifier.endsWith(suffix) && specifier.length >= prefix.length + suffix.length : pattern === specifier
+        })
+
+        if (pattern) {
+          const [prefix, suffix = ''] = pattern.split('*')
+          const wildcard = specifier.slice(prefix.length, specifier.length - suffix.length)
+          const base = options.baseUrl ?? options.pathsBasePath
+          const resolved = ts.resolveModuleName(specifier, file, options, system).resolvedModule
+          const targets = options.paths![pattern].map(target =>
+            resolve(typeof base === 'string' ? base : workspaceRoot, target.replace('*', wildcard)),
+          )
+
+          // TypeScript selects the first resolving fallback. If outputs do not exist
+          // yet, retain only the first known owner so build ordering still works.
+          add(project.name, resolved ? owner(resolved.resolvedFileName) : targets.map(owner).find(Boolean))
+        } else {
+          add(project.name, packages.get(packageName(specifier)))
+        }
+      }
+    }
+
+    for (const dependency of edges.get(name)!) {
+      pending.add(dependency)
+    }
+
+    const resolutionReads = [...reads.values()]
+
+    if (await sourceFingerprint(projectFiles) !== sourceKey || !resolutionReadsMatch(resolutionReads)) {
+      throw new Error('Dependency inputs changed during analysis. Retry once files have settled.')
+    }
+
+    cache.projects[name] = {
+      sources: sourceKey,
+      dependencies: [...edges.get(name)!].sort(),
+      reads: resolutionReads
+    }
+    changed = true
+  }
+
+  for (const name of pending) {
+    const project = workspace.projects[name]
+    const dependencies = edges.get(name)!
 
     if (dependencies.size || project.dependencies !== undefined) {
       project.dependencies = [...dependencies].sort()
     }
   }
+
+  if (changed) {
+    await writeCacheFile(workspaceRoot, 'discovery.json', cache, request.logger)
+  }
+
+  return workspace
 }

@@ -251,9 +251,10 @@ It receives an empty options object and the same context fields as an initialize
 `workspaceRoot`, `projectRoot`, `projectName`, and `logger`. The CLI looks up
 the project by name in fresh workspace discovery and resolves its directory.
 Root projects use their project name as well. The command works from any directory
-inside the workspace. The CLI resolves the installed package and invalidates only workspace
-discovery after invocation, including on generator failure. Other cache files
-remain intact.
+inside the workspace. The CLI resolves the installed package and invalidates
+`.isox/workspace.json` after invocation, including on generator failure.
+Dependency-analysis entries in `.isox/discovery.json` remain intact and are
+validated when next requested.
 
 Generators own their edits and should preserve existing configuration, handle
 repeat calls, and reject conflicting targets. The release plugin supplies an

@@ -21,6 +21,11 @@ including lightweight tags, and select all projects when no tag is reachable.
 An explicit `base` overrides this selection. Use checkout's `fetch-depth: 0` to
 fetch complete history and tags.
 
+Planning refreshes project definitions on every invocation. Affected selection
+also validates and reuses dependency analysis from `.isox/discovery.json`;
+selecting all projects does not require that analysis. These are metadata caches,
+not caches of task results or build artifacts.
+
 See the [affected and CI guide](../../website/docs/affected-and-ci.md) for inputs,
 Git ranges, tag filters, weighted distribution, migration, and complete workflows.
 The action metadata in [action.yml](action.yml) lists every supported input/output.

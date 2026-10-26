@@ -30,7 +30,7 @@ interface SnapshotState {
   configuration?: SnapshotConfiguration
 }
 
-function configuration(tsConfig: string, context: ExecutorContext, state: SnapshotState) {
+async function configuration(tsConfig: string, context: ExecutorContext, state: SnapshotState) {
   const cached = state.configuration
 
   if (cached && !cached.diagnostics.length && [...cached.inputs].every(([file, source]) => ts.sys.readFile(file) === source)) {
@@ -63,7 +63,7 @@ function configuration(tsConfig: string, context: ExecutorContext, state: Snapsh
   let options = parsed?.options ?? {}
 
   try {
-    const build = buildConfiguration(tsConfig, context, readConfigFile)
+    const build = await buildConfiguration(tsConfig, context, readConfigFile)
 
     outputs = build?.outputs ?? []
 
@@ -100,7 +100,7 @@ export async function snapshot(
   state: SnapshotState = {},
 ): Promise<string> {
   signal.throwIfAborted()
-  const plan = configuration(tsConfig, context, state)
+  const plan = await configuration(tsConfig, context, state)
   const { roots } = plan
   const files = new Set([...plan.inputs.keys(), ...plan.sources, resolve(context.workspaceRoot, 'package.json')])
   const parts = [...plan.diagnostics]
@@ -206,6 +206,10 @@ export function watchBuilds(
             if (signal.aborted) {
               break
             }
+
+            // A rebuild may have introduced imports of another workspace project.
+            // Refresh watched dependency outputs once, rather than on every poll.
+            state.configuration = undefined
 
             yield {
               success: result.success,

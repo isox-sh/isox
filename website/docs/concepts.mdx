@@ -74,7 +74,7 @@ See the [CLI reference](/docs/cli#named-configurations) for complete examples.
 
 ## Project dependencies
 
-Discovery builds a graph from TypeScript and JavaScript imports, local package
+On-demand dependency analysis builds a graph from TypeScript and JavaScript imports, local package
 dependencies, TypeScript path aliases, and explicit `dependencies` in
 `project.json`. Type-only imports and test files also contribute to this graph.
 
@@ -99,17 +99,35 @@ dynamically selected plugins. Dependencies contain Isox project names.
 
 ## Discovery caching
 
-Isox stores discovered project configuration in `.isox/workspace.json` and reuses
-it for single-project commands. After changing project definitions, dependencies,
-or import relationships, run `isox reset` to refresh the next discovery.
+Isox stores project definitions and explicitly declared dependencies in
+`.isox/workspace.json`. Single-project commands load it directly, without source
+analysis. Run `isox reset` after project-definition or discovery-rule changes.
+Ordinary source and import edits do not change this cache.
+
+Affected selection infers dependency relationships on demand. Executors can also
+request them: the TypeScript builder analyzes its project's dependency closure
+when remapping workspace aliases. These requests validate and reuse per-project
+results in `.isox/discovery.json`. Ordinary commands do not read that file, and
+inferred edges never enter the definitions cache.
+
+The dependency cache saves import parsing and resolution work. Its `sources` SHA
+represents file paths and metadata, not source contents. Even a comment edit can
+invalidate a project's entry; the next request reanalyzes all of that project's
+included sources, while unchanged projects can reuse their entries. Tests count
+as project sources even when the request comes from a build.
 
 `affected`, `plan`, and `run-many` always scan current project files and refresh
-the cache. Creating a project with `isox init <package> <path>` also refreshes it.
-`isox add <package> <project>` invalidates discovery after the generator runs.
+the definitions cache. Selecting all projects does not require dependency
+inference. Creating a project with `isox init <package> <path>` also refreshes it.
+`isox add <package> <project>` invalidates `workspace.json` after the generator runs.
+See [discovery boundaries](/docs/configuration#discovery-boundaries) for ignore
+rules, nested workspaces, and symlinks.
 
-This cache stores workspace metadata. Tasks still execute on each invocation.
+Both caches store metadata. Tasks still execute on each invocation; reusing a
+dependency list does not skip compilation. See [cache behavior and examples](/docs/configuration#discovery-cache)
+for the source fingerprint, resolution probes and invalidation rules.
 The TypeScript executor separately tracks [output ownership](/docs/typescript#typescript-state-files)
-under `.isox/tsc/`. `isox reset` removes both kinds of state, so stop active builds
+under `.isox/tsc/`. `isox reset` removes both caches and this build state, so stop active builds
 before resetting.
 
 ## Selecting and distributing work

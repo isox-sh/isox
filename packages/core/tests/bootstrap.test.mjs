@@ -130,6 +130,7 @@ test('discovers nested and root projects, derives names and roots, and ignores d
     dependencies: ['first']
   })
   await write('node_modules/ignored/project.json', { name: 'ignored' })
+  await write('.gitignore', '/tmp/\n')
   await write('tmp/isox-e2e-fixture/packages/test/project.json', { name: 'ignored' })
   const { projects } = await parseWorkspace(root)
 

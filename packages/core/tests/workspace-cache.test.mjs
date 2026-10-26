@@ -1,10 +1,10 @@
 import { createRequire } from 'node:module'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const assert = require('node:assert/strict')
-const { mkdtemp, mkdir, readFile, readdir, writeFile, rm, stat } = require('node:fs/promises')
+const { mkdtemp, mkdir, readFile, readdir, writeFile, rm, stat, rename, symlink, utimes } = require('node:fs/promises')
 const { tmpdir } = require('node:os')
 const { dirname, join } = require('node:path')
 const { fileURLToPath } = require('node:url')
@@ -34,7 +34,7 @@ async function fixture(t) {
 }
 
 for (const [directory, asWorkspaceRoot] of [['apps/my app', false], ['apps/app:build', false], ['my workspace', true]]) {
-  test(`rejects invalid derived names before caching (${directory}, workspace root: ${asWorkspaceRoot})`, async (t) => {
+  test.skipIf(process.platform === 'win32' && directory.includes(':'))(`rejects invalid derived names before caching (${directory}, workspace root: ${asWorkspaceRoot})`, async (t) => {
     const { root, write } = await fixture(t)
     const workspaceRoot = asWorkspaceRoot ? join(root, directory) : root
     const file = `${directory}/project.json`
@@ -53,7 +53,7 @@ for (const [directory, asWorkspaceRoot] of [['apps/my app', false], ['apps/app:b
   })
 }
 
-test('caches the complete workspace and reuses it without reading project files', async (t) => {
+test('reuses an unchanged discovery snapshot without rewriting the cache', async (t) => {
   const { root, write, cacheFile } = await fixture(t)
   const project = {
     name: 'demo',
@@ -79,17 +79,18 @@ test('caches the complete workspace and reuses it without reading project files'
   const discovered = await parseWorkspace(root)
   const cached = JSON.parse(await readFile(cacheFile, 'utf8'))
 
-  assert.equal(cached.version, 9)
+  assert.equal(cached.version, 12)
+  assert.deepEqual(Object.keys(cached).sort(), ['projects', 'version'])
   assert.deepEqual(cached.projects.demo, {
     ...project,
     root: 'apps/demo'
   })
   assert.deepEqual(Object.keys(cached.projects).sort(), ['demo', 'lib'])
 
-  await write('apps/demo/project.json', '{broken')
-  await rm(join(root, 'libs'), { recursive: true })
-  await write('apps/new/project.json', { name: 'new' })
+  const before = await stat(cacheFile)
+
   assert.deepEqual(await parseWorkspace(root), discovered)
+  assert.equal((await stat(cacheFile)).mtimeMs, before.mtimeMs)
 })
 
 test('migrates Nx projects into the cache without modifying project files and reuses the migrated cache', async (t) => {
@@ -141,10 +142,10 @@ test('migrates Nx projects into the cache without modifying project files and re
   assert.equal(await readFile(join(root, file), 'utf8'), source)
   assert.deepEqual(JSON.parse(await readFile(cacheFile, 'utf8')).projects.dashboard, migrated)
 
+  assert.deepEqual(await parseWorkspace(root), workspace)
   await write(file, '{broken')
   assert.deepEqual(await parseWorkspace(root), workspace)
-  await resetWorkspace(root)
-  await assert.rejects(parseWorkspace(root), SyntaxError)
+  await assert.rejects(parseWorkspace(root, { cache: false }), SyntaxError)
 })
 
 test('rebuilds malformed, incompatible, and structurally invalid caches', async (t) => {
@@ -186,7 +187,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       }
     },
     {
-      version: 9,
+      version: 12,
       projects: {
         demo: {
           name: 'demo',
@@ -197,7 +198,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       }
     },
     {
-      version: 9,
+      version: 12,
       projects: {
         demo: {
           name: 'demo',
@@ -211,11 +212,11 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
       projects: {}
     },
     {
-      version: 9,
+      version: 12,
       projects: []
     },
     {
-      version: 9,
+      version: 12,
       projects: {
         demo: {
           name: 'different',
@@ -228,7 +229,7 @@ test('rebuilds malformed, incompatible, and structurally invalid caches', async 
     const workspace = await parseWorkspace(root)
 
     assert.equal(workspace.projects.demo.root, 'apps/demo')
-    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 9)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 12)
   }
 })
 
@@ -257,11 +258,12 @@ test('concurrent discovery publishes valid JSON and leaves no temporary files', 
   const { root, write, cacheFile } = await fixture(t)
 
   await write('apps/demo/project.json', { name: 'demo' })
+  await write('apps/demo/index.ts', 'export {}')
   const workspaces = await Promise.all(Array.from({ length: 8 }, () => parseWorkspace(root)))
 
   assert.ok(workspaces.every(workspace => workspace.projects.demo.root === 'apps/demo'))
   assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).projects.demo.name, 'demo')
-  assert.deepEqual(await readdir(join(root, '.isox')), ['workspace.json'])
+  assert.deepEqual((await readdir(join(root, '.isox'))).sort(), ['workspace.json'])
 })
 
 test('reset removes a corrupt cache', async (t) => {
@@ -295,7 +297,7 @@ for (const [field, version] of [['commands', 4], ['executors', 7]]) {
 
     assert.deepEqual(workspace.projects.demo.targets, targets)
     assert.equal(Object.hasOwn(workspace.projects.demo, field), false)
-    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 9)
+    assert.equal(JSON.parse(await readFile(cacheFile, 'utf8')).version, 12)
     assert.deepEqual(await parseWorkspace(root), workspace)
   })
 }
@@ -310,4 +312,158 @@ test('rebuilds a directory-shaped cache while preserving its contents in a backu
   const backup = (await readdir(join(root, '.isox'))).find(file => file.endsWith('.invalid'))
 
   assert.equal(await readFile(join(root, '.isox', backup, 'keep.txt'), 'utf8'), 'keep')
+})
+
+test('explicit refresh discovers added, edited, renamed and removed project definitions', async t => {
+  const { root, write } = await fixture(t)
+
+  await write('apps/one/project.json', { name: 'one' })
+  assert.deepEqual(Object.keys((await parseWorkspace(root, { cache: false })).projects), ['one'])
+  const file = join(root, 'apps/one/project.json')
+  const before = await stat(file)
+
+  await write('apps/one/project.json', { name: 'two' })
+  await utimes(file, before.atime, before.mtime)
+  assert.deepEqual(Object.keys((await parseWorkspace(root, { cache: false })).projects), ['two'])
+  await rename(join(root, 'apps/one'), join(root, 'apps/moved'))
+  assert.equal((await parseWorkspace(root, { cache: false })).projects.two.root, 'apps/moved')
+  await write('libs/new/project.json', { name: 'new' })
+  assert.deepEqual(Object.keys((await parseWorkspace(root, { cache: false })).projects).sort(), ['new', 'two'])
+  await rm(join(root, 'apps'), { recursive: true })
+  assert.deepEqual(Object.keys((await parseWorkspace(root, { cache: false })).projects), ['new'])
+})
+
+test('nested workspaces, generated output, excluded projects and symlinks share discovery boundaries', async t => {
+  const { root, write } = await fixture(t)
+
+  await write('project.json', { name: 'root' })
+  await write('lib/project.json', { name: 'lib' })
+  await write('lib/package.json', { name: '@test/lib' })
+  await write('.gitignore', 'dist/\nbuild/\ncoverage/\n.nx/\n/tmp/\n')
+  await write('.isoxignore', 'vendor/\ngenerated/\n')
+  for (const directory of ['dist', 'app/build', 'coverage', '.nx', 'node_modules', 'vendor', 'generated', 'tmp', 'nested']) {
+    await write(`${directory}/project.json`, '{invalid')
+    await write(`${directory}/index.ts`, "import '@test/lib'")
+  }
+
+  await write('nested/isox.json', {})
+  await symlink(join(root, 'nested'), join(root, 'linked'), 'junction')
+  const workspace = await parseWorkspace(root, { cache: false })
+
+  assert.deepEqual(Object.keys(workspace.projects).sort(), ['lib', 'root'])
+  assert.equal(workspace.projects.root.dependencies, undefined)
+  await write('nested/project.json', { name: 'nested' })
+  await rm(join(root, 'nested/isox.json'))
+  assert.ok((await parseWorkspace(root, { cache: false })).projects.nested)
+  await write('nested/isox.json', {})
+  assert.equal((await parseWorkspace(root, { cache: false })).projects.nested, undefined)
+  await write('vendor/project.json', { name: 'vendor' })
+  await write('.isoxignore', 'generated/\n')
+  assert.ok((await parseWorkspace(root, { cache: false })).projects.vendor)
+})
+
+test('honors nested gitignore rules, negation, and additive isoxignore without requiring Git', async t => {
+  const { root, write } = await fixture(t)
+
+  await write('.gitignore', '*.json\n!isox.json\n!project.json\nignored/\n')
+  await write('project.json', { name: 'root' })
+  await write('ignored/project.json', '{broken')
+  await write('ignored/.gitignore', '!project.json\n')
+  await write('packages/.gitignore', 'hidden/\ncase/\n')
+  await write('packages/hidden/project.json', '{broken')
+  await write('packages/Case/project.json', { name: 'Case' })
+  await write('packages/keep/project.json', { name: 'keep' })
+  await write('packages/omit/project.json', { name: 'omit' })
+  await write('.isoxignore', '/packages/*\n!/packages/keep/\n')
+  assert.deepEqual(Object.keys((await parseWorkspace(root, { cache: false })).projects).sort(), ['keep', 'root'])
+  await write('.isoxignore', '')
+  assert.deepEqual(Object.keys((await parseWorkspace(root, { cache: false })).projects).sort(), ['Case', 'keep', 'omit', 'root'])
+  await write('packages/hidden/project.json', { name: 'hidden' })
+  await write('packages/.gitignore', '')
+  assert.deepEqual(Object.keys((await parseWorkspace(root, { cache: false })).projects).sort(), ['Case', 'hidden', 'keep', 'omit', 'root'])
+})
+
+test('workspace rebuilds report progress and completion while cache hits stay quiet', async t => {
+  const { createLogger } = require('../../../dist/core')
+  const { root, write } = await fixture(t)
+  const entries = []
+  let starts = 0
+  let stops = 0
+  const taskLogger = createLogger({
+    reporters: [{
+      log: entry => entries.push(entry),
+      progress: () => {
+        starts++
+
+        return () => {
+          stops++
+        }
+      }
+    }]
+  })
+
+  await write('project.json', { name: 'demo' })
+  await parseWorkspace(root, { logger: taskLogger })
+  assert.equal(starts, 1)
+  assert.equal(stops, 1)
+  assert.match(entries.find(entry => entry.type === 'success').args[0], /Rebuilt \.isox\/workspace\.json \(1 project\) in \d+\.\d{2}s\./)
+  entries.length = 0
+  await parseWorkspace(root, { logger: taskLogger })
+  assert.equal(starts, 1)
+  assert.equal(entries.length, 0)
+
+  await write('project.json', { name: 'changed' })
+  await parseWorkspace(root, {
+    cache: false,
+    logger: taskLogger
+  })
+  assert.equal(starts, 2)
+  assert.equal(stops, 2)
+
+  entries.length = 0
+  await write('project.json', '{invalid')
+  await assert.rejects(parseWorkspace(root, {
+    cache: false,
+    logger: taskLogger
+  }), SyntaxError)
+  assert.equal(starts, 3)
+  assert.equal(stops, 3)
+  assert.equal(entries.some(entry => entry.type === 'success'), false)
+})
+
+test('cached discovery reads only definitions and ignores source, manifest and TypeScript changes', async t => {
+  const { root, write, cacheFile } = await fixture(t)
+
+  await write('app/project.json', { name: 'app' })
+  await write('app/index.ts', "import '@test/lib'")
+  await write('app/tsconfig.json', '{broken')
+  await write('app/package.json', '{broken')
+  const expected = await parseWorkspace(root)
+  const before = await stat(cacheFile)
+
+  assert.equal(expected.projects.app.dependencies, undefined)
+  assert.deepEqual(await readdir(join(root, '.isox')), ['workspace.json'])
+  await write('app/index.ts', "import '@test/other'\nexport const value = 2")
+  await write('app/project.json', { name: 'renamed' })
+  const fs = require('node:fs/promises')
+  const read = vi.spyOn(fs, 'readFile')
+  const walk = vi.spyOn(fs, 'readdir')
+  const metadata = vi.spyOn(fs, 'stat')
+
+  t.onTestFinished(() => {
+    read.mockRestore()
+    walk.mockRestore()
+    metadata.mockRestore()
+  })
+  assert.deepEqual(await parseWorkspace(root), expected)
+  assert.deepEqual(read.mock.calls.map(([file]) => file), [cacheFile])
+  assert.equal(walk.mock.calls.length, 0)
+  assert.equal(metadata.mock.calls.length, 0)
+  assert.equal((await stat(cacheFile)).mtimeMs, before.mtimeMs)
+
+  await resetWorkspace(root)
+  const refreshed = await parseWorkspace(root)
+
+  assert.equal(refreshed.projects.app, undefined)
+  assert.ok(refreshed.projects.renamed)
 })

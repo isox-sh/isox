@@ -27,7 +27,7 @@ export interface ProjectDefinition {
   [key: string]: unknown
   $schema?: string
   name?: string
-  /** Additional project names; discovery merges these with inferred dependencies. */
+  /** Additional project names, merged with inferred dependencies when analysis is requested. */
   dependencies?: string[]
   targets?: Record<string, ExecutorConfiguration>
   tags?: string[]

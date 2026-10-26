@@ -122,14 +122,19 @@ aliases without needing a build. Root development
 dependencies keep the local plugins available to Node and the CLI; TypeScript
 paths do not rewrite emitted imports. Source package manifests omit internal
 `@isox-sh/*` dependencies, and package generation restores the dependencies needed
-by their published code and types. Workspace discovery infers project edges, so
+by their published code and types. On-demand dependency analysis infers project edges, so
 package project definitions do not duplicate these imports.
 
 Isox uses `dependencies` for affected selection but does not schedule prerequisite builds yet: build core before JS
 and the other packages when rebuilding manually. `pnpm bootstrap` seeds core and the JS executor
 with TypeScript, then runs the package build commands through Isox. It also
-refreshes discovery. After editing a `project.json`, use `pnpm isox reset` to
-refresh discovery on the next run.
+refreshes project discovery. After editing project definitions, run `isox reset`
+before single-project commands. Dependency requests from affected selection or
+the TypeScript builder validate `.isox/discovery.json` and reuse valid entries.
+Its source fingerprint uses file metadata, so editing a source or test file can
+reanalyze that project's included sources on the next request. Ordinary commands
+do not check this cache, and its reuse never skips a compiler invocation. See
+[cache behavior](/docs/configuration#discovery-cache).
 
 ## Build outputs
 

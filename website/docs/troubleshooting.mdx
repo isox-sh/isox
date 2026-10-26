@@ -28,8 +28,9 @@ changing settings in an initialized workspace.
 ## Project or command not found
 
 Check that the project has a `project.json` with a unique name and that the
-command is defined under `targets`. After editing or moving project files,
-refresh discovery:
+command is defined under `targets`. Check that its path is not excluded by
+`.gitignore` or `.isoxignore`, symlinked, or inside a nested workspace. Discovery
+uses cached definitions for single-project commands. Refresh them after edits:
 
 ```sh
 npx isox reset
@@ -39,6 +40,40 @@ npx isox build web
 Names are case-sensitive. The directory name is used when `name` is omitted.
 For a command named `init`, `add`, `run`, `reset`, `affected`, `plan`, or `run-many`, use
 `isox run web:reset` (substituting your command) to avoid the CLI's reserved names.
+
+## Why does run-many rebuild the workspace every time?
+
+`run-many` deliberately reads fresh `project.json` files and rewrites
+`.isox/workspace.json` before selecting tasks. Its child commands then load that
+definitions cache. This refresh does not analyze source imports. An executor such
+as `js:tsc` can separately request dependency analysis and use `discovery.json`.
+`affected` and `plan` also refresh project definitions on every invocation.
+
+## Why did a comment edit change the sources SHA?
+
+The per-project `sources` SHA in `discovery.json` fingerprints file paths,
+identities, sizes and timestamps. It does not hash only imports. A body or comment
+edit can invalidate that project's entry on the next dependency request.
+Isox reanalyzes the project's included sources, not just the edited file;
+unchanged dependency projects can still reuse their results. Tests and declaration
+files count unless excluded by discovery rules or compiler output ownership.
+
+Only dependency requests perform these checks. Ordinary command loading reads
+`workspace.json` directly. Source edits do not require `isox reset`, and a valid
+dependency cache does not skip compilation or other task execution.
+
+## Why does discovery.json contain paths outside the workspace?
+
+The `reads` entries record TypeScript module-resolution probes. A directory entry
+such as `{"path":"/Users/node_modules","kind":"directory","value":false}`
+means that TypeScript checked whether the directory exists and it did not.
+Package lookup can check `node_modules` directories up the ancestor chain; this
+does not recursively scan them. File/content and real-path probes are recorded too.
+
+Build-time dependency analysis currently includes project test files. A test's
+`require.resolve()` can therefore produce probes unrelated to the emitted build
+files. These records are checked only when dependency analysis is requested.
+See [cache fields and invalidation](/docs/configuration#discovery-cache).
 
 ## Executor package cannot be loaded
 
@@ -75,8 +110,9 @@ The TypeScript executor remaps cross-project source aliases to built declaration
 using the dependency's compiler configuration. Verify its `rootDir`, `outDir`,
 and any `declarationDir` match the files it emits.
 
-If imports or package relationships have changed, run `isox reset` before a
-single-project build. For the Isox repository itself, `pnpm bootstrap` prepares
+The builder validates cached dependency analysis against source metadata,
+configuration and resolution inputs, and reanalyzes invalid entries. For the Isox
+repository itself, `pnpm bootstrap` prepares
 the CLI, executors, and prerequisite outputs from a clean checkout.
 
 ## A source file is not under `rootDir`
@@ -105,9 +141,9 @@ that project. Keep repository-wide tests with the root tooling they exercise,
 and keep package tests focused on their package. A root project can depend on
 packages without those packages needing to depend on the root.
 
-After changing imports or config, use `isox reset` before a single-project run.
-`isox plan --all --target=test` scans the current files and validates the graph
-without running tests.
+Affected planning reads current project definitions and infers dependencies.
+`isox plan --target=test` validates that graph without running tests; `--all`
+skips dependency inference.
 
 ## Affected selection is larger than expected
 
