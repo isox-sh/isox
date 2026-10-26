@@ -1,0 +1,42 @@
+packages/semver/tests/fixture.mjs
+  s_51871bdcdb3b4c::t_f0e57b87a80b8c 72-74
+ROADMAP.md
+  s_51871bdcdb3b4c::t_28b395f368044e 32-35
+  s_51871bdcdb3b4c::t_ff35207f85b091 53-54,353-354
+  s_51871bdcdb3b4c::t_2ebd38e7de4067 49-52,59,349-352
+  s_51871bdcdb3b4c::t_5b813321de0211 14,87-89,343-348,357-365
+  s_51871bdcdb3b4c::t_c66bdc9d90811b 55-58,86,98,303-305,355-356
+  s_51871bdcdb3b4c::t_a45c177e19d38a 366-374
+  s_51871bdcdb3b4c::t_04fdf4350ee496 90
+packages/core/tests/affected.test.mjs
+  s_51871bdcdb3b4c::t_f306130a5d355b 7,424
+  s_51871bdcdb3b4c::t_5206470e4f5490 305-307,321
+packages/semver/vitest.config.mjs
+  s_51871bdcdb3b4c::t_6a4bcce92e6873 1-6
+.github/workflows/pull-requests.yml
+  s_51871bdcdb3b4c::t_436eecaf9e7857 60-88,96
+website/docs/contributing.mdx
+  s_51871bdcdb3b4c::t_2ea4471d3d7009 76-80,196-215
+  s_51871bdcdb3b4c::t_7c322ace6f7bb2 75,216
+tests/release-workflow.test.mjs
+  s_51871bdcdb3b4c::t_f0e57b87a80b8c 43-44
+packages/cli/tests/packed-install.test.mjs
+  s_51871bdcdb3b4c::t_1c1b845efbd97e 1-23,28-31,33-81
+  s_51871bdcdb3b4c::t_b2ede3a10b5092 24-27,32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b1bbfa3f882ec97dee3717cb4de3771d6b412d53",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
