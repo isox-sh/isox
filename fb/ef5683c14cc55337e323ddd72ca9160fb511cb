@@ -1,0 +1,24 @@
+packages/nx/tests/nx-workspace-graph.test.mjs
+  s_51871bdcdb3b4c::t_6ae71d4fbacb19 193,198-202,208,211,214,221,227,231-248
+  s_51871bdcdb3b4c::t_dc3c9507a31b7b 27
+packages/nx/src/executor/nx-workspace-graph.ts
+  s_51871bdcdb3b4c::t_d149da1129f1a4 6-7,62,73,80-81,84
+packages/nx/tests/nx-runner.test.mjs
+  s_51871bdcdb3b4c::t_53b16aa3018e53 27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fbef5683c14cc55337e323ddd72ca9160fb511cb",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
