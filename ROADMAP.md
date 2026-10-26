@@ -30,8 +30,8 @@ configuration is accepted as custom metadata.
 
 Project dependency graphs, affected selection and weighted CI plans are now
 implemented. The next orchestration milestone is **1: prerequisite task graphs**.
-Foundation runtime checks have a dedicated Node/OS CI matrix; its first hosted
-run remains to be confirmed. Unchecked command/configuration proposals below are
+Foundation runtime checks have a dedicated Node/OS CI matrix, currently disabled;
+its first hosted run remains to be confirmed. Unchecked command/configuration proposals below are
 not implemented contracts.
 
 ## Current capability boundary
@@ -87,7 +87,7 @@ executors only and do not implement the native roadmap.
 - [x] Share `.gitignore`/`.isoxignore`, nested workspace, dependency-directory and symlink boundaries between project discovery and source inference. Generated directories use ignore rules; compiler outputs are excluded from dependency inference. See [discovery boundaries](website/docs/configuration.md#discovery-boundaries).
 - [x] Test cancellation through shell descendants, cooperative executor streams, and Nx graph workers with stubborn subprocesses. The Nx worker now uses process-tree termination. See [native lifecycle tests](packages/core/tests/executor-lifecycle.test.mjs) and [Nx lifecycle tests](packages/nx/tests/nx-workspace-graph.test.mjs).
 - [x] Validate real CLI/core tarballs through isolated local and global npm installs, invoke the installed binary outside the checkout, and document installation. See [packed installation tests](packages/cli/tests/packed-install.test.mjs).
-- [ ] Confirm the first hosted foundation matrix run: Node.js 24 and 26 on Windows/Linux/macOS is configured in [pull-requests](.github/workflows/pull-requests.yml), including core/CLI tests and packed installations. Local macOS Node 24 and 26 checks pass; hosted results remain pending.
+- [ ] Re-enable and confirm the first hosted foundation matrix run: Node.js 24 and 26 on Windows/Linux/macOS is configured in [pull-requests](.github/workflows/pull-requests.yml), including core/CLI tests and packed installations. The job is temporarily disabled. Local macOS Node 24 and 26 checks pass; hosted results remain pending.
 
 Foundation code: [workspace](packages/core/src/workspace/),
 [executors](packages/core/src/executor/), [CLI](packages/cli/src/),

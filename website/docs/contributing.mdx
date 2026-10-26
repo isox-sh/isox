@@ -72,7 +72,7 @@ files before selection.
 A final required check preserves failures and accepts an empty plan. Pull requests
 use their base SHA; other events use the nearest reachable Git tag, or all
 projects if none exists. This workflow runs only for pull requests and merge groups.
-A separate foundation matrix always runs core and CLI tests on
+A separate foundation matrix is temporarily disabled. When enabled, it runs core and CLI tests on
 Linux, macOS, and Windows with Node.js 24 and 26. It also installs packed CLI/core
 tarballs locally and globally in temporary directories, then runs the installed
 binary from an external workspace. The aggregate check includes this matrix.
@@ -212,7 +212,7 @@ ISOX_TEST_PACKAGES=1 pnpm isox test cli
 
 It needs npm registry access for external dependencies. Both packages are tested
 from their actual tarballs; nothing is published and the user's global install
-is untouched. CI enables this check in every foundation matrix job.
+is untouched. The foundation matrix enables this check when that job is re-enabled.
 
 The global `isox` command links to this checkout's built CLI.
 [`--install-links=false`](https://docs.npmjs.com/cli/v12/commands/npm-install/#install-links)
