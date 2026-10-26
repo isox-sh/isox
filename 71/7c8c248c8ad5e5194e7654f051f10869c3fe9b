@@ -1,0 +1,190 @@
+packages/core/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_75d62d4b10abbe 398-400
+  s_51871bdcdb3b4c::t_e7b42e3a7ff5ad 364-371,373,375-377,379,381-382,432,469
+  s_51871bdcdb3b4c::t_7bd4dcaeec3ce9 3
+  s_51871bdcdb3b4c::t_3f954913591f99 316,318-320,322-326,328,330,332,334-341,344-350,352-356,358,360,363
+  s_51871bdcdb3b4c::t_2060297acfbf2f 82,148,190,201,215,219,232,266,300,317,321,327,329,331,333,351,357,359,362,378,380,383,416-419,425-428,434,438-440,444-457,459-461,464-465,467-468
+  s_51871bdcdb3b4c::t_b31810f97fed8c 7,56,90-91,93
+  s_51871bdcdb3b4c::t_916945dc5898f7 83
+  s_51871bdcdb3b4c::t_8b7e7057af9efb 433,435-437,441-443,458,462
+  s_51871bdcdb3b4c::t_5206470e4f5490 37
+  s_51871bdcdb3b4c::t_c38a456b58edf4 261,463,466
+  s_5d3ad8740834ec::t_32cd49c31c63e5 372,374,384-397,401-415,420-424,429-431
+  s_51871bdcdb3b4c::t_1cfbed471fe6a7 342-343,361
+  s_51871bdcdb3b4c::t_b25993dee0767f 145
+website/docs/troubleshooting.mdx
+  s_51871bdcdb3b4c::t_2ea4471d3d7009 31-32,115
+  s_51871bdcdb3b4c::t_2ebd38e7de4067 33,144-146
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 44-77,113-114
+packages/core/src/workspace/dependency-cache.ts
+  s_51871bdcdb3b4c::t_e86a7d0560bb80 1-8,10-33,49-112,118-142,150-154,165-166
+  s_51871bdcdb3b4c::t_33e443c5704e7a 34-48,155-164
+  s_51871bdcdb3b4c::t_6fd18a91f604fc 113-117
+  s_51871bdcdb3b4c::t_b8f491ab8d6a3f 9,143-149
+packages/core/tests/workspace-dependencies.test.mjs
+  s_51871bdcdb3b4c::t_ff35207f85b091 89
+  s_51871bdcdb3b4c::t_8402f9648f9fcf 7,10-14,49-87,112,118,121-122,143,148,160,221,232,250,285,305,321,327,332,334,358,360,377,387
+  s_51871bdcdb3b4c::t_45d63dcaeee159 335-338
+  s_51871bdcdb3b4c::t_436eecaf9e7857 311
+  s_51871bdcdb3b4c::t_7a3fc2628140de 88
+packages/core/src/workspace/cache.ts
+  s_51871bdcdb3b4c::t_035f8b6a56f4d2 13
+  s_51871bdcdb3b4c::t_1ea86654e7dbcc 42,67,84
+  s_51871bdcdb3b4c::t_51def59457d539 78-81
+  s_51871bdcdb3b4c::t_e86a7d0560bb80 85,88-89,91-92,97,118
+  s_51871bdcdb3b4c::t_5a87196aee4bc0 17-18
+  s_51871bdcdb3b4c::t_bd730f81d8c5c6 57,64-66,70-72,82,104
+  s_51871bdcdb3b4c::t_ee4fa93c026453 27
+  s_51871bdcdb3b4c::t_ae485b781bceca 83
+packages/core/schemas/project.schema.json
+  s_51871bdcdb3b4c::t_c8778b1c16caeb 21
+packages/core/src/workspace/dependencies.ts
+  s_51871bdcdb3b4c::t_019332f2111a64 13,20,101,109,338
+  s_51871bdcdb3b4c::t_d135f0b67afd0b 21,203
+  s_51871bdcdb3b4c::t_6fd18a91f604fc 14
+  s_51871bdcdb3b4c::t_46b1859d11a5d7 33,152,231
+  s_51871bdcdb3b4c::t_9cc7e60d0e8ecc 119
+  s_51871bdcdb3b4c::t_b8f491ab8d6a3f 9-10,97,170-174,248-250,252-255,257-258,261-270,273-306,312-325,336-337
+  s_51871bdcdb3b4c::t_0ff95c35366282 11,17-19,98-100,102-108,110-118,120,227-228,230,232-241,244,309-311,328-330,339-341
+  s_51871bdcdb3b4c::t_1a45aeaa9a35cd 22
+actions/run-many/README.md
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 19-23
+packages/core/src/workspace/configuration.ts
+  s_51871bdcdb3b4c::t_ef681916914119 30
+packages/js/src/executors/tsc/watch.ts
+  s_51871bdcdb3b4c::t_33764a0decd40b 33,66,103,210-212
+  s_51871bdcdb3b4c::t_1652b9d04f6a92 213
+packages/core/src/workspace/parser.ts
+  s_51871bdcdb3b4c::t_aa580f1536dd08 34-36
+  s_51871bdcdb3b4c::t_5a87196aee4bc0 5,7,48,82
+  s_51871bdcdb3b4c::t_9cc7e60d0e8ecc 93
+  s_5d3ad8740834ec::t_907c20ec0d4039 41,43-45,84
+  s_5d3ad8740834ec::t_35704c8d8aa395 39-40,47,49,51-53,55-61,63-78,81,85-89,91
+  s_51871bdcdb3b4c::t_edfc49592ae714 83,94-96
+packages/core/tests/bootstrap.test.mjs
+  s_51871bdcdb3b4c::t_1cfbed471fe6a7 133
+website/index.mdx
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 138-139
+packages/js/src/executors/tsc/build-config.ts
+  s_51871bdcdb3b4c::t_33764a0decd40b 4,35-42,45,148
+  s_51871bdcdb3b4c::t_019332f2111a64 43-44
+website/docs/introduction.mdx
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 56-60
+packages/cli/README.md
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 10-15
+packages/cli/tests/workspace-cache.test.mjs
+  s_51871bdcdb3b4c::t_659a738b1d6872 51-53,69
+packages/core/src/affected/projects.ts
+  s_51871bdcdb3b4c::t_436eecaf9e7857 12
+website/README.md
+  s_51871bdcdb3b4c::t_c66bdc9d90811b 76
+actions/plan/README.md
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 24-28
+website/docs/cli.md
+  s_51871bdcdb3b4c::t_082834abe5bddc 119-121,127-132,135-138
+  s_51871bdcdb3b4c::t_01ad92780d7db0 20
+  s_51871bdcdb3b4c::t_ff35207f85b091 122-124
+  s_51871bdcdb3b4c::t_2ebd38e7de4067 114-118,125-126,133-134
+packages/js/README.md
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 10-15
+packages/cli/tests/affected.test.mjs
+  s_51871bdcdb3b4c::t_7773035d34019a 13-38
+  s_51871bdcdb3b4c::t_b2ede3a10b5092 358
+website/docs/custom-executors.md
+  s_51871bdcdb3b4c::t_01ad92780d7db0 254-257
+README.md
+  s_51871bdcdb3b4c::t_082834abe5bddc 19-23
+packages/cli/tests/add.test.mjs
+  s_51871bdcdb3b4c::t_33e443c5704e7a 67
+  s_51871bdcdb3b4c::t_b2ede3a10b5092 107,114
+website/docs/affected-and-ci.md
+  s_51871bdcdb3b4c::t_2ebd38e7de4067 9,115
+  s_51871bdcdb3b4c::t_082834abe5bddc 116-124
+  s_51871bdcdb3b4c::t_43ef7cc4dbe503 59
+  s_51871bdcdb3b4c::t_01ad92780d7db0 114
+website/docs/configuration.md
+  s_51871bdcdb3b4c::t_2ea4471d3d7009 102-104,107-122,126-137
+  s_51871bdcdb3b4c::t_43ef7cc4dbe503 140-142,144,152,159,163-164
+  s_51871bdcdb3b4c::t_51def59457d539 105-106
+  s_51871bdcdb3b4c::t_01ad92780d7db0 299-300
+  s_51871bdcdb3b4c::t_9d901f1f4007de 123-125,190-291,293-296
+packages/core/src/workspace/graph.ts
+  s_51871bdcdb3b4c::t_45d63dcaeee159 8
+packages/core/README.md
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 13-17
+website/docs/concepts.mdx
+  s_51871bdcdb3b4c::t_ff35207f85b091 109-111
+  s_51871bdcdb3b4c::t_2ebd38e7de4067 102-105,107-108,112,120-121,123-124
+  s_51871bdcdb3b4c::t_659a738b1d6872 77
+  s_51871bdcdb3b4c::t_01ad92780d7db0 122,130
+  s_51871bdcdb3b4c::t_082834abe5bddc 113-117,126-128
+  s_51871bdcdb3b4c::t_9b21c852d43cd4 119
+  s_51871bdcdb3b4c::t_2d6e5bf291d6cd 125
+packages/core/src/workspace/discovery.ts
+  s_51871bdcdb3b4c::t_5a87196aee4bc0 1,7-10,12,14,41,43,96-97
+  s_51871bdcdb3b4c::t_e2642fb13b4a6b 88
+  s_51871bdcdb3b4c::t_6f3b4911593382 2,4,6,17-24,26-37,40,42,45-47,49-60,62-66,69-87,89-95,98-99,101-102
+  s_51871bdcdb3b4c::t_1ea86654e7dbcc 25,104-107
+  s_51871bdcdb3b4c::t_c8e241fec11585 44,61,68
+  s_51871bdcdb3b4c::t_1a4c981a501b53 3,5,11,13,15-16,38-39,48,67,100,108
+  s_51871bdcdb3b4c::t_4922921d4efa08 103
+website/docs/contributing.mdx
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 132-137
+  s_51871bdcdb3b4c::t_43ef7cc4dbe503 125,131
+packages/core/src/index.ts
+  s_51871bdcdb3b4c::t_33764a0decd40b 18
+packages/cli/src/shared/selection.ts
+  s_51871bdcdb3b4c::t_33764a0decd40b 37-38
+  s_51871bdcdb3b4c::t_ebb48e1e6797eb 1
+  s_51871bdcdb3b4c::t_019332f2111a64 31
+website/docs/core-api.md
+  s_51871bdcdb3b4c::t_659a738b1d6872 61-63,214,217-218,228-231,237-244,264-265
+  s_51871bdcdb3b4c::t_082834abe5bddc 252-263
+  s_51871bdcdb3b4c::t_ff35207f85b091 245-251
+  s_5d3ad8740834ec::t_907c20ec0d4039 112-117
+website/docs/prompts/migrate-nx-to-isox.md
+  s_51871bdcdb3b4c::t_9ab9214abf9c88 376-392
+  s_51871bdcdb3b4c::t_2ebd38e7de4067 375
+  s_51871bdcdb3b4c::t_2ea4471d3d7009 393-395
+  s_51871bdcdb3b4c::t_01ad92780d7db0 137-138
+packages/js/tests/build-config.test.mjs
+  s_51871bdcdb3b4c::t_33764a0decd40b 192
+packages/core/tests/dependency-cache.test.mjs
+  s_51871bdcdb3b4c::t_f306130a5d355b 171-173,175,177-178,185-186
+  s_51871bdcdb3b4c::t_926bb688429eef 1,3-14,19-129,134-170,198-216
+  s_51871bdcdb3b4c::t_ac01079f4ec40f 179-184,187-196
+  s_51871bdcdb3b4c::t_6fd18a91f604fc 2,15-18,130-133,174,176,197
+website/docs/getting-started.md
+  s_51871bdcdb3b4c::t_c66bdc9d90811b 122-123
+website/docs/typescript.md
+  s_51871bdcdb3b4c::t_082834abe5bddc 102-115,236-238
+  s_51871bdcdb3b4c::t_5c41adca361f26 239
+packages/core/package.json
+  s_51871bdcdb3b4c::t_4f62dcf147509f 15
+pnpm-lock.yaml
+  s_51871bdcdb3b4c::t_b75c9a302c63e1 233-235,966-967,1541,1931
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "717c8c248c8ad5e5194e7654f051f10869c3fe9b",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
