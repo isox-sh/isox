@@ -1,0 +1,117 @@
+tests/ci-build.test.mjs
+  s_5d3ad8740834ec::t_f66dbe08313b93 168
+  s_5d3ad8740834ec::t_24f51d023637c6 28,52-55,57-60,63,67,71-77,80-81,119,128,144,164
+  s_5d3ad8740834ec::t_c8f9e9ece3d641 31,43-47
+  s_51871bdcdb3b4c::t_24f0dbe059d0c8 11,56
+  s_5d3ad8740834ec::t_450edb586d2cea 3,7,14,48-50,99-118,120-127,129-143,145-163,165-167,169-183
+packages/cli/src/shared/project-schedule.ts
+  h_b13471b77746e9 23
+  s_51871bdcdb3b4c::t_24f0dbe059d0c8 6-17
+  s_5d3ad8740834ec::t_c008aec0ec6ea7 1-5,18-22,24-77
+packages/cli/src/shared/runtime-builds.ts
+  s_51871bdcdb3b4c::t_f1f5588c2317d9 2,43-49
+  s_5d3ad8740834ec::t_bad5eb2f110c15 1,3-42,50-72
+website/docs/cli.md
+  s_51871bdcdb3b4c::t_9dbaadc2d18ae5 75-77,82-83,92
+  s_5d3ad8740834ec::t_180cbbcd98b8a4 85
+  s_51871bdcdb3b4c::t_fc017211399724 176-178
+  s_5d3ad8740834ec::t_9eeeac86dc0a37 80-81
+  s_51871bdcdb3b4c::t_058e5cf3035fec 148,175
+  s_5d3ad8740834ec::t_d75befebbff6bf 68-74,78-79,84,86-91
+  s_5d3ad8740834ec::t_ba4e9363e3fc5e 149
+website/docs/affected-and-ci.md
+  s_51871bdcdb3b4c::t_058e5cf3035fec 120
+  s_5d3ad8740834ec::t_bad5eb2f110c15 312-313
+  s_5d3ad8740834ec::t_ba4e9363e3fc5e 121-122
+  s_51871bdcdb3b4c::t_fc017211399724 309-311
+  s_5d3ad8740834ec::t_5a11d65e4f09d6 306-308
+packages/cli/src/shared/run-project-command.ts
+  s_51871bdcdb3b4c::t_28a07255e2eae3 19-20,28-35
+  s_51871bdcdb3b4c::t_9b85b6aef10c31 1,21-27
+  s_51871bdcdb3b4c::t_4670f630ffa0de 36-39,48
+website/docs/core-api.md
+  s_51871bdcdb3b4c::t_9dbaadc2d18ae5 131-133,140-142
+  s_5d3ad8740834ec::t_b6fa87cb2bd353 128-130
+packages/cli/src/shared/run-projects.ts
+  s_5d3ad8740834ec::t_b5c652d27a896b 40-42
+  s_51871bdcdb3b4c::t_3b7e3058ee3b89 52
+  s_51871bdcdb3b4c::t_28a07255e2eae3 5,50,53-54,57,71,90-91,94,100,103-106,108-109,113-117
+  s_51871bdcdb3b4c::t_b1e0a094a104c7 55
+  s_51871bdcdb3b4c::t_24f0dbe059d0c8 34
+  s_51871bdcdb3b4c::t_058e5cf3035fec 1,33
+  s_51871bdcdb3b4c::t_47941e98c147e4 28-32,85,87-89
+  s_5d3ad8740834ec::t_91e94514ca0cbf 35-39
+  s_5d3ad8740834ec::t_0ff99c87002b7e 4,43,46-49,51,56,84
+packages/cli/tests/task-cache.test.mjs
+  s_5d3ad8740834ec::t_d75befebbff6bf 76,92
+  s_51871bdcdb3b4c::t_a2616f413a7834 69,74-75,77-78
+  s_51871bdcdb3b4c::t_9dbaadc2d18ae5 49,91,93-96
+packages/cli/tests/project-schedule.test.mjs
+  s_51871bdcdb3b4c::t_7142c20fdfaf9b 1-14,19-60,65-70
+  s_51871bdcdb3b4c::t_ecb5812c4333e8 15-18,61-64
+  s_51871bdcdb3b4c::t_f1f5588c2317d9 71-75,80-92
+  s_51871bdcdb3b4c::t_14ada9a1aa297e 76-79
+packages/cli/tests/affected.test.mjs
+  s_5d3ad8740834ec::t_fbf9774b34473f 266
+  s_51871bdcdb3b4c::t_a2616f413a7834 267-273,338-339,343-368,371
+  s_51871bdcdb3b4c::t_058e5cf3035fec 369-370,372-375
+  s_5d3ad8740834ec::t_6cd9bdbbb2f5dc 376-377
+packages/cli/tests/task-display.test.mjs
+  s_5d3ad8740834ec::t_349c1a0537cf7a 94,200,244-248
+  s_51871bdcdb3b4c::t_1cd7798230de1c 1-6,8-9,11-29,36-38,46-47,53-55,59-60,76-77,83,88-91,93,97,99-105,111,121,124-125,175-178,204-205,217-220,224,233-234,236-241,264
+  s_5d3ad8740834ec::t_6910c1dc084691 10,30-35,39-45,48-52,57-58,61-75,78-82,84-87,92,95-96,98,106-110,112-120,122-123,126-127,129,132-144,147-148,151-152,158-160,163-164,166-167,171,174,179-184,186-188,190-195,199,206-216,225-228,230-232,259
+  s_5d3ad8740834ec::t_e786536e615069 203
+  s_5d3ad8740834ec::t_67398df636291e 189,196-198,201-202
+  s_51871bdcdb3b4c::t_7142c20fdfaf9b 7,221-223,229,235
+  s_5d3ad8740834ec::t_48f56c16c520f0 56,251
+  s_51871bdcdb3b4c::t_24f0dbe059d0c8 128,130,145-146,149-150,153-157,161-162,165,168-170,172-173
+  s_5d3ad8740834ec::t_180cbbcd98b8a4 185
+  s_5d3ad8740834ec::t_165ab389b12341 131,242-243,249-250,252-258,260-263
+website/docs/task-caching.md
+  s_51871bdcdb3b4c::t_1970cd46b6a772 68
+  s_51871bdcdb3b4c::t_9dbaadc2d18ae5 72
+  s_5d3ad8740834ec::t_a19a0d8ac7c8f7 69-71
+packages/cli/src/shared/task-display.ts
+  s_51871bdcdb3b4c::t_a8d126ba522c66 1,15,17,59-60,73-75,96-98,151,182
+  s_51871bdcdb3b4c::t_ffe36996597f67 2-3,9-10,12-14,18-28,32-44,46-48,54-55,57-58,61,67-68,71-72,76,79-80,83,85-92,99,126,129-130,136,140-141,143,146,158-161,163-166,169,171,183-185,209-210,212-214,240,243-246
+  s_5d3ad8740834ec::t_349c1a0537cf7a 110,114-115,200-202,208,235-237,242
+  s_51871bdcdb3b4c::t_b1e0a094a104c7 4-8,81-82,148,150,157
+  s_5d3ad8740834ec::t_91e94514ca0cbf 176-178
+  s_5d3ad8740834ec::t_48f56c16c520f0 123
+  s_5d3ad8740834ec::t_a9687b33c2643a 11,16,29-30,45,49,56,63-66,69-70,78,84,94-95,100-102,113,117-119,125,128,131-135,137-139,142,145,149,152-156,162,168,172-175,181,187-198,205-207,211,216-232
+  s_5d3ad8740834ec::t_9eeeac86dc0a37 233,239
+  s_5d3ad8740834ec::t_25e9b4143ff8a7 31,50-53,62,77,93,103-109,111-112,116,120-122,124,127,144,147,167,170,179-180,186,199,203-204,215,234,238,241
+.github/workflows/pull-requests.yml
+  s_5d3ad8740834ec::t_41862dd16256e5 39,42
+packages/core/src/index.ts
+  s_5d3ad8740834ec::t_0aab4c7025d69b 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0a3a2d7d680211269966fdacffd978341bdc574c",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
