@@ -1,0 +1,91 @@
+packages/vitest/generators.json
+  s_51871bdcdb3b4c::t_a7130b56c49605 1-8
+packages/vitest/src/executors/test/test.executor.ts
+  s_51871bdcdb3b4c::t_be7cb6754165bd 30-31
+packages/vitest/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_6977696a2aa789 3,52-56,136-142,144-151,154-172
+  s_51871bdcdb3b4c::t_937f977b66d3b9 143
+  s_51871bdcdb3b4c::t_b0b13675b91e35 152-153
+  s_51871bdcdb3b4c::t_e16ebd4171ed56 173
+packages/vitest/src/generators/add.ts
+  s_51871bdcdb3b4c::t_a7130b56c49605 1-18,22-30,35-38
+  s_5d3ad8740834ec::t_53e246b07d961e 19,21,31-34
+  s_51871bdcdb3b4c::t_a00ea2227c3cd3 20
+isox.json
+  s_51871bdcdb3b4c::t_be7cb6754165bd 8-12,14,16,20,22-23
+  s_51871bdcdb3b4c::t_937f977b66d3b9 13,19,26
+  s_51871bdcdb3b4c::t_d09de91d61f84a 24-25
+  h_b13471b77746e9 2
+  s_51871bdcdb3b4c::t_d302cb8c518856 6-7
+  s_51871bdcdb3b4c::t_2bafc913405511 15
+  s_51871bdcdb3b4c::t_1906dd56d64003 17-18
+  s_51871bdcdb3b4c::t_bb69a2e3a9fee7 21
+  s_51871bdcdb3b4c::t_1d401b20946947 27
+packages/eslint/tests/executor.test.mjs
+  s_51871bdcdb3b4c::t_6ea3de5a2697d7 250
+  s_51871bdcdb3b4c::t_6977696a2aa789 46-50,218-225,227-249,251-254,256-268
+  s_51871bdcdb3b4c::t_937f977b66d3b9 226,255
+packages/vitest/tests/add.test.mjs
+  s_51871bdcdb3b4c::t_937f977b66d3b9 75-138
+  s_51871bdcdb3b4c::t_d865090320239d 1-74,139-140
+website/docs/typescript.md
+  s_51871bdcdb3b4c::t_6838f329b16d49 41-61,133-134
+  s_51871bdcdb3b4c::t_9ffc17e47304c4 171-173
+  s_51871bdcdb3b4c::t_8dd007707b45fc 174
+packages/vitest/package.json
+  s_51871bdcdb3b4c::t_a7130b56c49605 9-10,32-33
+packages/eslint/src/executors/lint/lint.executor.ts
+  s_51871bdcdb3b4c::t_be7cb6754165bd 10
+  s_5d3ad8740834ec::t_c88169d09d7577 51-55,70-71
+website/docs/eslint.md
+  s_51871bdcdb3b4c::t_937f977b66d3b9 80
+  s_51871bdcdb3b4c::t_be7cb6754165bd 70-79,81-90
+packages/js/src/generators/init.ts
+  s_5d3ad8740834ec::t_53e246b07d961e 173,181-185
+  s_51871bdcdb3b4c::t_a00ea2227c3cd3 102-109
+  s_51871bdcdb3b4c::t_fc69dc5881bc7a 99-101
+  s_51871bdcdb3b4c::t_ebb064e81307b5 110-112
+  s_51871bdcdb3b4c::t_6433e7b5a104dd 6,9,24,97-98,113-118,127
+website/docs/vitest.md
+  s_51871bdcdb3b4c::t_937f977b66d3b9 36,48
+  s_51871bdcdb3b4c::t_6838f329b16d49 21-35,37-47,49-53
+e2e/tests/js-init.test.mjs
+  s_51871bdcdb3b4c::t_44859800b10f79 2,33,46-50
+packages/cli/tests/init-project.test.mjs
+  s_51871bdcdb3b4c::t_594bf385d1008f 76,85-90
+packages/e2e/project.json
+  s_51871bdcdb3b4c::t_2922d3d2496690 10-13
+packages/js/tests/init.test.mjs
+  s_51871bdcdb3b4c::t_f17978aab8aa6e 54-126
+packages/js/tests/tsc.test.mjs
+  s_51871bdcdb3b4c::t_77d5a82f8e34a5 117-163
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "77952722378dfdcbf1bbc16b1ebe69c4a34cad16",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    },
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
