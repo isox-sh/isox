@@ -94,7 +94,7 @@ jobs:
     needs:
       - plan
       - shards
-      - foundation
+#      - foundation
     if: |
       !cancelled()
     steps:

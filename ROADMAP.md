@@ -151,7 +151,7 @@ changed inputs cause a miss, and unsuccessful tasks cannot produce reusable hits
 ## 4. Remote result caching
 
 Reuse the local artifact contract through an optional storage interface. Start
-with one provider; S3, Azure Blob, and GCP are potential adapters, not current
+with one provider; GCP, Azure Blob, and S3 are potential adapters, not current
 integrations. No cloud deployment is required by this roadmap-writing task.
 
 - [ ] Define a small provider interface for fetching and publishing content-addressed task artifacts.
