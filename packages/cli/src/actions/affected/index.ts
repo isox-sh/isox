@@ -27,7 +27,7 @@ export function registerAffectedAction(cli: CAC): void {
         process.stdout.write(`${JSON.stringify(projects)}\n`)
 
       } else {
-        await runProjects(selected.root, selected.workspace, projects, plan, getExecutorOverrides(cli))
+        await runProjects(selected.root, selected.workspace, projects, plan, getExecutorOverrides(cli), { skipCache: options.skipCache })
       }
     })
 }

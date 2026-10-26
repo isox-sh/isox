@@ -175,11 +175,11 @@ The full contract and migration limits are documented in the
 ## Programmatic execution
 
 For programmatic execution, call
-`runExecutor(workspace, projectName, commandName, workspaceRoot, logger?, configurationName?, signal?, optionOverrides?)`.
+`runExecutor(workspace, projectName, commandName, workspaceRoot, logger?, configurationName?, signal?, optionOverrides?, cacheOptions?)`.
 The runner selects and merges options from the workspace configuration. Omit the
 configuration name to use the command's default. `context.command` and the
-workspace graph retain the unmerged command definition; the executor's first
-argument contains the merged options. `runExecutor` accepts an optional
+workspace graph retain the definition with workspace target defaults already applied;
+the executor's first argument contains the merged options. `runExecutor` accepts an optional
 `AbortSignal` as its seventh argument and option overrides as its eighth. Overrides
 replace selected configuration values at the top level. See the
 [core API](/docs/core-api#core-api) for an invocation example.
@@ -271,3 +271,13 @@ names mapped to local directories and exposes `runIsox`, `runNode`, and `cleanup
 It works with any test runner and reuses existing package installations without
 running a package manager. See the package guide for examples and supported
 installation layouts.
+
+## Cacheable execution
+
+Native targets can opt into [local task caching](/docs/task-caching) with `cache: true`
+and optional disposable output directories. Omit outputs for log-only results.
+A cache hit skips the executor and restores declared outputs. Keep file writes
+inside those directories and declare all file/environment inputs. Core captures Node stdout/stderr and child output from
+`runProcess`; use that helper for spawned commands so cancellation and terminal
+replay work together. Continuous results, failures and cancellation are never
+stored as successful finite tasks.

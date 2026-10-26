@@ -2,10 +2,10 @@ import { getCommandStages, logger, positiveInteger, runProcess, validateProjectC
 
 import { withCancellation } from './cancellation'
 
-import type { TargetPlanOptions, WorkspaceGraph } from '@isox-sh/core'
+import type { TargetPlanOptions, TaskCacheOptions, WorkspaceGraph } from '@isox-sh/core'
 
 /** Each project gets its own CLI process: plugins may change cwd, environment, or module globals. */
-export async function runProjects(root: string, workspace: WorkspaceGraph, projects: string[], options: TargetPlanOptions, optionOverrides: Record<string, unknown> = {}): Promise<void> {
+export async function runProjects(root: string, workspace: WorkspaceGraph, projects: string[], options: TargetPlanOptions, optionOverrides: Record<string, unknown> = {}, cacheOptions: TaskCacheOptions = {}): Promise<void> {
   const parallel = positiveInteger(options.parallel ?? 1, 'parallel')
 
   validateProjectCommands(workspace, projects, options)
@@ -43,6 +43,10 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
 
             if (process.argv.includes('--verbose')) {
               args.push('--verbose')
+            }
+
+            if (cacheOptions.skipCache) {
+              args.push('--skip-cache')
             }
 
             args.push('--', `${name}:${stage.target}`)

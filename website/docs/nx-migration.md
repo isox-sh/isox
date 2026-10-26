@@ -43,8 +43,9 @@ use `@nx-extend/gcp` instead. Package entries match exactly, and unscoped packag
 names are supported too. Runner selection uses only this array, including for
 `@nx/*` packages. An absent or empty array selects no Nx packages.
 Matching packages use the Nx adapter. Other packages use the native contract.
-Both read `executors` manifests; Nx also accepts legacy `builders` manifests. Changes to `isox.json` take
-effect on the next run without `isox reset`.
+Both read `executors` manifests; Nx also accepts legacy `builders` manifests.
+Changes to `nx.executors` take effect on the next run without `isox reset`.
+Changes to target defaults follow the [workspace refresh rules](/docs/configuration#target-defaults).
 
 ## Executor context and graph
 
@@ -84,7 +85,7 @@ Project dependency edges remain available through `projectGraph`.
 
 The adapter reads an optional JSON `nx.json` into `nxJsonConfiguration` (or uses
 `{}` when absent). Command configurations are merged before invoking the adapter.
-It does not apply workspace target defaults or executor schema defaults to the
+It does not import Nx workspace target defaults or apply executor schema defaults to the
 options passed to the executor. Nx-inferred metadata supplements the graph;
 explicit extra project and command properties are passed through, including
 `sourceRoot` when provided. Plugins that require missing features need migration or additional
@@ -106,11 +107,16 @@ that defines both `implicitDependencies` and `dependencies`
 reports an error instead of discarding either value.
 
 This conversion covers explicitly configured targets with an `executor`;
-inferred targets, target defaults, and shell-command shorthand are not resolved.
+inferred targets, Nx target defaults, and shell-command shorthand are not resolved.
+Move compatible options/configurations to [Isox target defaults](/docs/configuration#target-defaults)
+explicitly; Nx caching/input expressions need their own migration.
 Targets without an `executor` are skipped in memory and in the workspace cache.
 Commands execute through the resulting `targets` field. Extra metadata
-does not automatically enable `dependsOn` scheduling, `inputs`, or `outputs`
-processing. The resolved `name` and file-derived `root`
+does not enable `dependsOn` scheduling or native result caching. Migration removes
+Nx `cache` and `inputs` declarations in memory so they cannot accidentally opt a
+command into Isox caching. Output metadata is retained for the adapter. After
+switching to a native executor, configure [Isox inputs and outputs](/docs/task-caching)
+explicitly. The resolved `name` and file-derived `root`
 remain authoritative in the workspace graph.
 
 ## Retaining an Nx executor

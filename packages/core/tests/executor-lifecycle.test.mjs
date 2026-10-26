@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const { createLogger, LogLevels, runExecutor } = require('../../../dist/core')
@@ -327,3 +327,54 @@ test('watch and cancelled commands stop the running indicator before reporting t
     assert.deepEqual(events, cancelled ? ['running', 'stopped', 'warn'] : ['running', 'stopped', 'error', 'success'])
   }
 })
+
+for (const exitCode of [0, 1]) {
+  test(`noninteractive children keep progress animated while quiet and preserve both output streams (exit ${exitCode})`, async t => {
+    const { root } = await fixture(t, 'module.exports = () => ({ success: true })')
+    const { runProcess } = require('../../../dist/core')
+    const { captureOutput } = require('../../../dist/core/cache/output')
+    let progress = ''
+    const taskLogger = createLogger({
+      colors: false,
+      stdout: {
+        isTTY: true,
+        write: chunk => {
+          progress += chunk
+        }
+      }
+    })
+
+    vi.stubEnv('TERM', 'xterm')
+    vi.stubEnv('CI', '')
+    vi.stubEnv('ISOX_PROGRESS', '')
+    const stop = taskLogger.progress('Running a quiet tool')
+
+    try {
+      const output = await captureOutput(async () => {
+        const result = await runProcess(process.execPath, ['-e', `
+          setTimeout(() => {
+            process.stdout.write('child stdout')
+            process.stderr.write('child stderr')
+            process.exitCode = ${exitCode}
+          }, 250)
+        `], {
+          cwd: root,
+          output: 'pipe'
+        })
+
+        assert.equal(result.success, exitCode === 0)
+      })
+
+      assert.match(progress, /⠙ Running a quiet tool/)
+      assert.ok(progress.indexOf('⠙') < progress.indexOf('INFO Running a quiet tool'))
+      for (const stream of ['stdout', 'stderr']) {
+        const text = output.chunks.filter(chunk => chunk.stream === stream).map(chunk => Buffer.from(chunk.data, 'base64').toString()).join('')
+
+        assert.equal(text, `child ${stream}`)
+      }
+    } finally {
+      stop()
+      vi.unstubAllEnvs()
+    }
+  })
+}

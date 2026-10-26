@@ -24,6 +24,6 @@ export async function runProjectCommand(
   const workspace = await parseWorkspace(workspaceRoot)
 
   await withCancellation(controller =>
-    runExecutor(workspace, projectName, commandName, workspaceRoot, logger, configuration, controller.signal, optionOverrides),
+    runExecutor(workspace, projectName, commandName, workspaceRoot, logger, configuration, controller.signal, optionOverrides, { skipCache: options.skipCache }),
   )
 }

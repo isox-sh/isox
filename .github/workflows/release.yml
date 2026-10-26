@@ -33,6 +33,9 @@ jobs:
     name: Release ${{ inputs.channel }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Release artifacts must be built here, never replayed from task results.
+    env:
+      ISOX_SKIP_CACHE: '1'
     steps:
       - name: Require a branch
         run: |

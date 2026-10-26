@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process'
 
+import { capturingOutput } from '../cache/output'
 import { pauseProgress } from '../logger'
 import { handleProcessCancellation } from './cancellation'
 
@@ -10,6 +11,8 @@ export interface RunProcessOptions {
   shell?: boolean
   signal?: AbortSignal
   env?: NodeJS.ProcessEnv
+  /** Pipe noninteractive tool output so progress can animate until the tool writes. */
+  output?: 'inherit' | 'pipe'
   /** Time before forced termination on POSIX. Wrappers must allow their children to shut down first. */
   gracePeriodMs?: number
 }
@@ -20,7 +23,8 @@ export async function runProcess(file: string, args: string[], options: RunProce
     return { success: false }
   }
 
-  const resume = pauseProgress()
+  const pipeOutput = options.output === 'pipe' || capturingOutput()
+  let resume = options.output === 'pipe' ? undefined : pauseProgress()
 
   try {
     return await new Promise<ExecutorResult>((resolveResult, reject) => {
@@ -28,8 +32,16 @@ export async function runProcess(file: string, args: string[], options: RunProce
         cwd: options.cwd,
         shell: options.shell,
         env: options.env,
-        stdio: 'inherit',
+        stdio: pipeOutput ? ['inherit', 'pipe', 'pipe'] : 'inherit',
         detached: process.platform !== 'win32',
+      })
+      child.stdout?.on('data', chunk => {
+        resume ??= pauseProgress()
+        process.stdout.write(chunk)
+      })
+      child.stderr?.on('data', chunk => {
+        resume ??= pauseProgress()
+        process.stderr.write(chunk)
       })
       const cleanup = handleProcessCancellation(child, options.signal, reject, options.gracePeriodMs)
 
@@ -43,6 +55,6 @@ export async function runProcess(file: string, args: string[], options: RunProce
       })
     })
   } finally {
-    resume()
+    resume?.()
   }
 }

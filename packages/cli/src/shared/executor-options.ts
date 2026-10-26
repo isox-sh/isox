@@ -8,6 +8,7 @@ type Command = ReturnType<CAC['command']>
 export function executionOptions(command: Command): Command {
   return command
     .allowUnknownOptions()
+    .option('--skip-cache', 'Execute without reading or writing task results')
     .option('--options <json>', 'Executor option overrides as a JSON object')
 }
 

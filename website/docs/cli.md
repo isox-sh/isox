@@ -102,7 +102,8 @@ options are used. An unknown configuration fails with an error. Names retain
 their exact spelling, including leading zeros in names such as `001`.
 
 Options are merged at the top level:
-`{ ...options, ...configurations[name], ...cliOverrides }`.
+`{ ...options, ...configurations[name], ...cliOverrides }` after
+[workspace target defaults](/docs/configuration#target-defaults) are merged.
 Nested objects and arrays are replaced rather than recursively merged. This
 works with native and Nx executors, including automatically migrated Nx project
 files. The source configuration and workspace cache retain their original values;
@@ -111,10 +112,11 @@ can be selected per invocation. Executor CLI flags override the selected configu
 
 ## Workspace cache
 
-Isox stores project definitions and explicit dependencies in `.isox/workspace.json`.
-Single-project commands read it directly without source or import analysis. Run
-`isox reset` after changing project definitions or discovery rules. Source edits
-do not invalidate this cache.
+Isox stores project definitions with merged target defaults and explicit
+dependencies in `.isox/workspace.json`. Project lookup reads that file directly,
+without recalculating defaults or analyzing sources and imports. Run `isox reset`
+after changing project definitions, target defaults, or discovery rules. Source
+edits do not invalidate this cache.
 
 `affected`, `plan`, and `run-many` read current definitions and rewrite
 `workspace.json` on every invocation. Workers spawned by `run-many` then load
@@ -127,10 +129,11 @@ not infer a graph.
 A dependency-cache hit reuses dependency lists, not task results. Source metadata
 or resolution changes can invalidate an entry; reanalysis reads the invalidated
 project's included sources, including tests, rather than just the edited file.
-Unchanged dependency projects can still reuse their entries. Executors continue
-to run, including the TypeScript compiler on a cached dependency-analysis result.
+Unchanged dependency projects can still reuse their entries. A dependency-analysis hit alone does not skip an executor. Native targets with
+`cache: true` additionally hash their inputs and can restore [task results](/docs/task-caching).
+Use `--skip-cache` on execution commands to bypass result reads and writes.
 
-Reset removes the whole `.isox` directory, including TypeScript ownership records
+Reset removes the whole `.isox` directory, including task results, TypeScript ownership records
 and build locks; stop active builds first. It does not delete compiled output.
 The next project lookup recreates `workspace.json`; dependency analysis recreates
 `discovery.json` only when requested. Source or import edits do not require reset.
@@ -144,5 +147,5 @@ Affected selection follows inferred and explicitly declared dependencies. Parall
 separate child CLI processes, and the GitHub actions distribute exact weighted
 project lists. See [affected projects and CI](/docs/affected-and-ci).
 Declaring `dependencies` does not schedule prerequisite builds; prepare required
-outputs before running workers. Task-result caching, dependency task scheduling,
-and isolation remain on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
+outputs before running workers. Local task caching is opt-in; remote caching,
+dependency task scheduling and isolation remain on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).

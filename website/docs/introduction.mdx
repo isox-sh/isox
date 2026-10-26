@@ -54,9 +54,9 @@ changed projects and their dependents, then distribute work across weighted
 GitHub Actions jobs.
 
 Project definitions are cached separately from dependency-analysis results.
-Only affected selection or executors that need dependencies validate the analysis
-cache. Tasks still execute on every invocation; see
-[how caching works](/docs/configuration#discovery-cache).
+Affected selection, cacheable targets, and executors that need dependencies
+validate the analysis cache. Native targets can also reuse successful task results
+with [opt-in local caching](/docs/task-caching).
 
 <CardGroup cols={2}>
   <Card title="Configure your workspace" icon="sliders" href="/docs/configuration">
@@ -75,8 +75,8 @@ cache. Tasks still execute on every invocation; see
 
 <Note>
   Project dependencies determine affected selection. Build prerequisite outputs
-  explicitly before running consumers. Dependency task scheduling and task output
-  caching are on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
+  explicitly before running consumers. [Local task caching](/docs/task-caching) is
+  opt-in. Dependency task scheduling and remote caching are on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
 </Note>
 
 ## Extend your tooling

@@ -5,6 +5,8 @@ import { logger } from '../logger'
 import { cacheVersion, readWorkspaceCache, writeWorkspaceCache } from './cache'
 import { parseProjectDefinition } from './configuration'
 import { discoverWorkspace } from './discovery'
+import { readWorkspaceSettings } from './settings'
+import { resolveTargetDefaults } from './target-defaults'
 
 import type { Logger } from '../logger'
 import type { ProjectDefinition } from './configuration'
@@ -14,7 +16,7 @@ interface ParseWorkspaceOptions {
   logger?: Logger
 }
 
-export type { ExecutorConfiguration, ProjectDefinition } from './configuration'
+export type { ExecutorConfiguration, ProjectDefinition, TaskInput, EnvironmentInput, TargetDefaults } from './configuration'
 
 export interface ProjectConfiguration extends ProjectDefinition {
   name: string
@@ -45,6 +47,7 @@ export async function parseWorkspace(cwd: string, options: ParseWorkspaceOptions
   }
 
   try {
+    const settings = await readWorkspaceSettings(cwd)
     const snapshot = await discoverWorkspace(cwd)
     const projects: Record<string, ProjectConfiguration> = Object.create(null)
 
@@ -78,10 +81,10 @@ export async function parseWorkspace(cwd: string, options: ParseWorkspaceOptions
       }
     }
 
-    const workspace = { projects }
+    const workspace = resolveTargetDefaults({ projects }, settings)
     await writeWorkspaceCache(cwd, {
       version: cacheVersion,
-      projects
+      projects: workspace.projects
     }, taskLogger)
 
     stop?.()

@@ -16,10 +16,11 @@ const oidc = {
 async function fixture(t) {
   const root = await realpath(await mkdtemp(join(tmpdir(), 'isox-release-')))
   const calls = []
-  const run = (command, args, cwd) => calls.push({
+  const run = (command, args, cwd, envOverrides) => calls.push({
     command,
     args,
-    cwd
+    cwd,
+    ...(envOverrides ? { envOverrides } : {})
   })
   const write = async (directory, manifest) => {
     await mkdir(join(root, directory), { recursive: true })
@@ -60,7 +61,7 @@ async function fixture(t) {
   }
 }
 
-test('release builds first, checks every package, then publishes dependencies before consumers', async t => {
+test('release rebuilds without task caching, checks every package, then publishes dependencies before consumers', async t => {
   const { root, calls, run } = await fixture(t)
 
   await release({
@@ -71,7 +72,8 @@ test('release builds first, checks every package, then publishes dependencies be
   assert.deepEqual(calls[0], {
     command: 'pnpm',
     args: ['bootstrap'],
-    cwd: root
+    cwd: root,
+    envOverrides: { ISOX_SKIP_CACHE: '1' }
   })
   assert.deepEqual(calls.slice(1).map(call => [call.args[0], call.cwd]), [
     ['pack', join(root, 'dist/core')],
@@ -91,6 +93,7 @@ test('dry run checks packages locally without OIDC or a publish command', async 
     dryRun: true
   }, run, {})
   assert.deepEqual(calls.map(call => call.args[0]), ['bootstrap', 'pack', 'pack'])
+  assert.deepEqual(calls[0].envOverrides, { ISOX_SKIP_CACHE: '1' })
 })
 
 test('latest publishes with OIDC and supports local dry runs', async t => {

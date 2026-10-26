@@ -17,13 +17,20 @@
     "dependencies": {
       "type": "array",
       "uniqueItems": true,
-      "items": { "type": "string", "pattern": "^[^\\s:]+$" },
+      "items": {
+        "type": "string",
+        "pattern": "^[^\\s:]+$"
+      },
       "description": "Additional project dependencies, merged with imports and local package references during on-demand dependency analysis. Used to propagate affected changes; prerequisite scheduling is not yet implemented."
     },
     "targets": {
       "type": "object",
-      "propertyNames": { "pattern": "^[^\\s:]+$" },
-      "additionalProperties": { "$ref": "#/definitions/executor" },
+      "propertyNames": {
+        "pattern": "^[^\\s:]+$"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/executor"
+      },
       "description": "Commands available through isox <command> <target>, where target is the project name."
     },
     "plan": {
@@ -46,14 +53,19 @@
     "tags": {
       "type": "array",
       "uniqueItems": true,
-      "items": { "type": "string", "minLength": 1 },
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
       "description": "Labels for organizing projects."
     }
   },
   "definitions": {
     "executor": {
       "type": "object",
-      "required": ["executor"],
+      "required": [
+        "executor"
+      ],
       "properties": {
         "executor": {
           "type": "string",
@@ -66,14 +78,121 @@
         },
         "configurations": {
           "type": "object",
-          "propertyNames": { "pattern": "^[^\\s:,]+$" },
-          "additionalProperties": { "type": "object" },
+          "propertyNames": {
+            "pattern": "^[^\\s:,]+$"
+          },
+          "additionalProperties": {
+            "type": "object"
+          },
           "description": "Named overrides merged over options. Nested objects and arrays are replaced."
         },
         "defaultConfiguration": {
           "type": "string",
           "pattern": "^[^\\s:,]+$",
           "description": "Configuration selected when no configuration is specified on the command line."
+        },
+        "cache": {
+          "type": "boolean",
+          "default": false,
+          "description": "Reuse successful native task results. Outputs are exclusively owned, disposable directories."
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "object",
+                "required": [
+                  "env"
+                ],
+                "properties": {
+                  "env": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "description": "Workspace-relative globs or environment inputs. Supports {projectRoot}, {workspaceRoot} and ! exclusions. Defaults to all project files."
+        },
+        "outputs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Exclusive output directories, relative to the workspace. No globs. Omit for logs-only caching; use [] to clear inherited outputs."
+        }
+      },
+      "additionalProperties": true
+    },
+    "targetDefaults": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "object",
+          "description": "Options passed to the executor."
+        },
+        "configurations": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[^\\s:,]+$"
+          },
+          "additionalProperties": {
+            "type": "object"
+          },
+          "description": "Named overrides merged over options. Nested objects and arrays are replaced."
+        },
+        "defaultConfiguration": {
+          "type": "string",
+          "pattern": "^[^\\s:,]+$",
+          "description": "Configuration selected when no configuration is specified on the command line."
+        },
+        "cache": {
+          "type": "boolean",
+          "default": false,
+          "description": "Reuse successful native task results. Outputs are exclusively owned, disposable directories."
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "object",
+                "required": [
+                  "env"
+                ],
+                "properties": {
+                  "env": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                  }
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "description": "Workspace-relative globs or environment inputs. Supports {projectRoot}, {workspaceRoot} and ! exclusions. Defaults to all project files."
+        },
+        "outputs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Exclusive output directories, relative to the workspace. No globs. Omit for logs-only caching; use [] to clear inherited outputs."
         }
       },
       "additionalProperties": true

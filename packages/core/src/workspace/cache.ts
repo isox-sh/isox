@@ -14,8 +14,8 @@ export interface WorkspaceCache extends WorkspaceGraph {
   version: number
 }
 
-// Earlier formats persisted inferred edges; definitions now retain only declared dependencies.
-export const cacheVersion = 12
+// Persist effective targets with workspace defaults, and only declared dependency edges.
+export const cacheVersion = 14
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
