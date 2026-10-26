@@ -11,7 +11,7 @@ This preserves the original blueprint's orchestration goals while reflecting
 our decision to use Isox's own contract. Projects use `project.json` with
 `dependencies` and `targets`; executor packages expose an `executors.json`
 manifest and receive Isox's native context. The runtime uses TypeScript/Node.js,
-`cac` for CLI parsing, and `fast-glob` for discovery.
+`cac` for CLI parsing, and filesystem discovery with Git-compatible ignore rules.
 
 Nx support is only a temporary path for initial migration and evaluation, limited
 to Nx 23. Projects adopting Isox should replace Nx executors and configuration
@@ -29,9 +29,10 @@ issues when useful; do not mark features complete solely because their
 configuration is accepted as custom metadata.
 
 Project dependency graphs, affected selection and weighted CI plans are now
-implemented. The next orchestration milestone is **1: prerequisite task graphs**;
-follow-up robustness work in milestone 0 can proceed alongside it. Unchecked
-command/configuration proposals below are not implemented contracts.
+implemented. The next orchestration milestone is **1: prerequisite task graphs**.
+Foundation runtime checks have a dedicated Node/OS CI matrix; its first hosted
+run remains to be confirmed. Unchecked command/configuration proposals below are
+not implemented contracts.
 
 ## Current capability boundary
 
@@ -45,9 +46,17 @@ our CI. See [affected projects and CI](website/docs/affected-and-ci.md).
 inputs/outputs, hashing, artifact transfer, and sandboxing are not implemented.
 Build prerequisites must be prepared explicitly before workers run.
 
-`.isox/workspace.json` caches project configuration only. It does not cache task
-results. Single-project commands require `isox reset` after project changes;
-affected selection, planning and run-many always scan fresh project definitions.
+`.isox/workspace.json` caches project definitions and explicit dependencies only.
+It does not cache task results or inferred edges. Single-project commands load
+cached definitions directly until reset; affected selection, planning and run-many
+refresh definitions. Dependency analysis runs on demand for affected selection or
+an executor, with optional source analysis scoped to a dependency closure. These
+requests alone validate and populate `.isox/discovery.json` with per-project results.
+Valid entries avoid source parsing. A changed source-metadata fingerprint causes
+all included sources of that project to be reanalyzed, including tests; it does
+not rebuild project definitions or skip executor work. See
+[cache behavior](website/docs/configuration.md#discovery-cache).
+Discovery honors `.gitignore`/`.isoxignore`, nested workspaces and symlink boundaries.
 The Nx adapter's inferred graph and separate Nx file-map cache serve migration
 executors only and do not implement the native roadmap.
 
@@ -74,12 +83,11 @@ executors only and do not implement the native roadmap.
 - [x] Select temporary Nx adapters through `nx.executors`, supply dependency metadata, and reject installed Nx runtimes outside version 23.
 - [x] Add regression coverage for graph metadata, external npm nodes, cache reuse, unsupported Nx versions, and configuration errors.
 - [x] Configure CI to build, lint, and run affected package suites through our weighted plan/run-many actions, with per-worker bootstrapping and an aggregate required check.
-- [ ] Define automatic discovery-cache invalidation for added, changed, renamed, and removed project files, with a cache format/version strategy.
-- [ ] Define discovery boundaries for nested workspaces, generated output directories, ignored projects, and symlinks.
-- [ ] Test cancellation and signal propagation through shell children, executor streams, and the Nx graph worker; avoid leaving running children behind.
-- [ ] Make the Nx 23 webpack/package-generation smoke fixture reproducible in CI while the adapter remains supported.
-- [ ] Validate packed CLI/core installation and the `isox` binary outside this checkout, including local/global installation instructions.
-- [ ] Exercise the declared Node support range and Windows/Linux/macOS behavior in CI.
+- [x] Separate project discovery from on-demand dependency inference. Cache format 12 stores definitions only; affected selection requests the graph and the JS builder requests scoped source analysis. Dependency requests alone validate and populate `discovery.json`; ordinary commands skip its source fingerprints and resolution probes. See [definitions cache tests](packages/core/tests/workspace-cache.test.mjs), [dependency cache tests](packages/core/tests/dependency-cache.test.mjs), and [dependency inference tests](packages/core/tests/workspace-dependencies.test.mjs).
+- [x] Share `.gitignore`/`.isoxignore`, nested workspace, dependency-directory and symlink boundaries between project discovery and source inference. Generated directories use ignore rules; compiler outputs are excluded from dependency inference. See [discovery boundaries](website/docs/configuration.md#discovery-boundaries).
+- [x] Test cancellation through shell descendants, cooperative executor streams, and Nx graph workers with stubborn subprocesses. The Nx worker now uses process-tree termination. See [native lifecycle tests](packages/core/tests/executor-lifecycle.test.mjs) and [Nx lifecycle tests](packages/nx/tests/nx-workspace-graph.test.mjs).
+- [x] Validate real CLI/core tarballs through isolated local and global npm installs, invoke the installed binary outside the checkout, and document installation. See [packed installation tests](packages/cli/tests/packed-install.test.mjs).
+- [ ] Confirm the first hosted foundation matrix run: Node.js 24 and 26 on Windows/Linux/macOS is configured in [pull-requests](.github/workflows/pull-requests.yml), including core/CLI tests and packed installations. Local macOS Node 24 and 26 checks pass; hosted results remain pending.
 
 Foundation code: [workspace](packages/core/src/workspace/),
 [executors](packages/core/src/executor/), [CLI](packages/cli/src/),
@@ -87,7 +95,7 @@ Foundation code: [workspace](packages/core/src/workspace/),
 
 ## 1. Explicit dependency and task graphs
 
-Build a native graph without the Nx adapter. Discovery combines literal source
+Build a native graph without the Nx adapter. Requested dependency analysis combines literal source
 imports, TypeScript aliases, and local package-manifest references with additional
 project names from `dependencies`. It does not perform type checking or execute
 source files while building the graph.
@@ -292,6 +300,9 @@ Follow-up review: 2026-10-25.
 
 Automatic workspace dependencies: 2026-10-25.
 
+This records the original cache design. The foundation implementation below
+supersedes it with separate definition and on-demand dependency caches.
+
 - Removed internal `@isox-sh/*` dependency declarations from source package
   manifests and duplicate dependency arrays from package project definitions.
   Root TypeScript paths resolve package imports against the original sources.
@@ -329,3 +340,35 @@ Editor configuration follow-up: 2026-10-25.
 - TypeScript 6 and 7 workspace typechecks, ESLint, and all **270 tests passed**.
   An isolated bootstrap without `dist` or `.isox` built all seven packages and
   verified their entry points, executor manifests, schemas, and CLI startup.
+
+Foundation implementation: 2026-10-26.
+
+- Discovery uses root/nested `.gitignore` rules and a root `.isoxignore` for
+  additional exclusions. It does not follow symlinks or enter independent nested
+  workspaces, dependency installations, Git internals, or its own cache.
+- Cache format 12 stores definitions and declared dependencies only. Ordinary
+  commands load it directly until reset, without scanning or fingerprinting source
+  files. Dependency graphs are inferred in memory when requested; affected
+  selection requests the full graph, while the JS builder requests its dependency
+  closure for alias remapping. Only these requests check or populate per-project
+  results in `.isox/discovery.json`, validating source metadata and resolution probes.
+  Invalid entries reanalyze all included sources of that project; valid entries
+  reuse dependency lists. This caches analysis, not task results.
+- Shell cancellation and Nx graph cancellation now have descendant regressions;
+  Nx uses the shared process-tree cancellation helper. Cooperative stream cleanup
+  and POSIX signal exit-status coverage are retained.
+- Real packed CLI/core local and global installation checks run from a temporary
+  external workspace. The Node 24/26 Linux/macOS/Windows foundation matrix is part
+  of the PR and merge-group aggregate check. Its first hosted run is still pending.
+- Removed the planned Nx webpack/package-generation CI fixture at the user's
+  request. The adapter's unit/contract tests remain; no new Nx compatibility claim
+  is made.
+- Local macOS validation: package builds, TypeScript 7 typecheck, package lint,
+  workflow validation with actionlint 1.7.12, and documentation build/link checks
+  passed. Node 24.19.0 passed all ten package/workspace/end-to-end suites (424
+  tests across the final successful runs). Node 26.12.1 passed core/CLI/Nx and
+  packed installations (254 tests, including concurrent logger/progress tests).
+- Parallel validation exposed the semver suite's default five-second timeout and
+  a temporary Git-repository teardown race. Semver now uses the same 30-second
+  integration timeout as other packages; release fixtures disable automatic Git
+  maintenance. The affected suites passed after these changes.

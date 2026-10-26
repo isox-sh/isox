@@ -69,6 +69,9 @@ export async function fixture(t, initialVersion = '1.0.0') {
   git('config', 'user.email', 'isox-test@example.invalid')
   git('config', 'commit.gpgsign', 'false')
   git('config', 'tag.gpgsign', 'false')
+  // Fixture repositories are short-lived; background maintenance can race teardown.
+  git('config', 'gc.auto', '0')
+  git('config', 'maintenance.auto', 'false')
   const commit = (message) => {
     git('add', '--all')
     git('commit', '-m', message)

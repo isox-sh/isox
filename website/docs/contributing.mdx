@@ -72,6 +72,12 @@ files before selection.
 A final required check preserves failures and accepts an empty plan. Pull requests
 use their base SHA; other events use the nearest reachable Git tag, or all
 projects if none exists. This workflow runs only for pull requests and merge groups.
+A separate foundation matrix always runs core and CLI tests on
+Linux, macOS, and Windows with Node.js 24 and 26. It also installs packed CLI/core
+tarballs locally and globally in temporary directories, then runs the installed
+binary from an external workspace. The aggregate check includes this matrix.
+POSIX signal exit-code tests run on Linux/macOS; AbortSignal process-tree
+cancellation is exercised on all three operating systems.
 See [affected projects and CI](/docs/affected-and-ci) for the public actions.
 
 ```yaml
@@ -186,6 +192,27 @@ Isox repository root to build your checkout and install its CLI globally:
 node ./scripts/bootstrap.cjs
 npm install -g ./dist/cli --install-links=false
 ```
+
+To test the published package layout instead of a development link, pack both
+packages and install the resulting archives together into an isolated prefix:
+
+```bash
+mkdir -p tmp/packed
+npm pack ./dist/core ./dist/cli --pack-destination tmp/packed
+npm install --global --prefix "$PWD/tmp/installed" ./tmp/packed/*.tgz
+# POSIX: add tmp/installed/bin to PATH; Windows uses tmp/installed itself.
+```
+
+The package-local integration test automates local and global installation,
+checks the installed binary, and runs a core command outside this checkout:
+
+```bash
+ISOX_TEST_PACKAGES=1 pnpm isox test cli
+```
+
+It needs npm registry access for external dependencies. Both packages are tested
+from their actual tarballs; nothing is published and the user's global install
+is untouched. CI enables this check in every foundation matrix job.
 
 The global `isox` command links to this checkout's built CLI.
 [`--install-links=false`](https://docs.npmjs.com/cli/v12/commands/npm-install/#install-links)
