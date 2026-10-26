@@ -1,0 +1,25 @@
+website/docs/contributing.mdx
+  s_51871bdcdb3b4c::t_c82b351a626df8 75,215
+.github/workflows/pull-requests.yml
+  s_51871bdcdb3b4c::t_c82b351a626df8 61-62
+  s_51871bdcdb3b4c::t_7dd52f584454d1 60
+  s_51871bdcdb3b4c::t_55a9b2a069ee2a 63-65
+ROADMAP.md
+  s_51871bdcdb3b4c::t_c82b351a626df8 33-34,90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "566bb051728460d699e875740228f1bf0a18dcc0",
+  "prompts": {},
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
