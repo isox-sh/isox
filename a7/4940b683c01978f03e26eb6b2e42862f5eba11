@@ -1,0 +1,28 @@
+actions/cache/prepare.mjs
+  s_5d3ad8740834ec::t_33a57d80d3540f 11-12
+actions/cache/action.yml
+  s_5d3ad8740834ec::t_33a57d80d3540f 32-34
+tests/cache-action.test.mjs
+  s_5d3ad8740834ec::t_33a57d80d3540f 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a74940b683c01978f03e26eb6b2e42862f5eba11",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
