@@ -17,7 +17,7 @@ icon: "terminal"
 | `isox affected --target=<command>` | Run changed projects and their dependents; add `--print-matrix` for a JSON project array |
 | `isox plan --target=<command> --max-jobs=3` | Print an affected, weighted GitHub Actions matrix; use `--all` to select every matching project |
 | `isox run-many --target=<command> --projects=core,cli` | Run selected projects with optional `--parallel` |
-| `isox reset` | Remove `.isox`; the next command rebuilds discovery data |
+| `isox reset` | Remove `.isox`; definitions and dependency analysis are recreated when next requested |
 | `isox --help` | Show usage |
 
 In `isox build web`, `build` is the target name and `web` is the project name.
@@ -111,14 +111,31 @@ can be selected per invocation. Executor CLI flags override the selected configu
 
 ## Workspace cache
 
-Isox stores discovered projects in `.isox/workspace.json`. After adding, changing,
-renaming, or removing project files, run `isox reset`. The cache stores project
-configuration, not build outputs or task results. `affected`, `plan`, and
-`run-many` always rescan project files and refresh the cache. Reset removes the
-whole `.isox` directory, including TypeScript ownership records and build locks;
-stop active builds first. It does not delete compiled output.
+Isox stores project definitions and explicit dependencies in `.isox/workspace.json`.
+Single-project commands read it directly without source or import analysis. Run
+`isox reset` after changing project definitions or discovery rules. Source edits
+do not invalidate this cache.
 
-See [workspace configuration](/docs/configuration) for discovery details and
+`affected`, `plan`, and `run-many` read current definitions and rewrite
+`workspace.json` on every invocation. Workers spawned by `run-many` then load
+that cache; the parent does not infer dependencies merely to run the project list.
+Affected selection additionally requests dependency analysis. Results are cached
+separately in `.isox/discovery.json`, checked only when analysis is requested.
+Executors request analysis themselves when needed; selecting all projects does
+not infer a graph.
+
+A dependency-cache hit reuses dependency lists, not task results. Source metadata
+or resolution changes can invalidate an entry; reanalysis reads the invalidated
+project's included sources, including tests, rather than just the edited file.
+Unchanged dependency projects can still reuse their entries. Executors continue
+to run, including the TypeScript compiler on a cached dependency-analysis result.
+
+Reset removes the whole `.isox` directory, including TypeScript ownership records
+and build locks; stop active builds first. It does not delete compiled output.
+The next project lookup recreates `workspace.json`; dependency analysis recreates
+`discovery.json` only when requested. Source or import edits do not require reset.
+
+See [cache behavior and invalidation](/docs/configuration#discovery-cache) for details and
 [Nx migration](/docs/nx-migration) for temporary adapter support.
 
 ## Current scope

@@ -48,6 +48,9 @@ test('reset removes the whole cache from nested directories and the next CLI run
   }
 
   await write('apps/demo/project.json', project)
+  // Running and selecting explicit targets must not invoke dependency analysis.
+  await write('apps/demo/tsconfig.json', '{broken')
+  await write('apps/demo/package.json', '{broken')
   await write('node_modules/fixture-plugin/package.json', { executors: './executors.json' })
   await write('node_modules/fixture-plugin/executors.json', {
     executors: { build: { implementation: './executor.cjs' } },
@@ -63,6 +66,7 @@ test('reset removes the whole cache from nested directories and the next CLI run
 
   assert.equal(result.status, 0, result.stderr)
   assert.ok((await stat(cacheFile)).isFile())
+  assert.equal(run('plan', '--all', '--target', 'build').status, 0)
   project.targets.build.options.success = false
   await write('apps/demo/project.json', project)
   result = run('run', 'demo:build')

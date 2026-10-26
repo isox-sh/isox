@@ -10,11 +10,12 @@ import { findWorkspaceRoot } from './root'
 import type { Logger } from '../logger'
 import type { WorkspaceGraph } from './parser'
 
-interface WorkspaceCache extends WorkspaceGraph {
+export interface WorkspaceCache extends WorkspaceGraph {
   version: number
 }
 
-const cacheVersion = 9
+// Earlier formats persisted inferred edges; definitions now retain only declared dependencies.
+export const cacheVersion = 12
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -23,6 +24,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function isWorkspaceCache(value: unknown): value is WorkspaceCache {
   return isRecord(value)
     && value.version === cacheVersion
+    && Object.keys(value).length === 2
     && isRecord(value.projects)
     && Object.entries(value.projects).every(([name, project]) => {
       if (!isRecord(project) || project.name !== name || typeof project.root !== 'string') {
@@ -37,7 +39,7 @@ function isWorkspaceCache(value: unknown): value is WorkspaceCache {
     })
 }
 
-export async function readWorkspaceCache(root: string, taskLogger: Logger = logger): Promise<WorkspaceGraph | undefined> {
+async function readCacheFile(root: string, taskLogger: Logger): Promise<unknown> {
   const file = join(root, '.isox', 'workspace.json')
   let content: string
 
@@ -51,48 +53,55 @@ export async function readWorkspaceCache(root: string, taskLogger: Logger = logg
     throw error
   }
 
-  let cached: unknown
-
   try {
-    cached = JSON.parse(content)
+    return JSON.parse(content)
 
   } catch {
     taskLogger.warn(`Invalid workspace cache at ${file}, rebuilding.`)
 
     return undefined
   }
+}
+
+export async function readWorkspaceCache(root: string, taskLogger: Logger = logger): Promise<WorkspaceCache | undefined> {
+  const cached = await readCacheFile(root, taskLogger)
 
   if (!isWorkspaceCache(cached)) {
-    taskLogger.warn(`Invalid or outdated workspace cache at ${file}, rebuilding.`)
+    if (cached !== undefined) {
+      taskLogger.warn(`Invalid or outdated workspace cache at ${join(root, '.isox', 'workspace.json')}, rebuilding.`)
+    }
 
     return undefined
   }
 
-  taskLogger.debug(`Loaded workspace cache from ${file}`)
-
   // Preserve the parser's dictionary semantics for names such as "__proto__".
-  return { projects: Object.assign(Object.create(null), cached.projects) }
+  return {
+    ...cached,
+    projects: Object.assign(Object.create(null), cached.projects)
+  }
 }
 
-export async function writeWorkspaceCache(root: string, workspace: WorkspaceGraph, taskLogger: Logger = logger): Promise<void> {
+export async function writeWorkspaceCache(root: string, cache: WorkspaceCache, taskLogger: Logger = logger): Promise<void> {
+  await writeCacheFile(root, 'workspace.json', cache, taskLogger)
+}
+
+/** Publish either cache atomically, preserving directory-shaped corrupt caches. */
+export async function writeCacheFile(root: string, name: string, value: unknown, taskLogger: Logger = logger): Promise<void> {
   const directory = join(root, '.isox')
-  const file = join(directory, 'workspace.json')
-  const temporaryFile = join(directory, `workspace.${randomUUID()}.tmp`)
+  const file = join(directory, name)
+  const temporaryFile = join(directory, `${name}.${randomUUID()}.tmp`)
 
   await mkdir(directory, { recursive: true })
 
   try {
-    await writeFile(temporaryFile, `${JSON.stringify({
-      version: cacheVersion,
-      ...workspace
-    }, null, 2)}\n`, { flag: 'wx' })
+    await writeFile(temporaryFile, `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx' })
 
     try {
       if ((await lstat(file)).isDirectory()) {
         const backup = `${file}.${randomUUID()}.invalid`
 
         await rename(file, backup)
-        taskLogger.warn(`Moved invalid workspace cache directory to ${backup}.`)
+        taskLogger.warn(`Moved invalid cache directory to ${backup}.`)
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
@@ -106,7 +115,7 @@ export async function writeWorkspaceCache(root: string, workspace: WorkspaceGrap
     await rm(temporaryFile, { force: true })
   }
 
-  taskLogger.debug(`Saved workspace cache to ${file}`)
+  taskLogger.debug(`Saved ${name} cache to ${file}`)
 }
 
 /** Remove the detected workspace's cache without rebuilding it. */

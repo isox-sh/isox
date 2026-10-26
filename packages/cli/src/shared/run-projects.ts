@@ -50,6 +50,11 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
             const result = await runProcess(process.execPath, args, {
               cwd: root,
               signal: controller.signal,
+              // Concurrent workers share one terminal and cannot own independent spinner lines.
+              env: parallel > 1 ? {
+                ...process.env,
+                ISOX_PROGRESS: '0'
+              } : undefined,
               gracePeriodMs: 5_000
             })
 

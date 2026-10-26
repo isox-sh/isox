@@ -10,6 +10,32 @@ import { affectedFixture, cliPath } from './helpers/affected-fixture.mjs'
 
 const events = async root => (await readFile(join(root, 'events.log'), 'utf8')).trim().split('\n').map(line => JSON.parse(line))
 
+test('affected infers current imports without persisting dependency edges', async t => {
+  const { root, write, project, commit, run } = await affectedFixture(t)
+
+  await project('app')
+  await write('packages/app/index.ts', "import '../lib/index'")
+  await write('packages/lib/index.ts', 'export const value = 1')
+  const base = commit()
+
+  await write('packages/lib/index.ts', 'export const value = 2')
+  commit()
+  const affected = () => {
+    const result = run('affected', '--target=build', '--print-matrix', `--base=${base}`)
+
+    assert.equal(result.status, 0, result.stderr)
+
+    return JSON.parse(result.stdout)
+  }
+
+  assert.deepEqual(affected(), ['app', 'lib'])
+  const definitions = JSON.parse(await readFile(join(root, '.isox/workspace.json'), 'utf8'))
+
+  assert.equal(definitions.projects.app.dependencies, undefined)
+  await write('packages/app/index.ts', 'export {}')
+  assert.deepEqual(affected(), ['lib'])
+})
+
 test('affected prints clean JSON with verbose logs on stderr, includes dependents, and runs from nested folders', async t => {
   const { root, env, write, commit, run } = await affectedFixture(t)
 
@@ -329,7 +355,7 @@ test('shared tooling glob changes select all projects', async t => {
   assert.deepEqual(JSON.parse(result.stdout), ['app', 'lib', 'other'])
 })
 
-test('worker cancellation propagates to children and exits with the signal status', async t => {
+test.skipIf(process.platform === 'win32')('worker cancellation propagates to children and exits with the signal status', async t => {
   const { root, env, project } = await affectedFixture(t)
 
   await project('lib', {

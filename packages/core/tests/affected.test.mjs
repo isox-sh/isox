@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, rename, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 
 import { test, vi } from 'vitest'
 
@@ -301,7 +302,9 @@ test('Git compares merge-base to head, preserves unusual paths, and includes bot
   await mkdir(join(root, 'packages/new'), { recursive: true })
   await rename(join(root, 'packages/old/file.txt'), join(root, 'packages/new/file.txt'))
   await rm(join(root, 'packages/deleted/gone.txt'))
-  await write('packages/new/space and\nnewline.txt')
+  const unusualPath = process.platform === 'win32' ? 'packages/new/space and unicode é.txt' : 'packages/new/space and\nnewline.txt'
+
+  await write(unusualPath)
   const head = commit()
 
   git('checkout', 'main')
@@ -315,7 +318,7 @@ test('Git compares merge-base to head, preserves unusual paths, and includes bot
 
   assert.equal(changes.mergeBase, base)
   assert.equal(changes.head, head)
-  assert.deepEqual(changes.files, ['packages/deleted/gone.txt', 'packages/new/file.txt', 'packages/new/space and\nnewline.txt', 'packages/old/file.txt'])
+  assert.deepEqual(changes.files, ['packages/deleted/gone.txt', 'packages/new/file.txt', unusualPath, 'packages/old/file.txt'])
 })
 
 test('Git local changes are opt-in and ignored files are excluded', async t => {
@@ -418,7 +421,7 @@ test('shallow history failures explain how to fetch the missing base', async t =
     recursive: true,
     force: true
   }))
-  execFileSync('git', ['clone', '--depth=1', `file://${root}`, clone], { stdio: 'pipe' })
+  execFileSync('git', ['clone', '--depth=1', pathToFileURL(root).href, clone], { stdio: 'pipe' })
   await assert.rejects(getGitChanges(clone, { base }), /fetch full history.*fetch-depth: 0/)
 })
 

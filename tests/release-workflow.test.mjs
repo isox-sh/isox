@@ -40,6 +40,8 @@ async function workspace(t, { changed = true, fail = false } = {}) {
   f.commit('chore: Configure releases')
   f.git('tag', 'v1.0.0')
   f.git('init', '--bare', '.isox/remote.git')
+  f.git('-C', '.isox/remote.git', 'config', 'gc.auto', '0')
+  f.git('-C', '.isox/remote.git', 'config', 'maintenance.auto', 'false')
   f.git('remote', 'add', 'origin', join(f.root, '.isox/remote.git'))
   f.git('push', 'origin', 'HEAD:refs/heads/main', 'refs/tags/v1.0.0:refs/tags/v1.0.0')
   f.git('tag', '-a', 'unrelated-tag', '-m', 'Do not push')

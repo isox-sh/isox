@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import { createInterface } from 'node:readline'
 
-import { handleProcessCancellation } from '@isox-sh/core'
+import { handleProcessCancellation, pauseProgress } from '@isox-sh/core'
 
 interface CompilerOptions {
   outDir?: string
@@ -65,6 +65,7 @@ export async function invokeCompiler(
       stdio: ['ignore', 'pipe', 'pipe'],
     })
     let output = ''
+    let resumeProgress: (() => void) | undefined
     const emitted: string[] = []
     const cleanup = handleProcessCancellation(child, signal, reject)
 
@@ -78,7 +79,10 @@ export async function invokeCompiler(
           output += `${line}\n`
 
           if (emitLog) {
-            (stream === child.stderr ? process.stderr : process.stdout).write(`${line}\n`)
+            const destination = stream === child.stderr ? process.stderr : process.stdout
+
+            resumeProgress ??= pauseProgress()
+            destination.write(`${line}\n`)
           }
         }
       })
@@ -86,10 +90,12 @@ export async function invokeCompiler(
 
     child.once('error', error => {
       cleanup()
+      resumeProgress?.()
       reject(new CompilerProcessError(error))
     })
     child.once('close', (code, terminationSignal) => {
       cleanup()
+      resumeProgress?.()
 
       if (terminationSignal && !signal?.aborted) {
         reject(new CompilerProcessError(new Error(`Compiler terminated by ${terminationSignal}.`)))

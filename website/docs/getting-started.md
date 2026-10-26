@@ -119,6 +119,8 @@ npx isox build web
 
 If you have already run another project command before manually adding this
 project, run `npx isox reset` first so discovery includes it.
+Source and import edits do not require reset: dependency analysis validates its
+own cache when requested. See [cache behavior](/docs/configuration#discovery-cache).
 
 The project's root is the directory containing `project.json`. Its name defaults
 to that directory's name when omitted. `dependencies` and `tags` are optional.

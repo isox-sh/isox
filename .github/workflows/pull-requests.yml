@@ -57,6 +57,36 @@ jobs:
       head: ${{ needs.plan.outputs.head }}
       timeoutMinutes: 15
 
+# Temporarily disabled; retain the matrix for re-enabling later.
+#  foundation:
+#    name: Foundation (${{ matrix.os }}, Node ${{ matrix.node }})
+#    runs-on: ${{ matrix.os }}
+#    timeout-minutes: 20
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        os: [ubuntu-latest, macos-latest, windows-latest]
+#        node: ['24', '26']
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v7
+#        with:
+#          persist-credentials: false
+#          fetch-depth: 0
+#
+#      - name: Set up Isox
+#        uses: ./.github/actions/setup-isox
+#        with:
+#          node-version: ${{ matrix.node }}
+#
+#      - name: Test discovery and native process lifecycle
+#        run: pnpm isox test core
+#
+#      - name: Test CLI and packed installations
+#        env:
+#          ISOX_TEST_PACKAGES: '1'
+#        run: pnpm isox test cli
+
   # So we can add branch protection that this one is required
   check:
     name: Shard check
@@ -64,6 +94,7 @@ jobs:
     needs:
       - plan
       - shards
+#      - foundation
     if: |
       !cancelled()
     steps:

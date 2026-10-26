@@ -4,10 +4,14 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { createProjectGraph, getAffectedProjects, parseWorkspace } = require('../../../dist/core')
+const { createProjectGraph, getAffectedProjects, parseWorkspace, resolveWorkspaceDependencies } = require('../../../dist/core')
+
+async function inferWorkspace(root, options) {
+  return resolveWorkspaceDependencies(root, await parseWorkspace(root, { cache: false }), options)
+}
 
 async function fixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-dependencies-'))
@@ -42,7 +46,47 @@ async function fixture(t) {
   }
 }
 
-test('infers package imports, types, exports and relative references, then caches merged edges', async t => {
+test('scoped inference reads only the requested dependency closure and leaves definitions unchanged', async t => {
+  const { root, write, project } = await fixture(t)
+
+  for (const name of ['app', 'lib', 'leaf', 'unrelated']) {
+    await project(name, { name: `@test/${name}` })
+    await write(`packages/${name}/index.ts`, 'export {}')
+  }
+
+  await write('packages/app/index.ts', "import '@test/lib'")
+  await write('packages/lib/index.ts', "import '@test/leaf'")
+  await write('packages/unrelated/index.ts', "import '@test/app'")
+  const definitions = await parseWorkspace(root)
+  const before = JSON.stringify(definitions)
+  const cacheFile = join(root, '.isox/workspace.json')
+  const cache = await readFile(cacheFile, 'utf8')
+  const read = vi.spyOn(require('node:fs/promises'), 'readFile')
+
+  t.onTestFinished(() => read.mockRestore())
+  const resolved = await resolveWorkspaceDependencies(root, definitions, { projects: ['app'] })
+
+  assert.deepEqual(resolved.projects.app.dependencies, ['lib'])
+  assert.deepEqual(resolved.projects.lib.dependencies, ['leaf'])
+  assert.equal(resolved.projects.unrelated.dependencies, undefined)
+  assert.deepEqual(read.mock.calls.map(([file]) => file).filter(file => file.endsWith('.ts')).sort(),
+    ['app', 'leaf', 'lib'].map(name => join(root, `packages/${name}/index.ts`)).sort())
+  assert.equal(JSON.stringify(definitions), before)
+  assert.equal(await readFile(cacheFile, 'utf8'), cache)
+
+  // A later request uses current imports, without retaining previously inferred edges.
+  await write('packages/app/index.ts', "import '@test/leaf'")
+  const next = await resolveWorkspaceDependencies(root, definitions, { projects: ['app'] })
+
+  assert.deepEqual(next.projects.app.dependencies, ['leaf'])
+  assert.equal(next.projects.lib.dependencies, undefined)
+  const all = await resolveWorkspaceDependencies(root, definitions)
+
+  assert.deepEqual(all.projects.unrelated.dependencies, ['app'])
+  await assert.rejects(resolveWorkspaceDependencies(root, definitions, { projects: ['missing'] }), /Project missing not found/)
+})
+
+test('infers package imports, types, exports and relative references, without adding inferred edges to the definitions cache', async t => {
   const { root, write, project } = await fixture(t)
 
   await project('app', { name: '@org/app' }, { dependencies: ['explicit'] })
@@ -65,17 +109,17 @@ test('infers package imports, types, exports and relative references, then cache
     const text = "require('@org/unused')"
     require.resolve('@org/unused', { paths: ['/another/workspace'] })
   `)
-  const workspace = await parseWorkspace(root)
+  const workspace = await inferWorkspace(root)
 
   assert.deepEqual(workspace.projects.app.dependencies, ['dynamic', 'explicit', 'lib', 'relative', 'types'])
   assert.deepEqual(getAffectedProjects(workspace, ['packages/types/src/index.ts']), ['app', 'types'])
   const cache = JSON.parse(await readFile(join(root, '.isox/workspace.json'), 'utf8'))
 
-  assert.deepEqual(cache.projects.app.dependencies, workspace.projects.app.dependencies)
+  assert.deepEqual(cache.projects.app.dependencies, ['explicit'])
   assert.equal(await readFile(join(root, 'packages/app/project.json'), 'utf8'), definition)
   await write('packages/app/src/index.ts', "import '@org/unused'")
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, workspace.projects.app.dependencies)
-  assert.deepEqual((await parseWorkspace(root, { cache: false })).projects.app.dependencies, ['explicit', 'unused'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['explicit', 'unused'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['explicit', 'unused'])
 })
 
 test('resolves exact and wildcard TypeScript aliases with extends and project-specific overrides', async t => {
@@ -96,12 +140,12 @@ test('resolves exact and wildcard TypeScript aliases with extends and project-sp
   await write('tsconfig.base.json', { extends: './config/paths.json' })
   await write('packages/app/tsconfig.json', { extends: '../../tsconfig.base.json' })
   await write('packages/app/src/index.ts', "import '@source/lib'\nimport '@source/special'\nimport '@same-project'")
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['lib', 'types'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['lib', 'types'])
   await write('packages/app/tsconfig.json', {
     extends: '../../tsconfig.base.json',
     compilerOptions: { paths: { '@source/*': ['../unused/src/*'] } },
   })
-  assert.deepEqual((await parseWorkspace(root, { cache: false })).projects.app.dependencies, ['unused'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['unused'])
 })
 
 test('maps aliases and relative imports to compiled output without requiring a build', async t => {
@@ -113,7 +157,7 @@ test('maps aliases and relative imports to compiled output without requiring a b
   await write('packages/lib/tsconfig.json', { compilerOptions: { outDir: '../../out/lib' } })
   await write('packages/app/src/index.ts', "import '@compiled/lib'")
   await write('packages/app/tests/test.mjs', "require('../../../out/lib/index.js')")
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['lib'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['lib'])
 })
 
 for (const editorConfig of [false, true]) {
@@ -174,7 +218,7 @@ for (const editorConfig of [false, true]) {
         }
       }
     })
-    const workspace = await parseWorkspace(root)
+    const workspace = await inferWorkspace(root)
 
     assert.deepEqual(workspace.projects.core.dependencies, ['lib'])
     assert.deepEqual(workspace.projects.app.dependencies, ['core'])
@@ -185,7 +229,7 @@ for (const editorConfig of [false, true]) {
     // Generated imports must not add edges when output directories exist later.
     await write('output/core/index.js', "require('@org/core')")
     await write('types/core/index.d.ts', "import '@org/core'")
-    assert.deepEqual((await parseWorkspace(root, { cache: false })).projects, workspace.projects)
+    assert.deepEqual((await inferWorkspace(root)).projects, workspace.projects)
   })
 }
 
@@ -203,7 +247,7 @@ test('a missing build config falls back to editor output ownership without block
   })
   await write('packages/lib/tsconfig.json', { compilerOptions: { outDir: '../../output/lib' } })
   await write('packages/app/index.ts', "import '../../output/lib/index.js'")
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['lib'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['lib'])
 })
 
 test('build default configurations and inherited output roots assign shared outputs to the correct projects', async t => {
@@ -238,7 +282,7 @@ test('build default configurations and inherited output roots assign shared outp
   }
 
   await write('packages/app/index.ts', "import '../../output/packages/two/index.js'\nimport '../../types/packages/two/index.d.ts'")
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['two'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['two'])
 })
 
 test('maps local package dependencies, aliases and paths to project names while ignoring external packages', async t => {
@@ -258,12 +302,13 @@ test('maps local package dependencies, aliases and paths to project names while 
     await project(name, { name: `@org/${name}` })
   }
 
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['lib', 'linked', 'peer', 'types'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['lib', 'linked', 'peer', 'types'])
 })
 
 test('owns nested project files once and excludes dependency folders and generated outputs', async t => {
   const { root, write, project } = await fixture(t)
 
+  await write('.gitignore', 'dist/\ncoverage/\n')
   await project('app')
   await project('lib', { name: '@org/lib' })
   await write('packages/app/nested/project.json', { name: 'nested' })
@@ -273,21 +318,24 @@ test('owns nested project files once and excludes dependency folders and generat
   await write('packages/app/coverage/index.js', "require('@org/lib')")
   await write('packages/app/tsconfig.json', { compilerOptions: { outDir: './generated' } })
   await write('packages/app/generated/index.js', "require('@org/lib')")
-  const workspace = await parseWorkspace(root)
+  const workspace = await inferWorkspace(root)
 
   assert.equal(workspace.projects.app.dependencies, undefined)
   assert.deepEqual(workspace.projects.nested.dependencies, ['lib'])
 })
 
-test('rejects ambiguous package names and malformed manifests before saving a cache', async t => {
+test('rejects ambiguous package names and malformed manifests when inference is requested', async t => {
   const { root, write, project } = await fixture(t)
 
   await project('app', { name: '@org/same' })
   await project('lib', { name: '@org/same' })
-  await assert.rejects(parseWorkspace(root), /Duplicate workspace package name @org\/same/)
+  await assert.rejects(inferWorkspace(root), /Duplicate workspace package name @org\/same/)
   await write('packages/lib/package.json', '{broken')
-  await assert.rejects(parseWorkspace(root), /Invalid package manifest/)
-  await assert.rejects(readFile(join(root, '.isox/workspace.json')), { code: 'ENOENT' })
+  await assert.rejects(inferWorkspace(root), /Invalid package manifest/)
+  const definitions = JSON.parse(await readFile(join(root, '.isox/workspace.json'), 'utf8'))
+
+  assert.equal(definitions.projects.app.dependencies, undefined)
+  assert.equal(definitions.projects.lib.dependencies, undefined)
 })
 
 test('uses the first resolving paths fallback without adding false dependencies', async t => {
@@ -307,9 +355,9 @@ test('uses the first resolving paths fallback without adding false dependencies'
   await write('packages/first/index.ts', 'export {}')
   await write('packages/fallback/index.ts', 'export {}')
   await write('packages/app/index.ts', "import '@choice'")
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['first'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['first'])
   await rm(join(root, 'packages/first/index.ts'))
-  assert.deepEqual((await parseWorkspace(root, { cache: false })).projects.app.dependencies, ['fallback'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['fallback'])
 })
 
 test('assigns shared output subdirectories to their source projects', async t => {
@@ -326,7 +374,7 @@ test('assigns shared output subdirectories to their source projects', async t =>
     }
   })
   await write('packages/app/index.ts', "import '../../output/packages/two/index.js'")
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['two'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['two'])
 })
 
 test('discovers hidden projects and imports in hidden source directories', async t => {
@@ -336,5 +384,5 @@ test('discovers hidden projects and imports in hidden source directories', async
   await write('.tools/project.json', { name: 'tools' })
   await write('.tools/package.json', { name: '@org/tools' })
   await write('packages/app/.storybook/main.ts', "import '@org/tools'")
-  assert.deepEqual((await parseWorkspace(root)).projects.app.dependencies, ['tools'])
+  assert.deepEqual((await inferWorkspace(root)).projects.app.dependencies, ['tools'])
 })

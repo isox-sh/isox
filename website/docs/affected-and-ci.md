@@ -6,7 +6,7 @@ icon: "code-branch"
 ---
 
 Isox selects changed projects and their transitive dependents using Git and
-dependencies inferred during workspace discovery, plus explicit `dependencies`
+dependencies inferred on demand for affected selection, plus explicit `dependencies`
 in each `project.json`. The same selection powers local
 execution, JSON project lists, and weighted GitHub Actions matrices.
 
@@ -56,7 +56,7 @@ to the children and return exit codes 130/143.
 - `affected.ignoreFiles` excludes matching files before checking global patterns
   or project ownership. Ignored changes do not select projects or their dependents.
 - All transitive dependents are included **before** command and tag filtering.
-  Discovery combines source imports, TypeScript aliases, local package references,
+  On-demand analysis combines source imports, TypeScript aliases, local package references,
   and explicitly declared project dependencies. Type-only imports and tests count.
   Dynamically selected plugins need explicit dependencies; executor selections
   alone do not add edges. Unknown references and cycles fail with an explanation.
@@ -111,8 +111,17 @@ omit the Markdown exclusions above if your documentation needs building or testi
 Projects can still be selected through other changed files or dependencies.
 
 Affected selection, planning and `run-many` scan current `project.json` files and
-refresh the discovery cache. They do not require `isox reset` after project
-changes. Single-project commands retain the normal discovery-cache behavior.
+refresh `workspace.json`. They do not require `isox reset` after project
+changes. Single-project commands reuse cached definitions until reset or an
+explicit refresh. Affected selection validates and reuses per-project dependency
+entries from `.isox/discovery.json`, computing missing or invalid analysis before
+finding dependents. The `sources` SHA uses source paths and metadata; a changed
+project is reanalyzed as a whole, including tests. `--all` and `run-many` selection
+do not request dependency inference, though their executors can.
+
+Every `run-many` invocation refreshes definitions; its child commands then load
+that definitions cache. These caches do not transfer build outputs between CI
+jobs or skip task execution. See [cache behavior](/docs/configuration#discovery-cache).
 Missing revisions or incomplete history are errors with fetch guidance; Isox
 does not turn a Git failure into a successful empty plan.
 
