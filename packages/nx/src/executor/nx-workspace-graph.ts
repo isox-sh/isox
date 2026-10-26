@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 
+import { handleProcessCancellation } from '@isox-sh/core'
+
 import type { NxProjectGraph } from './nx-graph'
 import type { ExecutorContext } from '@isox-sh/core'
 
@@ -57,8 +59,7 @@ export async function loadNxWorkspaceGraph(context: ExecutorContext, pluginPacka
     const child = fork(join(__dirname, 'nx-graph-worker.js'), [graphModule], {
       cwd: context.workspaceRoot,
       execArgv: [],
-      signal: context.signal,
-      killSignal: 'SIGKILL',
+      detached: process.platform !== 'win32',
       stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
       env: {
         ...process.env,
@@ -69,18 +70,18 @@ export async function loadNxWorkspaceGraph(context: ExecutorContext, pluginPacka
         NX_FORCE_REUSE_CACHED_GRAPH: 'false',
       },
     })
+    const cleanup = handleProcessCancellation(child, context.signal, reject)
     let result: NxGraphMessage | undefined
 
     child.on('message', (message: NxGraphMessage) => {
       result = message
     })
     child.once('error', error => {
-      // AbortError arrives before exit; wait until the worker has actually stopped.
-      if (error.name !== 'AbortError' || !context.signal?.aborted) {
-        reject(error)
-      }
+      cleanup()
+      reject(error)
     })
     child.once('exit', (code, signal) => {
+      cleanup()
       if (context.signal?.aborted) {
         resolve(undefined)
       } else if (result && 'error' in result) {
