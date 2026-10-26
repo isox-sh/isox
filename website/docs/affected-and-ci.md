@@ -236,6 +236,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+      - uses: isox-sh/isox/actions/cache@main
       - run: npm ci
       # Prepare any prerequisite build outputs before testing.
       - uses: isox-sh/isox/actions/plan@main
@@ -256,6 +257,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+      - uses: isox-sh/isox/actions/cache@main
       - run: npm ci
       # Build or restore prerequisites needed by this worker's test commands here.
       - uses: isox-sh/isox/actions/run-many@main
@@ -263,6 +265,14 @@ jobs:
           plan: ${{ toJSON(matrix) }}
           head: ${{ needs.setup.outputs.head }}
 ```
+
+The [cache action](https://github.com/isox-sh/isox/tree/main/actions/cache) restores
+`.isox` across compatible runners and later commits, then saves an updated
+snapshot after the job succeeds. It refreshes restored project definitions while
+retaining dependency analysis and other cache data. Each job saves a distinct
+snapshot; GitHub restores the newest accessible match without merging parallel
+jobs' changes. Native targets explicitly configured for [task caching](/docs/task-caching)
+can reuse matching entries; other builds and tests still run.
 
 For pull requests, planning compares the PR base SHA with the checked-out GitHub
 merge commit. For other events, including pushes, merge groups, and manual

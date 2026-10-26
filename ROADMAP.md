@@ -42,14 +42,16 @@ Weighted plans use `plan.weight` (default 1), exact project lists and bounded
 worker concurrency. Native GitHub actions plan/run these lists and are used in
 our CI. See [affected projects and CI](website/docs/affected-and-ci.md).
 
-`dependencies` does not yet schedule prerequisite tasks. `dependsOn`, task
-inputs/outputs, hashing, artifact transfer, and sandboxing are not implemented.
+`dependencies` does not yet schedule prerequisite tasks. `dependsOn`, remote
+artifact transfer, and sandboxing are not implemented. Native targets can opt into
+[deterministic hashing and local result caching](website/docs/task-caching.md).
 Build prerequisites must be prepared explicitly before workers run.
 
 `.isox/workspace.json` caches project definitions and explicit dependencies only.
 It does not cache task results or inferred edges. Single-project commands load
-cached definitions directly until reset; affected selection, planning and run-many
-refresh definitions. Dependency analysis runs on demand for affected selection or
+cached definitions with merged `isox.json` target defaults until reset or discovery refresh;
+affected selection, planning and run-many
+refresh definitions. Dependency analysis runs on demand for affected selection, cacheable task inputs, or
 an executor, with optional source analysis scoped to a dependency closure. These
 requests alone validate and populate `.isox/discovery.json` with per-project results.
 Valid entries avoid source parsing. A changed source-metadata fingerprint causes
@@ -83,7 +85,8 @@ executors only and do not implement the native roadmap.
 - [x] Select temporary Nx adapters through `nx.executors`, supply dependency metadata, and reject installed Nx runtimes outside version 23.
 - [x] Add regression coverage for graph metadata, external npm nodes, cache reuse, unsupported Nx versions, and configuration errors.
 - [x] Configure CI to build, lint, and run affected package suites through our weighted plan/run-many actions, with per-worker bootstrapping and an aggregate required check.
-- [x] Separate project discovery from on-demand dependency inference. Cache format 12 stores definitions only; affected selection requests the graph and the JS builder requests scoped source analysis. Dependency requests alone validate and populate `discovery.json`; ordinary commands skip its source fingerprints and resolution probes. See [definitions cache tests](packages/core/tests/workspace-cache.test.mjs), [dependency cache tests](packages/core/tests/dependency-cache.test.mjs), and [dependency inference tests](packages/core/tests/workspace-dependencies.test.mjs).
+- [x] Restore `.isox` snapshots across compatible CI runners and commits, and save updated state in a successful job's post step. The [cache action](actions/cache/README.md) refreshes project definitions while retaining dependency analysis and task-result entries; snapshots do not merge parallel writes. Opt-in task-result entries can skip executor work.
+- [x] Separate project discovery from on-demand dependency inference. Cache format 14 stores definitions with merged target defaults; affected selection requests the graph and the JS builder requests scoped source analysis. Dependency requests alone validate and populate `discovery.json`; ordinary commands skip its source fingerprints and resolution probes. See [definitions cache tests](packages/core/tests/workspace-cache.test.mjs), [dependency cache tests](packages/core/tests/dependency-cache.test.mjs), and [dependency inference tests](packages/core/tests/workspace-dependencies.test.mjs).
 - [x] Share `.gitignore`/`.isoxignore`, nested workspace, dependency-directory and symlink boundaries between project discovery and source inference. Generated directories use ignore rules; compiler outputs are excluded from dependency inference. See [discovery boundaries](website/docs/configuration.md#discovery-boundaries).
 - [x] Test cancellation through shell descendants, cooperative executor streams, and Nx graph workers with stubborn subprocesses. The Nx worker now uses process-tree termination. See [native lifecycle tests](packages/core/tests/executor-lifecycle.test.mjs) and [Nx lifecycle tests](packages/nx/tests/nx-workspace-graph.test.mjs).
 - [x] Validate real CLI/core tarballs through isolated local and global npm installs, invoke the installed binary outside the checkout, and document installation. See [packed installation tests](packages/cli/tests/packed-install.test.mjs).
@@ -121,7 +124,7 @@ use NUL-delimited paths.
 - [x] Define base/head selection and use their merge base for committed changes; report missing refs and shallow-history failures clearly.
 - [x] Include staged/unstaged and untracked changes only through explicit local flags; actions compare committed changes.
 - [x] Map changed paths to the most specific project root; handle root projects, deletions, renames, unusual filenames, symlinked roots and nested workspaces.
-- [x] Define built-in workspace-wide inputs, configurable `affected.globalFiles`, and conservative all-project selection for unowned paths.
+- [x] Define built-in workspace-wide inputs, configurable `affected.globalFiles`, and configurable exclusions; unowned paths are ignored by default.
 - [x] Include transitive dependents before filtering by command, tag expressions and `ci=off`.
 - [ ] Expand required prerequisite tasks after affected selection once milestone 1's task contract exists.
 - [x] Add `isox affected --target=...`, `--print-matrix` for project arrays, and `isox plan` for weighted matrix JSON.
@@ -136,17 +139,26 @@ projects are excluded, and CI can parse the planner output directly.
 Define task inputs and outputs before implementing result reuse. Discovery-cache
 entries must never be interpreted as proof that a task succeeded.
 
-- [ ] Add typed, validated input/output declarations and opt-in cacheability to the native command schema.
-- [ ] Hash normalized inputs deterministically: file paths/content, effective command/options/configuration, dependency task inputs, declared environment, lockfiles, executor/tool versions, and relevant platform/runtime details.
-- [ ] Specify missing files, ignored/generated files, file modes, symlinks, and inputs outside the project root.
-- [ ] Store successful task outputs, execution metadata, and terminal logs in an atomic local cache entry keyed by the hash.
-- [ ] Restore declared outputs and replay logs on a hit; distinguish a cache hit from an executed task in diagnostics.
-- [ ] Handle stale outputs and partial/corrupt entries; never cache failed or cancelled runs as successes.
-- [ ] Add bypass and cleanup controls, and define their interaction with `isox reset` and discovery data.
-- [ ] Test hash stability, each invalidation input, output restoration, corruption, and concurrent cache writers.
+- [x] Add typed, validated input/output declarations and opt-in cacheability to the native command schema. Workspace `targetDefaults` merge by target/executor before project overrides; JS initialization and Vitest setup register missing cache defaults.
+- [x] Hash normalized inputs deterministically: file paths/content, effective command/options/configuration, dependency task inputs, declared environment, lockfiles, executor/tool versions, and relevant platform/runtime details.
+- [x] Specify missing files, ignored/generated files, file modes, symlinks, and inputs outside the project root.
+- [x] Store successful task outputs, execution metadata, and terminal logs in an atomic local cache entry keyed by the hash.
+- [x] Restore declared outputs and replay logs on a hit; distinguish a cache hit from an executed task in diagnostics.
+- [x] Handle stale outputs and partial/corrupt entries; never cache failed or cancelled runs as successes.
+- [x] Add bypass and cleanup controls, and define their interaction with `isox reset` and discovery data.
+- [x] Test hash stability, each invalidation input, output restoration, corruption, and concurrent cache writers.
 
 Completion criterion: identical declared inputs restore equivalent outputs,
 changed inputs cause a miss, and unsuccessful tasks cannot produce reusable hits.
+
+Implemented as opt-in native `cache`, `inputs`, and disposable output directories.
+See [the cache contract](website/docs/task-caching.md),
+[core regression tests](packages/core/tests/task-cache.test.mjs),
+[CLI integration tests](packages/cli/tests/task-cache.test.mjs), and the TypeScript
+cache-restoration case in [compiler tests](packages/js/tests/tsc.test.mjs).
+`--skip-cache` bypasses result reuse; `isox reset` clears all `.isox` state.
+Dependency artifact hashing protects consumers without introducing prerequisite
+scheduling. Remote storage and sandboxing remain separate milestones.
 
 ## 4. Remote result caching
 
@@ -158,12 +170,35 @@ integrations. No cloud deployment is required by this roadmap-writing task.
 - [ ] Choose and implement the first provider with documented credentials and namespace configuration.
 - [ ] Verify artifact integrity and restrict extraction to declared workspace outputs.
 - [ ] Define read-only mode, timeouts, retry behavior, and fallback to local execution on remote-cache failures.
-- [ ] Separate trust boundaries for untrusted pull requests and trusted artifact publishers.
+- [ ] Block remote-cache release until the CREEP threat model below is implemented and tested; checksums alone are not publisher authentication.
 - [ ] Test archive round trips, missing/corrupt objects, interrupted uploads, and concurrent publication.
 
 Completion criterion: a second clean worker can restore a successful first
 worker's result without running the task, with verified artifacts and clear
-failure behavior.
+failure behavior. No low-trust producer may populate a cache consumed as trusted
+release output, even when it wins a publication race for an identical task hash.
+
+### Required cloud-cache security boundary
+
+[CVE-2025-36852 (CREEP)](https://nx.dev/blog/cve-2025-36852-critical-cache-poisoning-vulnerability-creep)
+allows poisoned artifacts to enter a cache before their checksums are calculated.
+It is relevant to private repositories too when contributors and releases have
+different trust levels. Local integrity checks are not a substitute for this
+boundary. See [the current trust model](website/docs/task-caching.md#cache-poisoning-and-trust-boundaries).
+
+- [ ] Authenticate producers with short-lived CI identity and enforce repository/ref/workflow permissions at the service or storage policy. Never trust a client-selected branch name, cache prefix, task hash, or `trusted` flag as authorization.
+- [ ] Allow only approved protected-branch workflows to publish trusted results. PR and feature jobs may read approved shared results but write only to isolated namespaces, or remain read-only. Trusted consumers must never fall back to those untrusted namespaces.
+- [ ] Protect publishing workflow definitions and require trusted revisions throughout the build. A trusted workflow identity must not execute PR-supplied code, tools or artifacts; a protected ref alone does not prove the job built trusted inputs.
+- [ ] Bind result provenance to verified producer identity, repository, ref/commit, workflow/run and artifact digest. Preserve origin on local hydration; never promote or re-upload untrusted local entries as trusted results merely because a trusted job restored them.
+- [ ] Isolate workspaces and local caches on self-hosted runners across trust levels. Apply the same policy to dependency/compiler metadata and uploaded artifacts, not only task-result archives.
+- [ ] Define merge-group, tag, manual-dispatch and reusable-workflow policies explicitly. Fail closed on missing identity, unauthorized scopes or unverifiable provenance, then execute locally without trusting the rejected entry.
+- [ ] Test an attacker publishing a different artifact under the same task hash before the trusted build: reject cross-trust reuse for fork and same-repository PRs, even with valid checksums. Also test forged refs, cross-repository writes, credential revocation, namespace fallback, and promotion through restored local caches.
+
+Current repository releases run on fresh hosted runners, do not restore Isox
+state, and bypass task caching. The GitHub cache action relies on GitHub's enforced
+ref scopes; it is not an implementation of the future cloud-cache authorization
+contract. Bucket adapters must not simply upload `.isox/tasks/<hash>` into a
+shared writable namespace.
 
 ## 5. CI task distribution
 
@@ -346,7 +381,7 @@ Foundation implementation: 2026-10-26.
 - Discovery uses root/nested `.gitignore` rules and a root `.isoxignore` for
   additional exclusions. It does not follow symlinks or enter independent nested
   workspaces, dependency installations, Git internals, or its own cache.
-- Cache format 12 stores definitions and declared dependencies only. Ordinary
+- Cache format 13 stores definitions and declared dependencies only. Ordinary
   commands load it directly until reset, without scanning or fingerprinting source
   files. Dependency graphs are inferred in memory when requested; affected
   selection requests the full graph, while the JS builder requests its dependency
@@ -372,3 +407,17 @@ Foundation implementation: 2026-10-26.
   a temporary Git-repository teardown race. Semver now uses the same 30-second
   integration timeout as other packages; release fixtures disable automatic Git
   maintenance. The affected suites passed after these changes.
+
+Local task-cache review: 2026-10-26.
+
+- Fixed large terminal chunks being rejected by a stack-overflowing validation
+  expression, retained nested task logs in parent captures, and bounded capture
+  overhead from many tiny writes.
+- Normalized trailing directory separators in cache inputs/outputs. The GitHub
+  cache action now preserves malformed directory-shaped definitions for recovery.
+- Corrected outdated cache, output-ownership, and API documentation while keeping
+  the original README slogan.
+- Package builds, TypeScript checks, lint, release workflow validation, and docs
+  build/link checks passed. All ten package/workspace/end-to-end suites passed
+  with task-result reuse bypassed: **509 tests**, with the optional packed-install
+  test skipped. Hosted CI and other operating systems were not rerun in this review.
