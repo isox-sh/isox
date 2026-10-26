@@ -301,6 +301,12 @@ Gate matrix jobs using `hasPlan` as shown. A plan with different targets does no
 order those targets; separate build and deploy jobs with `needs` when ordering
 is required.
 
+For builds that consume other projects' declarations or generated files, prepare
+prerequisites first and use `parallel: 1` within each build worker. Cached builds
+temporarily move their existing output directories before execution; rebuilding
+a dependency alongside its consumer can make those files unavailable. Separate
+workers can still run concurrently because they have independent checkouts.
+
 ### Migrating nx-extend workflows
 
 The design follows [nx-extend's actions](https://github.com/TriPSs/nx-extend/tree/master/actions),

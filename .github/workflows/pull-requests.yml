@@ -36,7 +36,9 @@ jobs:
         with:
           cliPath: dist/cli/index.js
           targets: test,build,lint
-          targetOptions: '{"test":{"maxJobs":3,"parallel":1},"build":{"maxJobs":3,"parallel":2},"lint":{"maxJobs":3,"parallel":2}}'
+          # A cached build replaces its outputs. Keep dependency declarations available
+          # to other projects by rebuilding one project at a time within each worker.
+          targetOptions: '{"test":{"maxJobs":3,"parallel":1},"build":{"maxJobs":3,"parallel":1},"lint":{"maxJobs":3,"parallel":2}}'
 
   shards:
     uses: $/.github/workflows/shard.yml
