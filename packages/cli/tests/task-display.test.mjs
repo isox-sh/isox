@@ -171,7 +171,7 @@ test('resizing does not erase reflowed terminal rows', t => {
   assert.equal(writes.slice(previous).join('').includes('\u001b['), false)
 })
 
-test('CI and progress opt-outs stream logs and summaries without animation', t => {
+test('CI and progress opt-outs show compact results and failure logs without animation', t => {
   const { stream } = terminal(t)
 
   for (const [name, value] of [['CI', 'true'], ['TERM', 'dumb'], ['ISOX_PROGRESS', '0']]) {
@@ -191,15 +191,16 @@ test('CI and progress opt-outs stream logs and summaries without animation', t =
 
     assert.equal(display.interactive, false)
     display.start('app', 'app:build')
-    display.output('app', Buffer.from('compiler output\n'), 'stdout')
+    display.output('app', Buffer.from('successful compiler output\n'), 'stdout')
     display.finish('app', true, false)
     display.start('lib', 'lib:build')
     display.output('lib', Buffer.from('partial compiler output'), 'stdout')
-    display.finish('lib', true, false)
+    display.finish('lib', false, false)
     display.stop()
-    assert.match(writes.join(''), /compiler output\n+ {3}✔ isox run app:build/)
-    assert.match(writes.join(''), /Successfully ran target build for 2 projects/)
-    assert.match(writes.join(''), /partial compiler output\n {3}✔ isox run lib:build/)
+    assert.doesNotMatch(writes.join(''), /successful compiler output/)
+    assert.match(writes.join(''), / {3}✔ isox run app:build/)
+    assert.match(writes.join(''), / {3}Ran target build: 1 succeeded, 1 failed/)
+    assert.match(writes.join(''), /✖ isox run lib:build.*\n\n {6}partial compiler output/)
     assert.equal(writes.join('').includes('\u001b['), false)
     vi.stubEnv(name, '')
   }

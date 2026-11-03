@@ -263,7 +263,7 @@ test('run-many isolates projects, bounds concurrency and puts barriers around co
 
   assert.equal(result.status, 0, result.stderr)
   const log = await events(root)
-  assert.match(result.stdout, /Running target build for 3 projects:\n\n {3}- lib\n {3}- app\n {3}- other\n/)
+  assert.match(result.stdout, /Running target build for 3 projects/)
   assert.doesNotMatch(result.stdout, /Running @fixture|Successfully completed/)
   for (const name of ['lib', 'app', 'other']) {
     assert.match(result.stdout, new RegExp(`✔ isox run ${name}:build:production \\(\\d+\\.\\d{2}s\\)`))
@@ -362,9 +362,9 @@ test('compact workers retain diagnostics, show default configurations, and do no
   const compact = run('run-many', '--target=build', '--projects=lib')
 
   assert.equal(compact.status, 0, compact.stderr)
-  assert.match(compact.stdout, /tool stdout/)
-  assert.match(compact.stderr, /tool stderr/)
-  assert.match(compact.stderr, /executor warning/)
+  assert.doesNotMatch(compact.stdout, /tool stdout/)
+  assert.doesNotMatch(compact.stderr, /tool stderr/)
+  assert.doesNotMatch(compact.stderr, /executor warning/)
   assert.match(compact.stdout, /✔ isox run lib:build:acc \(/)
   for (const flag of ['--verbose', '--verbose=true']) {
     const verbose = run('run-many', '--target=build', '--projects=lib', flag)
@@ -372,6 +372,10 @@ test('compact workers retain diagnostics, show default configurations, and do no
     assert.equal(verbose.status, 0, verbose.stderr)
     assert.match(verbose.stdout, /Running @fixture\/plugin:record/)
     assert.match(verbose.stdout, /Successfully completed/)
+    assert.match(verbose.stdout, /tool stdout/)
+    assert.match(verbose.stderr, /tool stderr/)
+    assert.match(verbose.stderr, /executor warning/)
+    assert.match(verbose.stdout, /\n {3}- lib\n/)
   }
 })
 

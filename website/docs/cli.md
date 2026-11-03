@@ -81,14 +81,15 @@ Completed results stay above the footer:
    1/2 tasks read from cache
 ```
 
-Successful tool output is hidden in the live display. Failed and cancelled tasks
+Successful tool output is hidden by default, including in CI. Failed and cancelled tasks
 print their captured diagnostics beneath their result; large output is truncated
 with an explicit notice. The final summary includes failures,
 cancellations, and tasks that never started.
 
-CI, redirected output, and `ISOX_PROGRESS=0` stream tool output and print static
-results and summaries without cursor animation. Use `--verbose` for detailed
-lifecycle messages and streamed output instead of the compact display.
+CI, redirected output, and `ISOX_PROGRESS=0` use the same compact task results,
+cache labels, failure diagnostics, and summaries without cursor animation.
+Use `--verbose` to list the selected projects and stream all tool output with
+detailed lifecycle messages.
 
 ## Named configurations
 

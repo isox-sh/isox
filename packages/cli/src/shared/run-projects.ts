@@ -37,7 +37,7 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
         total: queue.length
       })
 
-      if (!display?.interactive) {
+      if (verbose) {
         logger.info(`Running target ${stage.target} for ${queue.length} project${queue.length === 1 ? '' : 's'}:\n\n${queue.map(name => `   - ${name}`).join('\n')}\n`)
       }
 

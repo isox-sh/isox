@@ -59,8 +59,8 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
   let columns = stdout.columns
   let rows = stdout.rows
   let stopped = false
-  let partialOutput = false
   const total = () => options.total ?? tasks.size
+  const heading = () => `   Running ${options.target ? `target ${options.target}` : 'tasks'} for ${total()} project${total() === 1 ? '' : 's'}`
   const elapsed = (since: number) => `${((performance.now() - since) / 1000).toFixed(2)}s`
   const count = (status: TaskRow['status']) => [...tasks.values()].filter(task => task.status === status).length
   const cached = () => [...tasks.values()].filter(task => task.status === 'success' && task.result?.message.includes('(cache hit ')).length
@@ -102,13 +102,12 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
     const height = Math.max(1, (stdout.rows || 24) - 2)
     const progress = total() ? Math.min(10, Math.floor(completed / total() * 10)) : 0
     const bar = `${'='.repeat(progress)}${'-'.repeat(10 - progress)}`
-    const heading = `   Running ${options.target ? `target ${options.target}` : 'tasks'} for ${total()} project${total() === 1 ? '' : 's'}`
     const progressLine = `   → [${bar}] ${running.length} running · ${total() - completed - running.length} pending · ${completed}/${total()} completed`
     const runningLines = running.map(task => `   ${frames[frame % frames.length]} isox run ${task.reference} (${elapsed(task.started)})`)
     const results = `   ✔ ${count('success')} succeeded [${cached()} read from cache]${count('error') ? ` · ✖ ${count('error')} failed` : ''}${count('warn') ? ` · ${count('warn')} cancelled` : ''}`
-    const compactLines = [heading, progressLine, ...runningLines, results]
+    const compactLines = [heading(), progressLine, ...runningLines, results]
     const lines = [
-      '', heading, '', progressLine, '',
+      '', heading(), '', progressLine, '',
       ...runningLines, '', results, ''
     ]
     const visible = lines.length <= height ? lines : compactLines.length <= height ? compactLines : [
@@ -155,6 +154,10 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
           stderr: new StringDecoder()
         }
       })
+      if (!interactive && tasks.size === 1) {
+        stdout.write(`\n${paint(heading(), '1;36')}\n`)
+      }
+
       render()
     },
     message(name: string, value: unknown) {
@@ -169,16 +172,8 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
       }
 
       const task = tasks.get(name)
-      if (interactive && task) {
+      if (task) {
         append(task, task.decoders[stream].write(chunk))
-      } else {
-        // CI and redirected logs remain complete and stream without cursor controls.
-        const destination = stream === 'stdout' ? stdout : stderr
-
-        destination.write(chunk)
-        if (chunk.length) {
-          partialOutput = chunk[chunk.length - 1] !== 10
-        }
       }
     },
     finish(name: string, success: boolean, cancelled: boolean) {
@@ -196,13 +191,12 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
         : `(${cancelled ? 'cancelled after ' : success ? '' : 'failed after '}${elapsed(task.started)})`
       const destination = success ? stdout : stderr
 
-      if (partialOutput || !success || count('success') + count('error') + count('warn') === 1) {
+      if (!success || count('success') + count('error') + count('warn') === 1) {
         destination.write('\n')
       }
 
-      partialOutput = false
       destination.write(`   ${paint(glyph, success ? '32' : cancelled ? '33' : '31')} ${paint(`isox run ${task.reference}`, success ? '1' : cancelled ? '33' : '1;31')} ${paint(detail, '2')}\n`)
-      if (interactive && !success && task.output.trim()) {
+      if (!success && task.output.trim()) {
         const output = stripVTControlCharacters(task.output).trimEnd()
 
         destination.write(`\n${task.truncated ? '      [Earlier output omitted; showing recent output]\n' : ''}${output.split(/\r?\n/).map(line => `      ${paint(line, /error|failed|TS\d{4}/i.test(line) ? '31' : '2')}`).join('\n')}\n`)
@@ -230,13 +224,13 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
         : `Ran ${options.target ? `target ${options.target}` : 'tasks'}: ${succeeded} succeeded, ${failed} failed, ${cancelled} cancelled, ${incomplete} not run (${elapsed(started)})`
       const destination = failed || cancelled || incomplete ? stderr : stdout
 
-      destination.write(`\n${paint(`${interactive ? '   ' : 'ISOX  '}${summary}`, failed ? '1;31' : cancelled || incomplete ? '1;33' : '1;32')}\n`)
+      destination.write(`\n${paint(`   ${summary}`, failed ? '1;31' : cancelled || incomplete ? '1;33' : '1;32')}\n`)
       if (failed) {
         destination.write(`\n${paint('   Failed tasks:', '31')}\n${[...tasks.values()].filter(task => task.status === 'error').map(task => `      - ${paint(task.reference, '31')}`).join('\n')}\n`)
       }
 
       if (cached()) {
-        destination.write(`\n${paint(`${interactive ? '   ' : '      '}${cached()}/${total()} tasks read from cache`, '2')}\n`)
+        destination.write(`\n${paint(`   ${cached()}/${total()} tasks read from cache`, '2')}\n`)
       }
 
       destination.write('\n')

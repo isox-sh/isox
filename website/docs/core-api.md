@@ -129,7 +129,7 @@ interactive behavior. Multi-project commands use a live footer with running
 tasks, progress counts, and cache totals. Completed task results stay above the
 footer; failed tasks include their diagnostics. The parent manages the display
 so parallel workers do not compete for the terminal. CI and redirected output
-show the initial project list and stream logs with static completion lines;
+use compact completion lines and show tool diagnostics for failed tasks;
 `ISOX_PROGRESS=0` also disables animation.
 Noninteractive tools such as ESLint stream their output through Isox: the spinner
 keeps animating while they are quiet and pauses when diagnostics arrive.
