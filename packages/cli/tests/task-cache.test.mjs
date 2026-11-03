@@ -26,6 +26,7 @@ test('CLI caches child output, forwards bypass to run-many, and reset clears eve
       encoding: 'utf8',
       env: {
         ...process.env,
+        GITHUB_ACTIONS: '',
         ISOX_SKIP_CACHE: '',
         ISOX_PROGRESS: '0'
       }

@@ -81,15 +81,21 @@ Completed results stay above the footer:
    1/2 tasks read from cache
 ```
 
-Successful tool output is hidden by default, including in CI. Failed and cancelled tasks
+Successful tool output is hidden by default outside GitHub Actions. Failed and cancelled tasks
 print their captured diagnostics beneath their result; large output is truncated
 with an explicit notice. The final summary includes failures,
 cancellations, and tasks that never started.
 
 CI, redirected output, and `ISOX_PROGRESS=0` use the same compact task results,
 cache labels, failure diagnostics, and summaries without cursor animation.
+In GitHub Actions, every completed task gets a collapsible log group such as
+`✅ > isox run api:build (1.25s)` or `❌ > isox run web:build (failed after 1.25s)`.
+Expand the group to inspect that task's captured stdout and stderr, including
+successful and cached output. Parallel tasks publish complete groups so their
+logs stay separate. Large logs retain their bounded tail with a truncation notice.
+
 Use `--verbose` to list the selected projects and stream all tool output with
-detailed lifecycle messages.
+detailed lifecycle messages instead of buffering it into groups.
 
 ## Named configurations
 

@@ -7,8 +7,13 @@ import { createTaskDisplay } from '../../../dist/cli/shared/task-display.js'
 import { runProcess } from '../../../dist/core/index.js'
 import { affectedFixture, cliPath } from './helpers/affected-fixture.mjs'
 
-function terminal(t, options = {}) {
+function terminal(t, options = {}, environment = {}) {
   vi.stubEnv('CI', '')
+  vi.stubEnv('GITHUB_ACTIONS', '')
+  for (const [name, value] of Object.entries(environment)) {
+    vi.stubEnv(name, value)
+  }
+
   vi.stubEnv('TERM', 'xterm')
   vi.stubEnv('ISOX_PROGRESS', '')
   vi.useFakeTimers()
@@ -262,4 +267,100 @@ test('colors distinguish progress, success, failure diagnostics, and summaries',
   assert.ok(writes.join('').includes('\u001b[31merror TS2307'))
   assert.match(output(), /\n {6}error TS2307: Missing module/)
   assert.match(output(), /Failed tasks:\n {6}- bad:build/)
+})
+
+test('GitHub Actions groups every completed task with its own output and final status', t => {
+  const { display, writes, output } = terminal(t, {
+    target: 'build',
+    total: 3
+  }, {
+    GITHUB_ACTIONS: 'true',
+    CI: 'true'
+  })
+
+  display.start('app', 'app:build')
+  display.start('lib', 'lib:build')
+  display.start('cached', 'cached:build')
+  display.output('app', Buffer.from('app stdout\n'), 'stdout')
+  display.output('lib', Buffer.from('lib error\n'), 'stderr')
+  display.output('app', Buffer.from('app stderr'), 'stderr')
+  assert.doesNotMatch(output(), /app stdout|lib error|::group::/)
+  display.finish('lib', false, false)
+  display.finish('app', true, false)
+  display.message('cached', {
+    type: 'isox:task-result',
+    status: 'success',
+    message: 'isox run cached:build (cache hit abc123)'
+  })
+  display.finish('cached', true, false)
+  display.stop()
+  const groups = writes.filter(line => line.startsWith('::group::'))
+
+  assert.equal(display.interactive, false)
+  assert.equal(groups.length, 3)
+  assert.match(groups[0], /^::group::❌ > isox run lib:build .*\n::stop-commands::[a-f0-9-]+\nlib error\n::[a-f0-9-]+::\n::endgroup::\n$/)
+  assert.match(groups[1], /^::group::✅ > isox run app:build .*\n::stop-commands::[a-f0-9-]+\napp stdout\napp stderr\n::[a-f0-9-]+::\n::endgroup::\n$/)
+  assert.match(groups[2], /^::group::✅ > isox run cached:build \[local cache\]\n::endgroup::\n$/)
+  assert.match(output(), /2 succeeded, 1 failed/)
+  assert.match(output(), /1\/3 tasks read from cache/)
+})
+
+test('GitHub Actions groups cancelled tasks and escape group titles', t => {
+  const { display, writes } = terminal(t, { total: 1 }, {
+    GITHUB_ACTIONS: 'true',
+    CI: 'true'
+  })
+
+  display.start('app', 'app:build%\r\n::endgroup::')
+  display.output('app', Buffer.from('cancelled output'), 'stdout')
+  display.finish('app', false, true)
+  display.stop()
+  const group = writes.find(line => line.startsWith('::group::'))
+
+  assert.match(group, /^::group::⚠️ > isox run app:build%25%0D%0A::endgroup:: \(cancelled after /)
+  assert.match(group, /\ncancelled output\n::[a-f0-9-]+::\n::endgroup::\n$/)
+})
+
+test('nested group commands in tool logs cannot close the enclosing task group', t => {
+  const { display, writes } = terminal(t, { total: 1 }, {
+    GITHUB_ACTIONS: 'true',
+    CI: 'true'
+  })
+
+  display.start('app', 'app:build')
+  display.output('app', Buffer.from('::endgroup::\n::group::nested task\n'), 'stdout')
+  display.finish('app', true, false)
+  const group = writes.find(line => line.startsWith('::group::'))
+  const token = group.match(/::stop-commands::([a-f0-9-]+)/)[1]
+
+  assert.ok(group.includes(`::stop-commands::${token}\n::endgroup::\n::group::nested task\n::${token}::\n::endgroup::`))
+})
+
+test('run-many publishes expandable GitHub Actions groups with successful tool output', async t => {
+  const { root, env, write } = await affectedFixture(t)
+
+  await write('node_modules/@fixture/plugin/record.cjs', `module.exports = () => {
+    console.log('grouped stdout')
+    console.error('grouped stderr')
+    return { success: true }
+  }`)
+  let output = ''
+  const result = await runProcess(process.execPath, [cliPath, 'run-many', '--target=build', '--projects=lib'], {
+    cwd: root,
+    env: {
+      ...env,
+      GITHUB_ACTIONS: 'true',
+      CI: 'true'
+    },
+    onOutput: chunk => {
+      output += chunk
+    }
+  })
+
+  assert.equal(result.success, true, output)
+  assert.match(output, /::group::✅ > isox run lib:build \(/)
+  assert.match(output, /grouped stdout/)
+  assert.match(output, /grouped stderr/)
+  assert.equal(output.split('::group::').length - 1, 1)
+  assert.equal(output.split('::endgroup::').length - 1, 1)
 })

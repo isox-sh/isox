@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { StringDecoder } from 'node:string_decoder'
 import { stripVTControlCharacters } from 'node:util'
 
@@ -46,7 +47,8 @@ function isTaskResult(value: unknown): value is TaskResult {
 export function createTaskDisplay(options: TaskDisplayOptions = {}) {
   const stdout = options.stdout ?? process.stdout
   const stderr = options.stderr ?? process.stderr
-  const interactive = Boolean(stdout.isTTY && stderr.isTTY && !process.env.CI && process.env.TERM !== 'dumb' && process.env.ISOX_PROGRESS !== '0')
+  const grouped = process.env.GITHUB_ACTIONS === 'true'
+  const interactive = Boolean(!grouped && stdout.isTTY && stderr.isTTY && !process.env.CI && process.env.TERM !== 'dumb' && process.env.ISOX_PROGRESS !== '0')
   const colors = options.colors ?? (process.env.FORCE_COLOR !== undefined
     ? process.env.FORCE_COLOR !== '0'
     : Boolean(stdout.isTTY && !process.env.NO_COLOR && process.env.TERM !== 'dumb'))
@@ -190,6 +192,23 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
         ? '[local cache]'
         : `(${cancelled ? 'cancelled after ' : success ? '' : 'failed after '}${elapsed(task.started)})`
       const destination = success ? stdout : stderr
+
+      if (grouped) {
+        // Emit complete groups on one stream so parallel tasks cannot nest or interleave.
+        const title = `${success ? '✅' : cancelled ? '⚠️' : '❌'} > isox run ${task.reference} ${detail}`
+          .replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A')
+        const output = task.output.trimEnd()
+        const notice = task.truncated ? '[Earlier output omitted; showing recent output]\n' : ''
+
+        // Tool output may itself contain group/workflow commands, especially cached nested runs.
+        const token = randomUUID()
+        const body = output ? `::stop-commands::${token}\n${notice}${output}\n::${token}::\n` : ''
+
+        stdout.write(`::group::${title}\n${body}::endgroup::\n`)
+        task.output = ''
+
+        return
+      }
 
       if (!success || count('success') + count('error') + count('warn') === 1) {
         destination.write('\n')

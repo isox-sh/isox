@@ -67,8 +67,8 @@ isox reset                 # Clear everything under .isox
 
 For a single project, a hit reports `Cache hit for web:build` before replaying saved terminal output.
 Multi-project runs show `✔ isox run web:build [local cache]` instead. The live
-display and static CI output hide successful tool output; verbose execution
-replays it. Cached output contains tool diagnostics, without replaying old task
+display and ordinary static output hide successful tool output. GitHub Actions
+includes it inside each task's collapsible log group; verbose execution streams it. Cached output contains tool diagnostics, without replaying old task
 start or completion messages.
 A miss is logged before execution only with `--verbose`. Replayed terminal output comes from the
 original execution, including any durations it printed. `--skip-cache` also works
