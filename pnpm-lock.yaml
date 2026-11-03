@@ -243,7 +243,7 @@ importers:
 
   packages/e2e:
     dependencies:
-      isox:
+      '@isox-sh/cli':
         specifier: workspace:*
         version: link:../../dist/cli
     publishDirectory: ../../dist/e2e

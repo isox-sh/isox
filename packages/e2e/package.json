@@ -9,7 +9,7 @@
     "dist"
   ],
   "dependencies": {
-    "isox": "workspace:*"
+    "@isox-sh/cli": "workspace:*"
   },
   "repository": {
     "type": "git",

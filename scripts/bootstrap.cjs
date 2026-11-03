@@ -140,7 +140,7 @@ async function bootstrap() {
 
   await recordSeedOwnership(root, seededFiles)
 
-  for (const name of ['core', 'js', 'cli', 'eslint', 'vitest', 'semver', 'nx', 'e2e-plugin']) {
+  for (const name of ['core', 'js', 'cli', 'eslint', 'vitest', 'semver', 'nx', 'e2e']) {
     await runExecutor(workspace, name, 'build', root)
   }
 }

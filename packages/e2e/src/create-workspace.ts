@@ -47,10 +47,11 @@ export async function createWorkspace(options: CreateWorkspaceOptions = {}): Pro
     throw new Error('E2E timeout must be a positive number of milliseconds.')
   }
 
+  const cliPackageName = '@isox-sh/cli'
   const cliRoot = await realpath(options.cliDirectory === undefined
-    ? dirname(packageRequire.resolve('isox/package.json'))
+    ? dirname(packageRequire.resolve(`${cliPackageName}/package.json`))
     : resolve(workspaceRoot, options.cliDirectory))
-  const cliPackage = await readPackage(cliRoot, 'isox')
+  const cliPackage = await readPackage(cliRoot, cliPackageName)
   const bin = typeof cliPackage.bin === 'string' ? cliPackage.bin : cliPackage.bin?.isox
 
   if (typeof bin !== 'string' || !bin || typeof cliPackage.version !== 'string') {
@@ -59,7 +60,7 @@ export async function createWorkspace(options: CreateWorkspaceOptions = {}): Pro
 
   const cli = resolve(cliRoot, bin)
   const coreRoot = dirname(createRequire(join(cliRoot, 'package.json')).resolve('@isox-sh/core/package.json'))
-  const packages = new Map([['isox', cliRoot], ['@isox-sh/core', coreRoot]])
+  const packages = new Map([[cliPackageName, cliRoot], ['@isox-sh/core', coreRoot]])
 
   for (const [name, directory] of Object.entries(options.plugins ?? {})) {
     if (!/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/.test(name)) {
