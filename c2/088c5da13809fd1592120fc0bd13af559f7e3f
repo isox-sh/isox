@@ -1,0 +1,37 @@
+website/docs/task-caching.md
+  s_5d3ad8740834ec::t_cdae2e8e8dce72 70-71
+website/docs/cli.md
+  s_5d3ad8740834ec::t_cdae2e8e8dce72 84,91-96,98
+packages/cli/tests/task-display.test.mjs
+  s_5d3ad8740834ec::t_454d3d2cdc900d 301-302,321-366
+  s_5d3ad8740834ec::t_cdae2e8e8dce72 10,12-16,271-300,303-320
+packages/cli/tests/helpers/affected-fixture.mjs
+  s_5d3ad8740834ec::t_454d3d2cdc900d 10-13
+packages/cli/tests/task-cache.test.mjs
+  s_5d3ad8740834ec::t_454d3d2cdc900d 29
+packages/cli/src/shared/task-display.ts
+  s_5d3ad8740834ec::t_454d3d2cdc900d 1,203-207
+  s_5d3ad8740834ec::t_cdae2e8e8dce72 50-51,196-202,208-211
+  s_5d3ad8740834ec::t_c6755176510213 212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c2088c5da13809fd1592120fc0bd13af559f7e3f",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_5d3ad8740834ec": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a17367-5d8d-73b1-9166-6e57d81f75ff",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
