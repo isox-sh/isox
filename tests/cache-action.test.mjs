@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-import { test } from 'vitest'
+import { onTestFinished, test } from 'vitest'
 
 import { cacheSettings, refreshDefinitions } from '../actions/cache/prepare.mjs'
 
-async function fixture(t) {
+async function fixture(t = { onTestFinished }) {
   const root = await mkdtemp(join(tmpdir(), 'isox cache action '))
 
   t.onTestFinished(() => rm(root, {
@@ -104,6 +105,7 @@ test('the action entry point exports cross-commit keys and refreshes only the se
     ...process.env,
     GITHUB_WORKSPACE: root,
     GITHUB_OUTPUT: output,
+    GITHUB_ENV: join(root, 'environment'),
     INPUT_WORKINGDIRECTORY: 'nested workspace',
     INPUT_PREFIX: 'shared',
     RUNNER_OS: 'Linux',
@@ -160,4 +162,50 @@ test('refreshing a directory-shaped definitions cache preserves its contents for
   assert.equal(backups.length, 1)
   assert.match(backups[0], /^workspace\.json\..+\.invalid$/)
   assert.equal(await readFile(join(path, backups[0], 'keep'), 'utf8'), 'preserved')
+})
+
+test.each(['.', 'nested workspace'])('restore and post-job save use the same cache version for %s', async directory => {
+  const root = await fixture()
+  const output = join(root, 'outputs')
+  const environment = join(root, 'environment')
+  const result = spawnSync(process.execPath, [resolve('actions/cache/prepare.mjs')], {
+    env: {
+      ...process.env,
+      GITHUB_WORKSPACE: root,
+      GITHUB_OUTPUT: output,
+      GITHUB_ENV: environment,
+      INPUT_WORKINGDIRECTORY: directory,
+      RUNNER_OS: 'Linux',
+      RUNNER_ARCH: 'X64'
+    },
+    encoding: 'utf8'
+  })
+
+  assert.equal(result.status, 0, result.stderr)
+  const jobEnvironment = Object.fromEntries((await readFile(environment, 'utf8')).trim().split('\n').map(line => {
+    const separator = line.indexOf('=')
+
+    return [line.slice(0, separator), line.slice(separator + 1)]
+  }))
+  const action = await readFile('actions/cache/action.yml', 'utf8')
+  const expression = action.match(/^ {8}path: (.+)$/m)[1]
+  const evaluate = context => expression.replace(/\$\{\{\s*(\w+)\.(\w+)\s*\}\}/g, (_, scope, name) => context[scope]?.[name] ?? '')
+  const restorePath = evaluate({
+    github: { workspace: root },
+    inputs: { workingDirectory: directory },
+    env: jobEnvironment
+  })
+  // Nested post actions re-evaluate with inputs/steps missing, but retain the job environment.
+  const postPath = evaluate({
+    github: { workspace: root },
+    inputs: {},
+    steps: {},
+    env: jobEnvironment
+  })
+  const cacheVersion = path => createHash('sha256').update([path, 'zstd-without-long', '1.0'].join('|')).digest('hex')
+
+  assert.equal(restorePath, join(root, directory, '.isox'))
+  assert.equal(postPath, restorePath)
+  assert.equal(cacheVersion(postPath), cacheVersion(restorePath))
+  assert.notEqual(cacheVersion(`${root}/./.isox`), cacheVersion(`${root}//.isox`))
 })

@@ -29,9 +29,9 @@ runs:
     - name: Restore Isox state and register post-job save
       uses: actions/cache@v5
       with:
-        # Composite step outputs are unavailable when the nested post action runs.
-        # The cache action saves its key in state, but reads path from its inputs again.
-        path: ${{ github.workspace }}/${{ inputs.workingDirectory }}/.isox
+        # Composite inputs and step outputs are unavailable during nested post actions.
+        # Persist the exact path in GITHUB_ENV: cache versions hash its literal spelling.
+        path: ${{ env.ISOX_CACHE_PATH }}
         key: ${{ steps.prepare.outputs.key }}
         restore-keys: ${{ steps.prepare.outputs.prefix }}
 
@@ -39,5 +39,4 @@ runs:
       shell: bash
       env:
         ISOX_CACHE_ACTION_PATH: ${{ github.action_path }}
-        ISOX_CACHE_PATH: ${{ steps.prepare.outputs.path }}
       run: node "$ISOX_CACHE_ACTION_PATH/prepare.mjs" refresh

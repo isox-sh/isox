@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto'
-import { lstat, rename, rm } from 'node:fs/promises'
+import { appendFile, lstat, rename, rm } from 'node:fs/promises'
 import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
 import { actionMain, input, setOutput } from '../shared/runtime.mjs'
@@ -66,6 +66,12 @@ export async function main() {
     platform: process.env.RUNNER_OS,
     arch: process.env.RUNNER_ARCH
   })
+
+  if (!process.env.GITHUB_ENV) {
+    throw new Error('GITHUB_ENV is required to preserve the cache path for post-job saving.')
+  }
+
+  await appendFile(process.env.GITHUB_ENV, `ISOX_CACHE_PATH=${settings.path}\n`)
 
   for (const [name, value] of Object.entries(settings)) {
     setOutput(name, value)
