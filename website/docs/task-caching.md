@@ -195,6 +195,26 @@ Targets without `cache: true` incur no task hashing, log capture or artifact-cop
 work. Cacheable invocations request their dependency closure and read declared
 file contents, installed tool manifests and executor files before lookup. A miss
 checks inputs again after execution before publishing; it also copies outputs.
+A hit also rechecks inputs before reuse. Existing outputs are compared by content,
+permissions and directory structure, then checked again after input validation.
+Tool hashing starts from the executor, core, workspace root, and the selected
+project's dependency closure. Workspace and project `devDependencies` are included
+because tasks can invoke those tools. Within installed packages, only runtime,
+peer and optional dependencies are followed; their own development dependencies
+are excluded. A plugin must declare the packages it needs to execute as runtime
+or peer dependencies. Lockfiles and full manifest contents still participate in
+the key, so changing dependency declarations still invalidates results.
+
+Manifest reads run in bounded parallel batches. `.isox/tools.json` indexes package
+lookup directories, including missing directories, to avoid repeated filesystem
+searches. Each hash validates directory identities and change times before reusing
+listings. Package manifest contents and resolved real paths are still read on each
+hash, so edits, new installations, removals and changed symlinks remain detectable.
+The index is written atomically, rebuilt when invalid, and removed by `isox reset`.
+
+Small, fast
+tasks can still take longer to validate than to execute; use `--skip-cache` when
+measuring that tradeoff.
 Preserving previous outputs uses directory renames on the same filesystem and
 temporarily retains both old and new output trees. Git output checks inspect the
 index for declared directories; tasks with no outputs skip that check.

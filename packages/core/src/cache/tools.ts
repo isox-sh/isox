@@ -2,48 +2,80 @@ import { readFile, realpath } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { dirname, join, resolve } from 'node:path'
 
-import { resolvePackageJson } from '../utils/resolve-package-json'
 import { digest, slash, snapshot, statIfExists } from './files'
+import { createToolIndex } from './tool-index'
+
+interface InstalledVersionsOptions {
+  root?: string
+  developmentManifests?: string[]
+}
+
+async function existingManifest(file: string): Promise<string | undefined> {
+  try {
+    return await realpath(file)
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error
+    }
+
+    return undefined
+  }
+}
 
 /** Record installed versions as well as the lockfile: a stale installation must miss. */
-export async function installedVersions(manifests: string[]): Promise<unknown> {
-  const pending = new Set(manifests)
-  const versions = new Map<string, unknown>()
+export async function installedVersions(manifests: string[], options: InstalledVersionsOptions = {}): Promise<unknown> {
+  const index = await createToolIndex(options.root)
+  const pending = [...new Set((await Promise.all(manifests.map(existingManifest))).filter(file => file !== undefined))]
+  const development = new Set(await Promise.all((options.developmentManifests ?? manifests).map(existingManifest)))
+  const seen = new Set(pending)
+  const versions = new Map<string, string | null>()
 
-  for (const file of pending) {
-    if (!await statIfExists(file)) {
-      continue
-    }
-
-    const actual = await realpath(file)
-
-    if (versions.has(actual)) {
-      continue
-    }
-
+  const inspect = async (actual: string): Promise<void> => {
     const contents = await readFile(actual, 'utf8')
     const manifest = JSON.parse(contents)
 
     versions.set(actual, digest(contents))
     const dependencies = {
       ...manifest.dependencies,
-      ...manifest.devDependencies,
+      // Workspace tools can be development dependencies. An installed tool's
+      // own development dependencies are not part of its runtime contract.
+      ...(development.has(actual) ? manifest.devDependencies : {}),
       ...manifest.peerDependencies,
       ...manifest.optionalDependencies,
     }
 
     for (const dependency of Object.keys(dependencies).sort()) {
+      let resolved: string | undefined
+
       try {
-        pending.add(resolvePackageJson(dependency, dirname(actual)))
+        resolved = dependency === manifest.name ? actual : await index.resolveManifest(dependency, actual)
       } catch (error) {
         if ((error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') {
           throw error
         }
+      }
 
+      if (!resolved) {
         versions.set(`${actual}:${dependency}`, null)
+      } else if (!seen.has(resolved)) {
+        seen.add(resolved)
+        pending.push(resolved)
       }
     }
   }
+
+  // Bound concurrent reads, and rebuild this graph on every hash. Reusing a
+  // previous resolution could hide an installation changed during execution.
+  let offset = 0
+
+  while (offset < pending.length) {
+    const batch = pending.slice(offset, offset + 16)
+
+    offset += batch.length
+    await Promise.all(batch.map(inspect))
+  }
+
+  await index.save()
 
   return [...versions.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
 }

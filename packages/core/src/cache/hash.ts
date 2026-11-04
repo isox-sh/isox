@@ -95,7 +95,9 @@ async function fileInputs(root: string, projectRoot: string, inputs: TaskInput[]
   const files = new Map()
   // Start at each glob's literal prefix rather than walking the whole workspace.
   for (const pattern of positive) {
-    const prefix = pattern.split('/').filter((_part, index, parts) => !parts.slice(0, index + 1).some(part => /[*?[\]{}()!]/.test(part))).join('/')
+    const parts = pattern.split('/')
+    const wildcard = parts.findIndex(part => /[*?[\]{}()!]/.test(part))
+    const prefix = parts.slice(0, wildcard < 0 ? parts.length : wildcard).join('/')
     const base = resolve(root, prefix || '.')
 
     if (excluded(base)) {
@@ -173,8 +175,11 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
   }
 
   const plugin = await executorFiles(executorPackage, context.command.executor)
-  const manifests = [...pending].map(name => join(root, workspace.projects[name].root, 'package.json'))
-  const tools = await installedVersions([executorPackage, resolve(__dirname, '../package.json'), join(root, 'package.json'), ...manifests])
+  const manifests = [join(root, 'package.json'), ...[...pending].map(name => join(root, workspace.projects[name].root, 'package.json'))]
+  const tools = await installedVersions([executorPackage, resolve(__dirname, '../package.json'), ...manifests], {
+    root,
+    developmentManifests: manifests
+  })
   const shared = await fileInputs(root, '.', ['package.json', 'isox.json', 'tsconfig.json', 'tsconfig.base.json', '.gitignore', '.isoxignore', ...lockfiles], outputs)
 
   return digest(stableJson({

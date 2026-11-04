@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { chmod, cp, mkdir, mkdtemp, readdir, readFile, rm, stat, symlink, truncate, writeFile } from 'node:fs/promises'
+import { chmod, cp, mkdir, mkdtemp, readdir, readFile, realpath, rm, stat, symlink, truncate, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -461,6 +461,36 @@ test('concurrent publication leaves one complete entry and no temporary director
   await rm(join(f.root, 'dist'), { recursive: true })
   assert.deepEqual(await restoreTask(f.context, hash, ['dist/demo']), [])
   assert.equal(await readFile(join(f.root, 'dist/demo/file'), 'utf8'), 'complete')
+})
+
+test('installed manifest batches preserve branches, cycles, missing packages and deterministic ordering', async t => {
+  const f = await fixture(t)
+  const { installedVersions } = require('../../../dist/core/cache/tools')
+  const { digest } = require('../../../dist/core/cache/files')
+  const expected = []
+  const files = []
+
+  for (let index = 0; index < 35; index++) {
+    const file = `node_modules/tool-${index}/package.json`
+    const dependencies = index === 0
+      ? Object.fromEntries(Array.from({ length: 32 }, (_, offset) => [`tool-${offset + 1}`, '*']))
+      : { [`tool-${index < 33 ? 33 : index === 33 ? 34 : 0}`]: '*' }
+
+    await f.write(file, {
+      name: `tool-${index}`,
+      dependencies,
+      optionalDependencies: index === 34 ? { missing: '*' } : undefined
+    })
+    const actual = await realpath(join(f.root, file))
+
+    files.push(actual)
+    expected.push([actual, digest(await readFile(actual))])
+  }
+
+  expected.push([`${files[34]}:missing`, null])
+  expected.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
+  assert.deepEqual(await installedVersions([files[0]]), expected)
+  assert.deepEqual(await installedVersions(files.toReversed()), expected)
 })
 
 test('installed tool version and runtime changes invalidate keys independently of the lockfile', async t => {

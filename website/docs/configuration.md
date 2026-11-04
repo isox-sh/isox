@@ -260,6 +260,7 @@ work. Opt-in [task results](/docs/task-caching) are stored separately under `.is
 | --- | --- | --- |
 | `.isox/workspace.json` | Validated project definitions with merged target defaults and explicitly declared `dependencies` | Single-project commands load it directly; selection commands refresh it |
 | `.isox/discovery.json` | Per-project dependency-analysis results, fingerprints and resolution probes | When affected selection, a cacheable task, or an executor requests dependencies |
+| `.isox/tools.json` | Validated package lookup directory listings | When a cacheable task hashes its installed tools |
 
 ### Project definitions
 
