@@ -1,0 +1,31 @@
+packages/core/src/cache/store.ts
+  s_51871bdcdb3b4c::t_46b6d25e32647a 137-140
+  s_51871bdcdb3b4c::t_b7eed243fcdddb 221
+  s_51871bdcdb3b4c::t_08ee8bfb135388 228-254,273,278,280,285-286,288-290,292-295,299-335
+packages/core/tests/task-cache.test.mjs
+  s_51871bdcdb3b4c::t_2c8dc1c8677be6 191-238
+  s_51871bdcdb3b4c::t_dfea6dceaae7ba 239
+website/docs/task-caching.md
+  s_51871bdcdb3b4c::t_2ca24a21c489ae 173-175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9fb00da0d40d583e2a317e7310248cc4dc85533c",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_51871bdcdb3b4c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16e8d-1b37-7e91-be3e-4c551cf94969",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
