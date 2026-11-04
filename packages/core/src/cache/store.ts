@@ -134,6 +134,10 @@ export async function prepareOutputs(root: string, outputs: string[]): Promise<O
 
 /** Publish claims before checking peers so overlapping writers cannot both proceed. */
 export async function claimOutputs(root: string, outputs: string[]): Promise<() => Promise<void>> {
+  if (!outputs.length) {
+    return async () => {}
+  }
+
   const directory = join(await prepareCacheDirectory(root), 'locks')
 
   await noSymlinks(root, directory)
@@ -214,45 +218,14 @@ async function copyDirectory(source: string, destination: string): Promise<FileE
   return entries
 }
 
-/** Validate all artifacts in staging before touching any workspace output. */
+/** Verify cached artifacts, then reuse matching outputs or restore transactionally. */
 export async function restoreTask(context: ExecutorContext, hash: string, outputs: string[], unchanged: () => Promise<boolean> = async () => true): Promise<TerminalChunk[] | undefined> {
   const directory = await prepareCacheDirectory(context.workspaceRoot)
   const source = join(directory, hash)
   const staging = join(directory, `${hash}.${randomUUID()}.restore`)
   let entry: CacheEntry
 
-  try {
-    await noSymlinks(context.workspaceRoot, join(source, 'entry.json'))
-    await noSymlinks(context.workspaceRoot, join(source, 'entry.sha256'))
-    const metadata = await readBoundedFile(join(source, 'entry.json'), maxMetadataBytes)
-
-    if (digest(metadata) !== await readBoundedFile(join(source, 'entry.sha256'), 64)) {
-      throw new Error('Invalid task cache metadata checksum')
-    }
-
-    entry = JSON.parse(metadata)
-
-    if (entry.version !== 1 || entry.hash !== hash || entry.project !== context.projectName || entry.target !== context.commandName
-      || !Array.isArray(entry.outputs) || stableJson(entry.outputs.map(output => output.path)) !== stableJson(outputs)
-      || !Array.isArray(entry.logs) || entry.logs.some(chunk => !chunk || !['stdout', 'stderr'].includes(chunk.stream) || typeof chunk.data !== 'string'
-        || Buffer.from(chunk.data, 'base64').toString('base64') !== chunk.data)) {
-      throw new Error('Invalid task cache metadata')
-    }
-
-    await mkdir(staging)
-    await writeFile(join(staging, 'outputs.json'), JSON.stringify(outputs), { flag: 'wx' })
-
-    for (const [index, output] of entry.outputs.entries()) {
-      const artifact = join(source, String(index))
-
-      await noSymlinks(context.workspaceRoot, artifact)
-      const entries = await copyDirectory(artifact, join(staging, String(index)))
-
-      if (stableJson(entries) !== stableJson(output.entries)) {
-        throw new Error('Invalid task cache artifact')
-      }
-    }
-  } catch (error) {
+  const discardEntry = async (error: unknown): Promise<undefined> => {
     await rm(staging, {
       recursive: true,
       force: true
@@ -277,6 +250,89 @@ export async function restoreTask(context: ExecutorContext, hash: string, output
     }
 
     return undefined
+  }
+
+  try {
+    await noSymlinks(context.workspaceRoot, join(source, 'entry.json'))
+    await noSymlinks(context.workspaceRoot, join(source, 'entry.sha256'))
+    const metadata = await readBoundedFile(join(source, 'entry.json'), maxMetadataBytes)
+
+    if (digest(metadata) !== await readBoundedFile(join(source, 'entry.sha256'), 64)) {
+      throw new Error('Invalid task cache metadata checksum')
+    }
+
+    entry = JSON.parse(metadata)
+
+    if (entry.version !== 1 || entry.hash !== hash || entry.project !== context.projectName || entry.target !== context.commandName
+      || !Array.isArray(entry.outputs) || stableJson(entry.outputs.map(output => output.path)) !== stableJson(outputs)
+      || !Array.isArray(entry.logs) || entry.logs.some(chunk => !chunk || !['stdout', 'stderr'].includes(chunk.stream) || typeof chunk.data !== 'string'
+        || Buffer.from(chunk.data, 'base64').toString('base64') !== chunk.data)) {
+      throw new Error('Invalid task cache metadata')
+    }
+
+    // Even when outputs already match, validate the cached bytes before trusting logs.
+    for (const [index, output] of entry.outputs.entries()) {
+      const artifact = join(source, String(index))
+
+      await noSymlinks(context.workspaceRoot, artifact)
+      const entries = await snapshot(artifact)
+
+      if ((entries.length && entries[0].kind !== 'directory') || stableJson(entries) !== stableJson(output.entries)) {
+        throw new Error('Invalid task cache artifact')
+      }
+    }
+  } catch (error) {
+    return discardEntry(error)
+  }
+
+  const outputsMatch = async (): Promise<boolean> => {
+    for (const output of entry.outputs) {
+      const destination = resolve(context.workspaceRoot, output.path)
+
+      await noSymlinks(context.workspaceRoot, destination)
+
+      if (stableJson(await snapshot(destination)) !== stableJson(output.entries)) {
+        return false
+      }
+    }
+
+    return true
+  }
+
+  context.signal?.throwIfAborted()
+  await assertDisposableOutputs(context.workspaceRoot, outputs)
+
+  if (await outputsMatch()) {
+    if (!await unchanged()) {
+      return undefined
+    }
+
+    // Input validation can take time. Recheck paths and bytes afterwards too.
+    context.signal?.throwIfAborted()
+    await assertDisposableOutputs(context.workspaceRoot, outputs)
+    const matching = await outputsMatch()
+
+    context.signal?.throwIfAborted()
+
+    return matching ? entry.logs : undefined
+  }
+
+  try {
+    await mkdir(staging)
+    await writeFile(join(staging, 'outputs.json'), JSON.stringify(outputs), { flag: 'wx' })
+
+    for (const [index, output] of entry.outputs.entries()) {
+      const artifact = join(source, String(index))
+
+      await noSymlinks(context.workspaceRoot, artifact)
+      const entries = await copyDirectory(artifact, join(staging, String(index)))
+
+      if (stableJson(entries) !== stableJson(output.entries)) {
+        throw new Error('Invalid task cache artifact')
+      }
+    }
+  } catch (error) {
+    return discardEntry(error)
   }
 
   const moved: number[] = []

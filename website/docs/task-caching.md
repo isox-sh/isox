@@ -170,7 +170,9 @@ execution. The write-count limit bounds the overhead of many tiny chunks. Cache 
 limited to 64 MiB; oversized entries are ignored and oversized new entries are not
 stored. Metadata reads are bounded before parsing.
 
-Restoration verifies every artifact in staging before replacing outputs and
+Cache hits verify the cached artifacts even when workspace outputs already match.
+Matching outputs stay in place, preserving their files and timestamps. When outputs
+differ, restoration verifies every artifact in staging before replacing outputs and
 rolls back a partial restore on error. Incomplete or corrupt entries cause a miss.
 Concurrent cache publishers cannot expose partial entries. Overlapping output
 owners fail with a diagnostic instead of writing simultaneously.

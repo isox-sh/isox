@@ -188,6 +188,55 @@ test('restores outputs, empty directories, executable modes and terminal logs; r
   assert.equal(await readFile(join(f.root, 'dist/demo/file'), 'utf8'), 'first')
 })
 
+test('matching outputs are reused without replacing files or directories', async t => {
+  const f = await fixture(t)
+
+  await f.run()
+  const paths = ['dist/demo', 'dist/demo/file', 'dist/demo/empty']
+  const before = await Promise.all(paths.map(path => stat(join(f.root, path), { bigint: true })))
+
+  await f.run()
+  assert.equal(await f.runs(), 1)
+  const after = await Promise.all(paths.map(path => stat(join(f.root, path), { bigint: true })))
+
+  for (const [index, info] of before.entries()) {
+    assert.equal(after[index].ino, info.ino)
+    assert.equal(after[index].ctimeNs, info.ctimeNs)
+  }
+
+  assert.ok(f.logs.some(log => log.includes('Cache hit')))
+  assert.equal((await readdir(join(f.root, '.isox/tasks'))).some(name => name.endsWith('.restore')), false)
+})
+
+test('matching outputs changed during input validation cannot produce a cache hit', async t => {
+  const f = await fixture(t)
+
+  await f.run()
+  const hash = (await f.entries())[0]
+  const logs = await restoreTask(f.context, hash, ['dist/demo'], async () => {
+    await f.write('dist/demo/file', 'changed during validation')
+
+    return true
+  })
+
+  assert.equal(logs, undefined)
+  assert.equal(await readFile(join(f.root, 'dist/demo/file'), 'utf8'), 'changed during validation')
+  assert.deepEqual(await f.entries(), [hash])
+})
+
+test.skipIf(process.platform === 'win32')('matching output bytes still restore changed modes and missing empty directories', async t => {
+  const f = await fixture(t)
+
+  await f.run()
+  await chmod(join(f.root, 'dist/demo/file'), 0o644)
+  await f.run()
+  assert.equal((await stat(join(f.root, 'dist/demo/file'))).mode & 0o777, 0o755)
+  await rm(join(f.root, 'dist/demo/empty'), { recursive: true })
+  await f.run()
+  assert.equal((await stat(join(f.root, 'dist/demo/empty'))).isDirectory(), true)
+  assert.equal(await f.runs(), 1)
+})
+
 test('stable keys ignore JSON property ordering and output content but track all declared inputs', async t => {
   const f = await fixture(t)
   const original = await f.hash()
