@@ -73,7 +73,7 @@ test('init creates a buildable JS project and adds its import alias to a new bas
   const project = await readJson(join(root, 'packages/test/project.json'))
 
   assert.equal(project.name, 'test')
-  assert.equal(project.targets.build.executor, '@isox-sh/js:tsc')
+  assert.equal(project.targets.build.executor, 'js:tsc')
   assert.equal(project.targets.build.options.tsConfig, './packages/test/tsconfig.build.json')
   assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).extends, '../../tsconfig.base.json')
   assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).compilerOptions.noEmit, true)
@@ -82,7 +82,12 @@ test('init creates a buildable JS project and adds its import alias to a new bas
 
   assert.deepEqual(base.compilerOptions.paths, { '@org/test': ['./packages/test/src/index.ts'] })
   assert.equal(await readFile(join(root, '.isox/keep'), 'utf8'), 'other cache data')
-  assert.equal(await readFile(join(root, 'isox.json'), 'utf8'), '{}\n')
+  assert.deepEqual((await readJson(join(root, 'isox.json'))).targetDefaults, {
+    'js:tsc': {
+      cache: true,
+      outputs: ['{workspaceRoot}/dist/{projectRoot}']
+    },
+  })
   const build = run(root, 'build', 'test')
 
   assert.equal(build.status, 0, build.stderr)

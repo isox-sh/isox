@@ -1,6 +1,29 @@
 {
+  "$schema": "./packages/core/schemas/isox.schema.json",
   "version": "0.0.1",
   "affected": {
     "globalFiles": []
+  },
+  "targetDefaults": {
+    "eslint:lint": {
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/**/*",
+        "{workspaceRoot}/eslint.config.*"
+      ]
+    },
+    "js:tsc": {
+      "cache": true,
+      "outputs": [
+        "{workspaceRoot}/dist/{projectName}"
+      ]
+    },
+    "vitest:test": {
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/**/*",
+        "{workspaceRoot}/dist/**/*"
+      ]
+    }
   }
 }

@@ -7,7 +7,10 @@ export const cliPath = resolve(import.meta.dirname, '../../../../dist/cli/index.
 
 export async function affectedFixture(t) {
   const root = await mkdtemp(join(tmpdir(), 'isox-affected-cli-'))
-  const env = { ...process.env }
+  const env = {
+    ...process.env,
+    GITHUB_ACTIONS: ''
+  }
 
   delete env.ISOX_BASE
   delete env.ISOX_HEAD

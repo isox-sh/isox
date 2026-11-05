@@ -7,6 +7,12 @@ Requires Node.js 24+.
 npm install --save-dev @isox-sh/js
 ```
 
+The compiler still runs on every build. Workspace alias remapping can reuse
+dependency analysis from `.isox/discovery.json`; changed source metadata causes
+the invalidated project's included sources, including tests, to be reanalyzed.
+Package generation performs its own build-specific dependency analysis. See
+[cache behavior](https://github.com/isox-sh/isox/blob/main/website/docs/configuration.md#discovery-cache).
+
 ## Documentation
 
 - [TypeScript executor guide](https://github.com/isox-sh/isox/blob/main/website/docs/typescript.md)

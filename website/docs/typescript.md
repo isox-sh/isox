@@ -38,6 +38,27 @@ and keeps `rootDir: "./src"`. Existing workspace `tsconfig.json` files are prese
 The generated `outDir` mirrors the project's workspace-relative path under the
 workspace's `dist/` directory. For example, `packages/test` builds into
 `<workspace>/dist/packages/test`, with JavaScript and declarations there.
+The initializer also registers missing `js:tsc` defaults in `isox.json`:
+
+```json
+{
+  "targetDefaults": {
+    "js:tsc": {
+      "cache": true,
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"]
+    }
+  }
+}
+```
+
+Existing values, including `cache: false`, scoped keys and custom output settings,
+are preserved. If existing defaults use a different output layout, the new
+project gets a local `outputs` override matching its generated `outDir`.
+These defaults apply to every matching target in the workspace.
+Projects with another `outDir` must override `outputs` to match, including any
+separate `declarationDir`. Defaults do not change TypeScript compiler settings.
+See [target defaults](/docs/configuration#target-defaults) and [task caching](/docs/task-caching).
+
 The optional `--importPath` adds `compilerOptions.paths["@org/test"]` pointing to
 the new entry point, preserving existing settings, aliases, and JSONC comments.
 An existing `baseUrl` is respected when computing the mapping.
@@ -99,6 +120,20 @@ wildcard subpaths are supported; aliases within the current project keep using
 source files. The original configs stay unchanged, so editors navigate to source.
 The temporary config is removed after compilation, including failed builds.
 
+Alias remapping requests dependency analysis for this project and its transitive
+dependencies. It validates and reuses per-project entries in
+`.isox/discovery.json`; a valid entry avoids parsing imports again. An included
+source-file edit, including a body or comment edit, invalidates that project's
+source fingerprint and causes its included sources to be reanalyzed. Unchanged
+dependency projects can reuse their entries. Configuration and resolution changes
+can also invalidate analysis.
+
+The dependency source set includes tests and other discovered JS/TS files owned
+by the project, not only the build's `tsconfig` inputs. Ignore rules and configured
+compiler outputs still apply. Dependency-cache reuse alone does not skip compilation. Targets with `cache: true`
+can additionally restore a matching task result without invoking the compiler. See [dependency caching](/docs/configuration#discovery-cache)
+for validation costs and examples.
+
 Build dependencies with declarations enabled before building their consumers;
 Isox does not schedule prerequisite builds yet. Dependency configs come from the
 same command's `tsConfig` option (falling back to `build`, then the project's
@@ -132,6 +167,10 @@ Changing an output directory does not delete the former directory. `isox reset`
 also discards ownership records, so existing untracked output is preserved.
 A stale build lock or output reservation after a forced process kill can be removed with `isox reset`
 once no builds are running.
+
+For targets with `cache: true`, core's [output ownership contract](/docs/task-caching#output-ownership-and-recovery)
+takes precedence: declared directories are replaced as a whole, including with
+`clean: false` or `--skip-cache`. Recover any interrupted-task backups before reset.
 
 ### TypeScript state files
 
@@ -218,6 +257,10 @@ recognized, including aliases. A require created for another package's path is
 not treated as this project's dependency; neither are `require.resolve` calls
 with explicit lookup options for another workspace. Computed module names cannot
 be inferred.
+
+This package-generation analysis uses the build's source inputs and its own
+runtime/type classification. It does not substitute the project dependency lists
+from `discovery.json` for the dependencies written to the published manifest.
 
 `import type`, `export type`, inline type-only bindings, and `import()` type
 expressions add dependencies only for local workspace packages, so published

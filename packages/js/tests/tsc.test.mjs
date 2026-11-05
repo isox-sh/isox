@@ -114,3 +114,50 @@ test('CLI loads the manifest and merges configurations using workspace-relative 
   assert.equal(failure.status, 1)
   assert.match(failure.stderr, /Task failed for demo/)
 })
+
+test('cached builds restore packaging outputs and the next real build can replace them without compiler state', async t => {
+  const { root, projectRoot, write } = await fixture(t)
+  const { runExecutor } = require('@isox-sh/core')
+  const logs = []
+  const logger = createLogger({ reporters: [{ log: entry => logs.push(entry.args.join(' ')) }] })
+
+  await write('package.json', {
+    name: '@fixture/demo',
+    version: '1.0.0'
+  })
+  await writeFile(join(root, 'isox.json'), '{}')
+  await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
+  await symlink(resolve(__dirname, '../../../dist/js'), join(root, 'node_modules/@isox-sh/js'), 'dir')
+  const workspace = {
+    projects: {
+      demo: {
+        name: 'demo',
+        root: 'apps/demo app',
+        targets: {
+          build: {
+            executor: 'js:tsc',
+            cache: true,
+            outputs: ['{projectRoot}/dist'],
+            options: { generatePackageJson: true },
+          }
+        }
+      }
+    }
+  }
+  const run = () => runExecutor(workspace, 'demo', 'build', root, logger)
+
+  await run()
+  await rm(join(projectRoot, 'dist'), { recursive: true })
+  await rm(join(root, '.isox/tsc'), { recursive: true })
+  await run()
+  assert.ok(logs.some(log => log.includes('Cache hit')))
+  assert.equal(JSON.parse(await readFile(join(projectRoot, 'dist/package.json'), 'utf8')).version, '1.0.0')
+  await write('package.json', {
+    name: '@fixture/demo',
+    version: '2.0.0'
+  })
+  await write('index.ts', 'export const answer = 43')
+  await run()
+  assert.equal(JSON.parse(await readFile(join(projectRoot, 'dist/package.json'), 'utf8')).version, '2.0.0')
+  assert.match(await readFile(join(projectRoot, 'dist/index.js'), 'utf8'), /43/)
+})

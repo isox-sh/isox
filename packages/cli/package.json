@@ -1,5 +1,5 @@
 {
-  "name": "isox",
+  "name": "@isox-sh/cli",
   "version": "0.0.1",
   "license": "MIT",
   "engines": {

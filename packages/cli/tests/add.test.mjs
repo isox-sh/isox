@@ -64,7 +64,7 @@ test('add loads an installed generator with hidden package exports and refreshes
   const added = JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8'))
 
   assert.equal(added.projectName, 'named-project')
-  assert.ok(added.projectRoot.endsWith('/existing/project'))
+  assert.ok(added.projectRoot.endsWith(join('existing', 'project')))
   assert.deepEqual(added.options, {})
   assert.equal(await readFile(join(f.root, '.isox/keep'), 'utf8'), 'build cache')
   await assert.rejects(stat(join(f.root, '.isox/workspace.json')), { code: 'ENOENT' })
@@ -104,14 +104,14 @@ test('add refuses missing projects, escaping directories, and symlinked project 
   const escaped = f.run(f.root, 'add', 'plugin', 'outside')
 
   assert.equal(escaped.status, 1)
-  assert.match(escaped.stderr, /must be inside/)
+  assert.match(escaped.stderr, /not found in workspace/)
   await rm(join(f.root, 'escape'))
   await rm(join(f.projectRoot, 'project.json'))
   await symlink(join(outside, 'project.json'), join(f.projectRoot, 'project.json'))
   const result = f.run(f.root, 'add', 'plugin', 'outside')
 
   assert.equal(result.status, 1)
-  assert.match(result.stderr, /symlink/)
+  assert.match(result.stderr, /not found in workspace/)
   await assert.rejects(stat(join(outside, 'added.json')), { code: 'ENOENT' })
 })
 

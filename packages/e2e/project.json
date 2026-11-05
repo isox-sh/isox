@@ -1,13 +1,16 @@
 {
   "$schema": "../core/schemas/project.schema.json",
-  "name": "e2e-plugin",
+  "name": "e2e",
   "targets": {
     "build": {
       "executor": "js:tsc",
       "options": {
         "tsConfig": "packages/e2e/tsconfig.build.json",
         "generatePackageJson": true
-      }
+      },
+      "outputs": [
+        "{workspaceRoot}/dist/e2e"
+      ]
     },
     "test": {
       "executor": "vitest:test"

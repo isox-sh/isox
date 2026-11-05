@@ -7,6 +7,12 @@ Requires Node.js 24+.
 npm install --save-dev isox
 ```
 
+Project definitions live in `.isox/workspace.json`. Dependency analysis is cached
+separately and checked only when requested; neither cache skips task execution.
+Use `isox reset` after project-definition changes before single-project commands.
+Source/import edits do not require reset. See
+[cache behavior](https://github.com/isox-sh/isox/blob/main/website/docs/configuration.md#discovery-cache).
+
 ## Documentation
 
 - [Getting started](https://github.com/isox-sh/isox/blob/main/website/docs/getting-started.md)

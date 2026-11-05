@@ -9,6 +9,7 @@ import type { WorkspaceSettings } from '../workspace/settings'
 
 // These affect the whole workspace even when a root project owns their paths.
 const workspaceFiles = [
+  '.gitignore', '.isoxignore',
   'isox.json', 'package.json', 'package-lock.json', 'npm-shrinkwrap.json',
   'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'yarn.lock', 'bun.lock', 'bun.lockb',
   'tsconfig*.json', 'eslint.config.*', '.github/**',

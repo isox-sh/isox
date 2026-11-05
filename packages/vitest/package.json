@@ -6,7 +6,8 @@
   "executors": "./executors.json",
   "files": [
     "dist",
-    "executors.json"
+    "executors.json",
+    "generators.json"
   ],
   "dependencies": {
     "vitest": "^5.0.5"
@@ -28,5 +29,6 @@
   },
   "engines": {
     "node": "^24.0.0 || >=26.0.0"
-  }
+  },
+  "generators": "./generators.json"
 }

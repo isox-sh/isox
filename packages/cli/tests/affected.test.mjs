@@ -10,6 +10,32 @@ import { affectedFixture, cliPath } from './helpers/affected-fixture.mjs'
 
 const events = async root => (await readFile(join(root, 'events.log'), 'utf8')).trim().split('\n').map(line => JSON.parse(line))
 
+test('affected infers current imports without persisting dependency edges', async t => {
+  const { root, write, project, commit, run } = await affectedFixture(t)
+
+  await project('app')
+  await write('packages/app/index.ts', "import '../lib/index'")
+  await write('packages/lib/index.ts', 'export const value = 1')
+  const base = commit()
+
+  await write('packages/lib/index.ts', 'export const value = 2')
+  commit()
+  const affected = () => {
+    const result = run('affected', '--target=build', '--print-matrix', `--base=${base}`)
+
+    assert.equal(result.status, 0, result.stderr)
+
+    return JSON.parse(result.stdout)
+  }
+
+  assert.deepEqual(affected(), ['app', 'lib'])
+  const definitions = JSON.parse(await readFile(join(root, '.isox/workspace.json'), 'utf8'))
+
+  assert.equal(definitions.projects.app.dependencies, undefined)
+  await write('packages/app/index.ts', 'export {}')
+  assert.deepEqual(affected(), ['lib'])
+})
+
 test('affected prints clean JSON with verbose logs on stderr, includes dependents, and runs from nested folders', async t => {
   const { root, env, write, commit, run } = await affectedFixture(t)
 
@@ -237,6 +263,14 @@ test('run-many isolates projects, bounds concurrency and puts barriers around co
 
   assert.equal(result.status, 0, result.stderr)
   const log = await events(root)
+  assert.match(result.stdout, /Running target build for 3 projects/)
+  assert.doesNotMatch(result.stdout, /Running @fixture|Successfully completed/)
+  for (const name of ['lib', 'app', 'other']) {
+    assert.match(result.stdout, new RegExp(`✔ isox run ${name}:build:production \\(\\d+\\.\\d{2}s\\)`))
+    assert.match(result.stdout, new RegExp(`✔ isox run ${name}:prepare:production`))
+    assert.match(result.stdout, new RegExp(`✔ isox run ${name}:finish \\(`))
+  }
+
   let running = 0
   let peak = 0
 
@@ -301,7 +335,48 @@ test('worker failures stop pending projects and post stages', async t => {
   const result = run('run-many', '--target=build', '--projects-json', '["lib","app"]', '--parallel=1', '--post-targets=finish')
 
   assert.equal(result.status, 1)
+  assert.match(result.stderr, /✖ isox run lib:build \(failed after \d+\.\d{2}s\)/)
+  assert.doesNotMatch(result.stdout, /✔ isox run/)
   assert.deepEqual((await events(root)).map(event => event.project), ['lib', 'lib'])
+})
+
+test('compact workers retain diagnostics, show default configurations, and do not leak presentation into tools', async t => {
+  const { run, project, write } = await affectedFixture(t)
+
+  await project('lib', {
+    targets: {
+      build: {
+        executor: '@fixture/plugin:record',
+        defaultConfiguration: 'acc',
+        configurations: { acc: {} }
+      }
+    }
+  })
+  await write('node_modules/@fixture/plugin/record.cjs', `module.exports = (_, context) => {
+    console.log('tool stdout')
+    console.error('tool stderr')
+    context.logger.warn('executor warning')
+    if (process.env.ISOX_TASK_OUTPUT) throw new Error('worker presentation leaked')
+    return { success: true }
+  }`)
+  const compact = run('run-many', '--target=build', '--projects=lib')
+
+  assert.equal(compact.status, 0, compact.stderr)
+  assert.doesNotMatch(compact.stdout, /tool stdout/)
+  assert.doesNotMatch(compact.stderr, /tool stderr/)
+  assert.doesNotMatch(compact.stderr, /executor warning/)
+  assert.match(compact.stdout, /✔ isox run lib:build:acc \(/)
+  for (const flag of ['--verbose', '--verbose=true']) {
+    const verbose = run('run-many', '--target=build', '--projects=lib', flag)
+
+    assert.equal(verbose.status, 0, verbose.stderr)
+    assert.match(verbose.stdout, /Running @fixture\/plugin:record/)
+    assert.match(verbose.stdout, /Successfully completed/)
+    assert.match(verbose.stdout, /tool stdout/)
+    assert.match(verbose.stderr, /tool stderr/)
+    assert.match(verbose.stderr, /executor warning/)
+    assert.match(verbose.stdout, /\n {3}- lib\n/)
+  }
 })
 
 test('workers pass unusual project names literally, including leading option characters', async t => {
@@ -329,7 +404,7 @@ test('shared tooling glob changes select all projects', async t => {
   assert.deepEqual(JSON.parse(result.stdout), ['app', 'lib', 'other'])
 })
 
-test('worker cancellation propagates to children and exits with the signal status', async t => {
+test.skipIf(process.platform === 'win32')('worker cancellation propagates to children and exits with the signal status', async t => {
   const { root, env, project } = await affectedFixture(t)
 
   await project('lib', {

@@ -18,7 +18,39 @@ import its APIs and your editor resolve its types.
 npm install --save-dev @isox-sh/vitest vitest
 ```
 
-## Define a test command
+## Add to an existing project
+
+After installing the plugin, use the **project name** from `project.json`:
+
+```sh
+isox add @isox-sh/vitest web
+```
+
+The generator adds `test: { "executor": "vitest:test" }` to the project's targets
+and registers missing `isox.json` defaults:
+
+```json
+{
+  "targetDefaults": {
+    "vitest:test": {
+      "cache": true
+    }
+  }
+}
+```
+
+Existing Vitest targets, options, configurations, cache opt-outs and output
+settings are preserved. Scoped default keys are recognized without adding a
+second shorthand entry. Repeating the command is safe. A different existing
+`test` executor is reported as a conflict. The generator does not install packages
+or create test files.
+
+Omitting `outputs` caches test results and terminal logs only. If tests generate coverage or
+other artifacts, declare those output directories explicitly. If tests read built
+files outside their project, include those paths in `inputs` as well. See
+[task caching](/docs/task-caching) and [target defaults](/docs/configuration#target-defaults).
+
+## Define a test command manually
 
 ```json
 {

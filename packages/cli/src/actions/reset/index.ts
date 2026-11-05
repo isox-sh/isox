@@ -4,7 +4,7 @@ import type { CAC } from 'cac'
 
 export function registerResetAction(cli: CAC): void {
   cli
-    .command('reset', 'Remove the workspace cache; the next run rebuilds it')
+    .command('reset', 'Remove workspace, dependency, and task caches')
     .action(async () => {
       await resetWorkspace()
 

@@ -130,6 +130,7 @@ test('discovers nested and root projects, derives names and roots, and ignores d
     dependencies: ['first']
   })
   await write('node_modules/ignored/project.json', { name: 'ignored' })
+  await write('.gitignore', '/tmp/\n')
   await write('tmp/isox-e2e-fixture/packages/test/project.json', { name: 'ignored' })
   const { projects } = await parseWorkspace(root)
 
@@ -244,7 +245,8 @@ test('executor uses an injected logger and enables verbose context at debug leve
     runExecutor(workspace, 'demo', 'build', root, logger),
     /Task failed for demo/,
   )
-  assert.deepEqual(logs.map(entry => entry.type), ['debug', 'info'])
+  assert.deepEqual(logs.map(entry => entry.type), ['debug', 'info', 'error'])
+  assert.match(logs.at(-1).args[0], /^Failed @fixture\/plugin:build for demo after \d+\.\d{2}s\.$/)
 })
 
 test('native executors reject builders manifests', async (t) => {

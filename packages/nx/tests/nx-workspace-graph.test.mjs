@@ -24,7 +24,7 @@ async function fixture(t, executor) {
   }
 
   await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
-  await symlink(join(import.meta.dirname, '../../../dist/nx'), join(root, 'node_modules/@isox-sh/nx'), 'dir')
+  await symlink(join(import.meta.dirname, '../../../dist/nx'), join(root, 'node_modules/@isox-sh/nx'), 'junction')
   await write('isox.json', { nx: { executors: ['@nx'] } })
   await write('apps/demo/project.json', {
     name: 'demo',
@@ -190,33 +190,60 @@ test('cancellation stops graph construction before invoking the Nx executor', as
   const { root, write, workspace } = await fixture(t, 'module.exports = () => { throw new Error("executor must not run") }')
 
   await write('node_modules/nx/graph.cjs', `exports.createProjectGraphAsync = async () => {
+    require('node:child_process').spawn(process.execPath, ['descendant.cjs'], { stdio: 'ignore' })
     require('node:fs').writeFileSync('graph.pid', String(process.pid))
     setInterval(() => {}, 100)
     await new Promise(() => {})
   }`)
+  await write('descendant.cjs', `
+    process.on('SIGTERM', () => {})
+    require('node:fs').writeFileSync('descendant.pid', String(process.pid))
+    setInterval(() => {}, 100)
+  `)
   const controller = new AbortController()
 
   t.onTestFinished(() => controller.abort())
   const running = runExecutor(workspace, 'demo', 'build', root, undefined, undefined, controller.signal)
   let pid
+  let descendant
   const deadline = Date.now() + 5_000
 
-  while (!pid && Date.now() < deadline) {
+  while ((!pid || !descendant) && Date.now() < deadline) {
     try {
       pid = Number(await readFile(join(root, 'graph.pid'), 'utf8'))
+      descendant = Number(await readFile(join(root, 'descendant.pid'), 'utf8'))
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
       }
     }
 
-    if (!pid) {
+    if (!pid || !descendant) {
       await new Promise(resolve => setTimeout(resolve, 20))
     }
   }
 
   assert.ok(pid, 'graph worker did not start')
+  assert.ok(descendant, 'graph descendant did not start')
   controller.abort()
   await running
   assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' })
+  const stopped = async () => {
+    try {
+      process.kill(descendant, 0)
+
+      // Linux can retain a killed orphan as a zombie until PID 1 reaps it.
+      return process.platform === 'linux' && /\) Z /.test(await readFile(`/proc/${descendant}/stat`, 'utf8'))
+    } catch (error) {
+      return ['ESRCH', 'ENOENT'].includes(error.code)
+    }
+  }
+
+  const stopDeadline = Date.now() + 6_000
+
+  while (!await stopped() && Date.now() < stopDeadline) {
+    await new Promise(resolve => setTimeout(resolve, 25))
+  }
+
+  assert.ok(await stopped(), 'Nx graph descendant survived cancellation')
 })

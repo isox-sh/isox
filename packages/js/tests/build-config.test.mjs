@@ -39,7 +39,6 @@ async function linkedProjects(t) {
   }
 
   context.workspace.projects.lib = lib
-  context.workspace.projects.demo.dependencies = ['lib']
   await write(join(root, 'packages/lib/tsconfig.json'), {
     compilerOptions: {
       ...config.compilerOptions,
@@ -190,7 +189,7 @@ test('inherited target names use the dependency build configuration', async t =>
     include: ['src/**/*'],
   })
   for (const commandName of ['toString', '__proto__', 'constructor']) {
-    const plan = buildConfiguration(join(projectRoot, 'tsconfig.json'), {
+    const plan = await buildConfiguration(join(projectRoot, 'tsconfig.json'), {
       ...context,
       commandName
     })

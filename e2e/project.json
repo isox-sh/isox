@@ -1,6 +1,6 @@
 {
   "$schema": "../packages/core/schemas/project.schema.json",
-  "name": "e2e",
+  "name": "js-e2e",
   "plan": { "weight": 2 },
   "dependencies": ["js", "vitest"],
   "targets": {

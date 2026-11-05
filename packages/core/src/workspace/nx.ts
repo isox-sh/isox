@@ -54,6 +54,15 @@ export function migrateNxProject(
       }
 
       return Object.hasOwn(target, 'executor')
+    }).map(([name, target]) => {
+      // Nx input expressions and output tokens have different semantics. Migration
+      // must not accidentally opt a target into native result caching.
+      const native = { ...target as Record<string, unknown> }
+
+      delete native.cache
+      delete native.inputs
+
+      return [name, native]
     }))
   }
 

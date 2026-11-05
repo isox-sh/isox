@@ -14,12 +14,26 @@ interface ProjectPlan {
   weight?: number
 }
 
-export interface ExecutorConfiguration {
+export interface EnvironmentInput {
+  env: string
+}
+
+export type TaskInput = string | EnvironmentInput
+
+export interface TargetDefaults {
   [key: string]: unknown
-  executor: string
   options?: Record<string, unknown>
   configurations?: Record<string, Record<string, unknown>>
   defaultConfiguration?: string
+  /** Opt in only for deterministic, side-effect-free tasks. */
+  cache?: boolean
+  inputs?: TaskInput[]
+  /** Exclusive, disposable output directories. Omit for logs only; [] clears inherited outputs. */
+  outputs?: string[]
+}
+
+export interface ExecutorConfiguration extends TargetDefaults {
+  executor: string
 }
 
 /** The contents of an Isox project.json, before its name and root are resolved. */
@@ -27,7 +41,7 @@ export interface ProjectDefinition {
   [key: string]: unknown
   $schema?: string
   name?: string
-  /** Additional project names; discovery merges these with inferred dependencies. */
+  /** Additional project names, merged with inferred dependencies when analysis is requested. */
   dependencies?: string[]
   targets?: Record<string, ExecutorConfiguration>
   tags?: string[]

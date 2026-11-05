@@ -6,6 +6,8 @@ import { Ajv } from 'ajv'
 
 import { workspaceSchemaPath } from './schema'
 
+import type { TargetDefaults } from './configuration'
+
 interface AffectedSettings {
   defaultBase?: string
   globalFiles?: string[]
@@ -17,12 +19,13 @@ interface NxSettings {
 }
 
 export interface WorkspaceSettings {
-
+  targetDefaults?: Record<string, TargetDefaults>
   affected?: AffectedSettings
   nx?: NxSettings
 }
 
 const ajv = new Ajv({ allErrors: true })
+ajv.addSchema(JSON.parse(readFileSync(workspaceSchemaPath('project.schema.json'), 'utf8')), 'project.schema.json')
 const schema = JSON.parse(readFileSync(workspaceSchemaPath('isox.schema.json'), 'utf8'))
 const isWorkspaceSettings = ajv.compile<WorkspaceSettings>(schema)
 

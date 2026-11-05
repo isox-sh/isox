@@ -113,7 +113,7 @@ test('accepts a custom CLI directory and invokes its declared binary without she
   await mkdir(join(cliRoot, 'node_modules/@isox-sh'), { recursive: true })
   await symlink(dirname(require.resolve('@isox-sh/core/package.json')), join(cliRoot, 'node_modules/@isox-sh/core'), 'junction')
   await writeJson('package.json', {
-    name: 'isox',
+    name: '@isox-sh/cli',
     version: '9.9.9',
     bin: './cli.cjs'
   }, { projectRoot: cliRoot })
@@ -137,7 +137,7 @@ test('rejects unsafe names, duplicate built-ins, mismatched packages, and missin
   for (const plugins of [
     { '../escape': 'plugin' },
     { '@scope/../escape': 'plugin' },
-    { isox: 'plugin' },
+    { '@isox-sh/cli': 'plugin' },
     { '@isox-sh/core': 'plugin' },
     { '@wrong/name': 'plugin' },
     { '@example/plugin': 'missing' },

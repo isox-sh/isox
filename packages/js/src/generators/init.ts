@@ -3,10 +3,10 @@ import { constants } from 'node:fs'
 import { chmod, lstat, mkdir, open, rename, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 
-import { json, publishNewFile, writeJson } from '@isox-sh/core'
+import { addTargetDefaults, json, publishNewFile, readWorkspaceSettings, resolveTargetDefaults, writeJson } from '@isox-sh/core'
 import { applyEdits, modify, parse } from 'jsonc-parser'
 
-import type { ProjectInitializer } from '@isox-sh/core'
+import type { ExecutorConfiguration, ProjectInitializer } from '@isox-sh/core'
 import type { ParseError } from 'jsonc-parser'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -21,6 +21,7 @@ function relativePath(from: string, to: string): string {
 
 const init: ProjectInitializer = async (options, context) => {
   const { workspaceRoot, projectRoot, projectName } = context
+  const settings = await readWorkspaceSettings(workspaceRoot)
   const baseFile = join(workspaceRoot, 'tsconfig.base.json')
   let source: string
   let createBase = false
@@ -93,6 +94,28 @@ const init: ProjectInitializer = async (options, context) => {
     }))
   }
 
+  const generatedOutputs = ['{workspaceRoot}/dist/{projectRoot}']
+  const buildTarget: ExecutorConfiguration = {
+    executor: 'js:tsc',
+    options: { tsConfig: relativePath(workspaceRoot, join(projectRoot, 'tsconfig.build.json')) },
+  }
+  // A different workspace layout must not cache the wrong build directory.
+  const inherited = resolveTargetDefaults({
+    projects: {
+      [projectName]: {
+        name: projectName,
+        root: relative(workspaceRoot, projectRoot).split(sep).join('/'),
+        targets: {
+          build: buildTarget
+        },
+      },
+    }
+  }, settings).projects[projectName].targets!.build.outputs
+
+  if (inherited !== undefined && (inherited.length !== 1 || inherited[0] !== generatedOutputs[0])) {
+    buildTarget.outputs = generatedOutputs
+  }
+
   await mkdir(dirname(projectRoot), { recursive: true })
   await mkdir(projectRoot)
 
@@ -101,10 +124,7 @@ const init: ProjectInitializer = async (options, context) => {
     await writeJson('project.json', {
       name: projectName,
       targets: {
-        build: {
-          executor: '@isox-sh/js:tsc',
-          options: { tsConfig: relativePath(workspaceRoot, join(projectRoot, 'tsconfig.build.json')) },
-        },
+        build: buildTarget,
       },
       tags: [],
     }, context, { overwrite: false })
@@ -150,6 +170,7 @@ const init: ProjectInitializer = async (options, context) => {
         await rm(temporary, { force: true })
       }
     }
+
   } catch (error) {
     await rm(projectRoot, {
       recursive: true,
@@ -157,6 +178,11 @@ const init: ProjectInitializer = async (options, context) => {
     })
     throw error
   }
+
+  await addTargetDefaults('js:tsc', {
+    cache: true,
+    outputs: generatedOutputs
+  }, context)
 }
 
 export default init

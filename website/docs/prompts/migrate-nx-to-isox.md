@@ -22,7 +22,7 @@ Nx executors and config helpers. Retaining the adapter is an intermediate step,
 not a completed migration.
 
 Use the [active roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md) to distinguish implemented Isox behavior
-from planned prerequisite scheduling, caching, and isolation features. Use the
+from planned prerequisite scheduling, remote caching, and isolation features. Use the
 [affected and CI guide](/docs/affected-and-ci) to replace Nx affected commands and
 nx-extend matrix actions with native Isox selection and weighted plans.
 
@@ -134,10 +134,15 @@ source of truth if migrating against a different Isox version.
   base `options` at the top level; nested objects and arrays are replaced.
   Use `--prod` for `production`, or `--config=<name>` (`--configuration` and `-c`
   are aliases). An explicit name takes precedence over `--prod`, then the command's
-  default is used. Missing configurations fail. Selection never rewrites the cache.
-- Extra command fields such as `dependsOn`, `inputs`, `outputs`, or `cache` are
-  allowed and preserved, but Isox does not implement their Nx orchestration
-  behavior. Resolve workspace target defaults explicitly before migration.
+  default is used. Missing configurations fail. Selecting a configuration does
+  not change the cached target definition.
+- `dependsOn` remains metadata and does not schedule prerequisites. Nx-schema
+  migration removes `cache` and `inputs` in memory; it retains output metadata for
+  the adapter. Do not copy Nx input expressions into native cache declarations.
+  For deterministic native targets, explicitly configure `cache: true`, `inputs`
+  and disposable output directories using [local task caching](/docs/task-caching).
+  Move compatible workspace target defaults to `isox.json.targetDefaults`; use
+  object entries by target/executor and migrate Nx-specific input/output semantics.
 
 ## 3. Choose an execution path per command
 
@@ -265,7 +270,7 @@ The runner merges the command's selected configuration before invoking the
 adapter and supplies `configurationName` in the Nx context. Task IDs include the
 configuration and task targets carry it as `configuration`. The graph's target
 options remain the base definition. The adapter does not run Nx orchestration,
-infer tasks, apply workspace target defaults, validate executor schemas, or apply
+infer tasks, import Nx workspace target defaults, validate executor schemas, or apply
 schema defaults. Copy required defaults into each command's options or named
 configurations. If a plugin depends on unavailable context or reads
 Nx project files itself, replace it with the underlying tool or report the
@@ -371,9 +376,28 @@ gap and describe its native replacement plan.
 
 Add `.isox/` to version-control ignores. Isox stores discovered project
 configuration in `.isox/workspace.json`; this is not a task-output cache.
-Run `isox reset` after changing project files. Reset removes the entire `.isox`
-directory, and the next workspace scan recreates it. Never edit the cache to
-substitute for a project-file migration.
+Run `isox reset` after project-definition, target-default, or ignore-rule changes before using
+single-project commands. Affected, planning and run-many commands rewrite fresh
+definitions on every invocation. Dependency analysis is separate: affected
+selection requests the full graph, cacheable targets request their inputs' dependency
+closure, and the TypeScript executor requests its
+dependency closure for alias remapping. Selecting all projects or running an
+explicit list does not itself request analysis.
+
+Only those dependency requests check or create `.isox/discovery.json`. Entries
+are reused after configuration, source-metadata and resolution checks. The
+per-project `sources` SHA fingerprints paths, identity, size and timestamps, not
+source contents or imports. Any included source edit can invalidate an entry;
+the project is reanalyzed as a whole, including test files, while unchanged
+projects can reuse their entries. Import edits do not require reset. Neither
+cache skips compilation or replaces build-specific package dependency generation.
+
+TypeScript resolution can record ancestor `node_modules` existence checks outside
+the workspace. These are lookup probes, not recursive project discovery. See
+[cache behavior](/docs/configuration#discovery-cache) for scope and invalidation.
+`isox reset` removes the entire `.isox` directory when an explicit cleanup is
+needed. Never edit the cache to substitute for a project-file migration. Check
+`.gitignore` and `.isoxignore` if migrated projects are not discovered.
 
 Run the migrated build, test, and lint commands needed to match the baseline.
 Check at least one invocation from a nested directory, prerequisite build order,

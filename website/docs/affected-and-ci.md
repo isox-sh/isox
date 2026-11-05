@@ -6,7 +6,7 @@ icon: "code-branch"
 ---
 
 Isox selects changed projects and their transitive dependents using Git and
-dependencies inferred during workspace discovery, plus explicit `dependencies`
+dependencies inferred on demand for affected selection, plus explicit `dependencies`
 in each `project.json`. The same selection powers local
 execution, JSON project lists, and weighted GitHub Actions matrices.
 
@@ -56,7 +56,7 @@ to the children and return exit codes 130/143.
 - `affected.ignoreFiles` excludes matching files before checking global patterns
   or project ownership. Ignored changes do not select projects or their dependents.
 - All transitive dependents are included **before** command and tag filtering.
-  Discovery combines source imports, TypeScript aliases, local package references,
+  On-demand analysis combines source imports, TypeScript aliases, local package references,
   and explicitly declared project dependencies. Type-only imports and tests count.
   Dynamically selected plugins need explicit dependencies; executor selections
   alone do not add edges. Unknown references and cycles fail with an explanation.
@@ -111,8 +111,19 @@ omit the Markdown exclusions above if your documentation needs building or testi
 Projects can still be selected through other changed files or dependencies.
 
 Affected selection, planning and `run-many` scan current `project.json` files and
-refresh the discovery cache. They do not require `isox reset` after project
-changes. Single-project commands retain the normal discovery-cache behavior.
+refresh `workspace.json`. They do not require `isox reset` after project
+changes. Single-project commands reuse cached definitions until reset or an
+explicit refresh. Affected selection validates and reuses per-project dependency
+entries from `.isox/discovery.json`, computing missing or invalid analysis before
+finding dependents. The `sources` SHA uses source paths and metadata; a changed
+project is reanalyzed as a whole, including tests. `--all` and `run-many` selection
+do not request dependency inference. Execution additionally resolves
+dependencies when selected targets cache outputs, so selected dependencies finish
+before their consumers. Executors can also request analysis.
+
+Every `run-many` invocation refreshes definitions; its child commands then load
+that definitions cache. These caches do not transfer build outputs between CI
+jobs or skip task execution. See [cache behavior](/docs/configuration#discovery-cache).
 Missing revisions or incomplete history are errors with fetch guidance; Isox
 does not turn a Git failure into a successful empty plan.
 
@@ -227,6 +238,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+      - uses: isox-sh/isox/actions/cache@main
       - run: npm ci
       # Prepare any prerequisite build outputs before testing.
       - uses: isox-sh/isox/actions/plan@main
@@ -247,6 +259,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+      - uses: isox-sh/isox/actions/cache@main
       - run: npm ci
       # Build or restore prerequisites needed by this worker's test commands here.
       - uses: isox-sh/isox/actions/run-many@main
@@ -254,6 +267,14 @@ jobs:
           plan: ${{ toJSON(matrix) }}
           head: ${{ needs.setup.outputs.head }}
 ```
+
+The [cache action](https://github.com/isox-sh/isox/tree/main/actions/cache) restores
+`.isox` across compatible runners and later commits, then saves an updated
+snapshot after the job succeeds. It refreshes restored project definitions while
+retaining dependency analysis and other cache data. Each job saves a distinct
+snapshot; GitHub restores the newest accessible match without merging parallel
+jobs' changes. Native targets explicitly configured for [task caching](/docs/task-caching)
+can reuse matching entries; other builds and tests still run.
 
 For pull requests, planning compares the PR base SHA with the checked-out GitHub
 merge commit. For other events, including pushes, merge groups, and manual
@@ -281,6 +302,15 @@ The outputs are `matrix`, `hasPlan` (strings `true`/`false`), `base`, and `head`
 Gate matrix jobs using `hasPlan` as shown. A plan with different targets does not
 order those targets; separate build and deploy jobs with `needs` when ordering
 is required.
+
+When selected targets cache generated outputs, `run-many` orders selected projects
+by their dependencies before replacing those outputs. Independent projects still
+run concurrently up to `parallel`; consumers wait for selected dependencies to
+finish, including when `parallel` is `1`. This does not add prerequisite projects
+to the selection. Prepare any unselected prerequisites first, including in each
+CI checkout. Builds that replace the running CLI or a selected executor run alone while their outputs change, so
+other workers keep access to their runtime files. Independent application builds
+continue to use the configured parallelism.
 
 ### Migrating nx-extend workflows
 

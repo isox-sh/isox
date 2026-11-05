@@ -27,6 +27,7 @@ export default async function runVitest(options: VitestOptions, context: Executo
 
   return runProcess(process.execPath, args, {
     cwd: context.projectRoot,
-    signal: context.signal
+    signal: context.signal,
+    output: 'pipe'
   })
 }

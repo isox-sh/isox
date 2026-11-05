@@ -24,7 +24,7 @@ async function fixture(t, { source, manifestKey = 'executors', pkg = '@nx/fixtur
   }
 
   await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
-  await symlink(join(import.meta.dirname, '../../../dist/nx'), join(root, 'node_modules/@isox-sh/nx'), 'dir')
+  await symlink(join(import.meta.dirname, '../../../dist/nx'), join(root, 'node_modules/@isox-sh/nx'), 'junction')
   await write('isox.json', isoxJson)
 
   if (nxJson !== undefined) {

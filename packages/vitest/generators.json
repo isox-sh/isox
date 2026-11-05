@@ -1,0 +1,8 @@
+{
+  "generators": {
+    "add": {
+      "implementation": "../../dist/vitest/generators/add.js",
+      "description": "Add a Vitest test target and workspace cache defaults."
+    }
+  }
+}

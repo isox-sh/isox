@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -49,6 +49,11 @@ async function fixture(t) {
     cwd: projectRoot,
     encoding: 'utf8',
     timeout: 30_000,
+    env: {
+      ...process.env,
+      ISOX_SKIP_CACHE: '',
+      ISOX_PROGRESS: '0'
+    },
   })
   const context = {
     workspaceRoot: root,
@@ -127,4 +132,42 @@ test('rejects invalid options and process launch failures', async t => {
     ...context,
     projectRoot: join(context.projectRoot, 'missing')
   }), { code: 'ENOENT' })
+})
+
+test('replays test logs without rerunning tests or requiring artifact outputs', async t => {
+  const { root, write, run } = await fixture(t)
+
+  await write('isox.json', {
+    targetDefaults: {
+      'vitest:test': {
+        cache: true
+      }
+    }
+  })
+  await write('apps/demo project/tests/example.test.mjs', `
+    import { appendFileSync } from 'node:fs'
+    import { test } from 'vitest'
+    test('records a run', () => {
+      appendFileSync(${JSON.stringify(join(root, 'runs'))}, 'run\\n')
+      process.stdout.write('stdout from test\\n')
+      process.stderr.write('stderr from test\\n')
+    })
+  `)
+  const first = run()
+
+  assert.equal(first.status, 0, first.stderr + first.stdout)
+  assert.doesNotMatch(first.stdout, /Cache hit/)
+  const cached = run()
+
+  assert.equal(cached.status, 0, cached.stderr + cached.stdout)
+  assert.match(cached.stdout, /Cache hit/)
+  assert.match(cached.stdout, /stdout from test/)
+  assert.match(cached.stderr, /stderr from test/)
+  assert.equal(await readFile(join(root, 'runs'), 'utf8'), 'run\n')
+  await write('apps/demo project/tests/example.test.mjs', "import { test, expect } from 'vitest'\ntest('changed', () => expect(1).toBe(2))")
+  const failed = run()
+
+  assert.equal(failed.status, 1, failed.stderr + failed.stdout)
+  assert.doesNotMatch(failed.stdout, /Cache hit/)
+  assert.equal(run().status, 1)
 })

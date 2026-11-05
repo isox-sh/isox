@@ -51,3 +51,76 @@ test('exclusive fallback preserves a base config created by another writer', asy
   assert.equal(await fs.readFile(base, 'utf8'), '{"raced":true}')
   await assert.rejects(fs.stat(projectRoot), { code: 'ENOENT' })
 })
+
+test('initialization registers build cache defaults matching the scaffold output directory', async t => {
+  const { root, context } = await fixture(t)
+  const projectRoot = join(root, 'packages/created')
+
+  await fs.writeFile(join(root, 'isox.json'), '{"version":"1","custom":true}')
+  await init({}, {
+    ...context,
+    projectRoot,
+    projectName: 'created'
+  })
+  const settings = JSON.parse(await fs.readFile(join(root, 'isox.json'), 'utf8'))
+  const project = JSON.parse(await fs.readFile(join(projectRoot, 'project.json'), 'utf8'))
+  const config = JSON.parse(await fs.readFile(join(projectRoot, 'tsconfig.build.json'), 'utf8'))
+
+  assert.deepEqual(settings, {
+    version: '1',
+    custom: true,
+    targetDefaults: {
+      'js:tsc': {
+        cache: true,
+        outputs: ['{workspaceRoot}/dist/{projectRoot}']
+      }
+    },
+  })
+  assert.equal(project.targets.build.executor, 'js:tsc')
+  assert.equal(config.compilerOptions.outDir, '../../dist/packages/created')
+})
+
+test('initialization preserves configured scoped defaults, including cache opt-out and output overrides', async t => {
+  const { root, context } = await fixture(t)
+  const settings = {
+    targetDefaults: {
+      '@isox-sh/js:tsc': {
+        cache: false,
+        outputs: ['custom'],
+        options: { clean: false }
+      }
+    }
+  }
+
+  await fs.writeFile(join(root, 'isox.json'), JSON.stringify(settings))
+  await init({}, {
+    ...context,
+    projectRoot: join(root, 'packages/created'),
+    projectName: 'created'
+  })
+  assert.deepEqual(JSON.parse(await fs.readFile(join(root, 'isox.json'), 'utf8')), settings)
+})
+
+test('a different workspace output layout gets a local override matching the new compiler config', async t => {
+  const { root, context } = await fixture(t)
+  const settings = {
+    targetDefaults: {
+      'js:tsc': {
+        cache: true,
+        outputs: ['{workspaceRoot}/dist/{projectName}']
+      }
+    }
+  }
+  const projectRoot = join(root, 'packages/created')
+
+  await fs.writeFile(join(root, 'isox.json'), JSON.stringify(settings))
+  await init({}, {
+    ...context,
+    projectRoot,
+    projectName: 'created'
+  })
+  const project = JSON.parse(await fs.readFile(join(projectRoot, 'project.json'), 'utf8'))
+
+  assert.deepEqual(project.targets.build.outputs, ['{workspaceRoot}/dist/{projectRoot}'])
+  assert.deepEqual(JSON.parse(await fs.readFile(join(root, 'isox.json'), 'utf8')), settings)
+})

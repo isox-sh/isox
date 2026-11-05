@@ -72,6 +72,12 @@ files before selection.
 A final required check preserves failures and accepts an empty plan. Pull requests
 use their base SHA; other events use the nearest reachable Git tag, or all
 projects if none exists. This workflow runs only for pull requests and merge groups.
+A separate foundation matrix is temporarily disabled. When enabled, it runs core and CLI tests on
+Linux, macOS, and Windows with Node.js 24 and 26. It also installs packed CLI/core
+tarballs locally and globally in temporary directories, then runs the installed
+binary from an external workspace. The aggregate check includes this matrix.
+POSIX signal exit-code tests run on Linux/macOS; AbortSignal process-tree
+cancellation is exercised on all three operating systems.
 See [affected projects and CI](/docs/affected-and-ci) for the public actions.
 
 ```yaml
@@ -122,14 +128,19 @@ aliases without needing a build. Root development
 dependencies keep the local plugins available to Node and the CLI; TypeScript
 paths do not rewrite emitted imports. Source package manifests omit internal
 `@isox-sh/*` dependencies, and package generation restores the dependencies needed
-by their published code and types. Workspace discovery infers project edges, so
+by their published code and types. On-demand dependency analysis infers project edges, so
 package project definitions do not duplicate these imports.
 
 Isox uses `dependencies` for affected selection but does not schedule prerequisite builds yet: build core before JS
 and the other packages when rebuilding manually. `pnpm bootstrap` seeds core and the JS executor
 with TypeScript, then runs the package build commands through Isox. It also
-refreshes discovery. After editing a `project.json`, use `pnpm isox reset` to
-refresh discovery on the next run.
+refreshes project discovery. After editing project definitions, run `isox reset`
+before single-project commands. Dependency requests from affected selection or
+the TypeScript builder validate `.isox/discovery.json` and reuse valid entries.
+Its source fingerprint uses file metadata, so editing a source or test file can
+reanalyze that project's included sources on the next request. Ordinary commands
+do not check this cache, and its reuse never skips a compiler invocation. See
+[cache behavior](/docs/configuration#discovery-cache).
 
 ## Build outputs
 
@@ -182,6 +193,27 @@ node ./scripts/bootstrap.cjs
 npm install -g ./dist/cli --install-links=false
 ```
 
+To test the published package layout instead of a development link, pack both
+packages and install the resulting archives together into an isolated prefix:
+
+```bash
+mkdir -p tmp/packed
+npm pack ./dist/core ./dist/cli --pack-destination tmp/packed
+npm install --global --prefix "$PWD/tmp/installed" ./tmp/packed/*.tgz
+# POSIX: add tmp/installed/bin to PATH; Windows uses tmp/installed itself.
+```
+
+The package-local integration test automates local and global installation,
+checks the installed binary, and runs a core command outside this checkout:
+
+```bash
+ISOX_TEST_PACKAGES=1 pnpm isox test cli
+```
+
+It needs npm registry access for external dependencies. Both packages are tested
+from their actual tarballs; nothing is published and the user's global install
+is untouched. The foundation matrix enables this check when that job is re-enabled.
+
 The global `isox` command links to this checkout's built CLI.
 [`--install-links=false`](https://docs.npmjs.com/cli/v12/commands/npm-install/#install-links)
 keeps the local package linked. After changing source code, rerun
@@ -209,11 +241,13 @@ node /path/to/isox/dist/cli/index.js build my-app
 
 In GitHub Actions, open **Release**, select **Run workflow**, and choose the
 branch and release channel (`alpha`, `beta`, or `stable`). **Dry run** is enabled by default:
-it previews the next synchronized version, changelog, tag, and post targets
+it previews the next synchronized version, changelog, and tag
 without changing files or publishing a release.
 
-A real run uses `workspace:version:production` with `skipCommit: true`, tags the
-existing source commit, pushes only that tag, and creates a GitHub release.
+A real run uses `workspace:version:production` with `skipCommit: true` and `push: false`,
+then rebuilds and publishes all public packages to npm. Only after publication
+succeeds does it push the exact new tag and create the GitHub release. The tag
+points to the existing source commit; the workflow does not push the branch.
 `alpha` and `beta` add a prerelease identifier and mark the GitHub release as a
 prerelease. `stable` omits the identifier and creates a regular GitHub release.
 Generated package versions and the root changelog stay in the runner's checkout;
@@ -224,8 +258,57 @@ without releasable changes, the run succeeds without creating a release.
 All channels share one synchronized version history. Release runs are serialized
 across branches and channels. The workflow uses `GITHUB_TOKEN` with
 `contents: write`; repository rules must permit it to create release tags.
-The current production post target creates a GitHub release; npm publishing is
-not configured.
+The production configuration runs three ordered post targets:
+
+1. `workspace:npm` rebuilds packages, checks all tarballs, and publishes to npm.
+2. `workspace:push-tag` pushes only the new release tag to `origin`.
+3. `workspace:github` creates the GitHub release with the new release notes.
+
+Versioning passes `{version}`, `{npmTag}`, `{tag}`, `{notes}`, and `{prerelease}`
+to these targets. Dry runs and runs without releasable changes skip all post
+targets automatically. A failed target stops the remaining targets.
+
+`scripts/release.mjs` rebuilds and publishes from `dist` with dependencies first. Private
+packages are skipped. Alpha and beta versions use the matching npm dist-tag;
+stable releases use `latest`. A failed check prevents any publication; a failure
+during publication stops the remaining packages, tag push, and GitHub release.
+Any packages already published remain on npm. If tag pushing or GitHub release
+creation fails afterward, retry that failed step rather than publishing again.
+
+### npm trusted publishing setup
+
+The workflow uses npm's [trusted publishing](https://docs.npmjs.com/trusted-publishers/)
+with GitHub OIDC, `id-token: write`, and the current npm CLI (minimum 11.5.1).
+It runs on a GitHub-hosted runner with dependency caching disabled. No `NPM_TOKEN`
+or `NODE_AUTH_TOKEN` secret is needed for publishing. Public packages include
+provenance linking them to this workflow and repository.
+
+For **each** package, open its npm settings and add a GitHub trusted publisher:
+
+| Setting | Value |
+| --- | --- |
+| Organization or user | `isox-sh` |
+| Repository | `isox` |
+| Workflow filename | `release.yml` |
+| Environment | Leave empty; this workflow does not select an environment |
+| Allowed action | Allow direct `npm publish` |
+
+Configure this for `isox` and all published `@isox-sh/*` packages. Package creation
+and the npm-side trusted-publisher settings must be completed before the workflow
+can publish them. Repository metadata in the published packages must match this
+repository. A local dry run checks the current package versions and tarballs:
+
+```sh
+node scripts/release.mjs --tag=latest --dry-run
+```
+
+Use `--tag=alpha` or `--tag=beta` when the manifests contain those prerelease
+versions. Optional `--version=<version>` requires every package to match the
+expected release version. The workflow's dry run previews versioning only and
+does not publish or push; the script's dry run rebuilds and checks tarballs
+without publishing. Actual publication requires GitHub OIDC. Anyone with write
+access to the repository can trigger the manual workflow, including stable
+releases; there is no separate username allowlist.
 
 The workflow must exist on the default branch before GitHub shows **Run workflow**.
 See [release configuration](/docs/semver) for version calculation and post targets.
