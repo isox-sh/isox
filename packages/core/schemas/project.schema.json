@@ -21,7 +21,7 @@
         "type": "string",
         "pattern": "^[^\\s:]+$"
       },
-      "description": "Additional project dependencies, merged with imports and local package references during on-demand dependency analysis. Used to propagate affected changes; prerequisite scheduling is not yet implemented."
+      "description": "Additional project dependencies, merged with imports and local package references during on-demand dependency analysis. Used by affected selection and ^target task prerequisites."
     },
     "targets": {
       "type": "object",
@@ -129,6 +129,9 @@
             "minLength": 1
           },
           "description": "Exclusive output directories, relative to the workspace. No globs. Omit for logs-only caching; use [] to clear inherited outputs."
+        },
+        "dependsOn": {
+          "$ref": "#/definitions/dependsOn"
         }
       },
       "additionalProperties": true
@@ -193,9 +196,75 @@
             "minLength": 1
           },
           "description": "Exclusive output directories, relative to the workspace. No globs. Omit for logs-only caching; use [] to clear inherited outputs."
+        },
+        "dependsOn": {
+          "$ref": "#/definitions/dependsOn"
         }
       },
       "additionalProperties": true
+    },
+    "dependsOn": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$"
+          },
+          {
+            "type": "object",
+            "required": [
+              "target"
+            ],
+            "properties": {
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^\\S+$"
+              },
+              "projects": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                ]
+              },
+              "dependencies": {
+                "type": "boolean"
+              },
+              "params": {
+                "enum": [
+                  "forward",
+                  "ignore"
+                ]
+              },
+              "options": {
+                "enum": [
+                  "forward",
+                  "ignore"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "projects",
+                "dependencies"
+              ]
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "description": "Tasks that must succeed first. Use target for this project or ^target for dependency projects."
     }
   }
 }

@@ -134,7 +134,8 @@ project edges, so package project definitions do not duplicate these imports.
 
 For individual build commands, build prerequisites first: core before JS and
 the other packages. Multi-project stages with cached outputs order their selected
-projects by dependency, but do not add missing prerequisites. See
+projects by dependency. This repository's build targets do not declare `dependsOn`,
+so their unselected prerequisites still need to be built explicitly. See
 [execution ordering](/docs/affected-and-ci#execution-ordering). `pnpm bootstrap` seeds core and the JS executor
 with TypeScript, then runs the package build commands through Isox. It also
 refreshes project discovery. After editing project definitions, run `isox reset`

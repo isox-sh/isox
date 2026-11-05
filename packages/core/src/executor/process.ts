@@ -57,15 +57,20 @@ export async function runProcess(file: string, args: string[], options: RunProce
         child.on('message', options.onMessage)
       }
 
-      const cleanup = handleProcessCancellation(child, options.signal, reject, options.gracePeriodMs)
+      const cleanup = handleProcessCancellation(child, options.signal, error => {
+        // An already-aborted signal can report an error before cleanup is assigned.
+        queueMicrotask(() => {
+          void cleanup.finished.then(() => reject(error))
+        })
+      }, options.gracePeriodMs)
 
       child.once('error', error => {
         cleanup()
-        reject(error)
+        void cleanup.finished.then(() => reject(error))
       })
       child.once('close', code => {
         cleanup()
-        resolveResult({ success: code === 0 && !options.signal?.aborted })
+        void cleanup.finished.then(() => resolveResult({ success: code === 0 && !options.signal?.aborted }))
       })
     })
   } finally {

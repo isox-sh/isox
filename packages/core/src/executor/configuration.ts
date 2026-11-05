@@ -30,11 +30,25 @@ export function resolveCommandOptions(
   }
 
   return {
-    // Match Nx: configuration values replace base values, including objects and arrays.
-    options: {
-      ...command.options,
-      ...configuration
-    },
+    // Configuration values replace base values, including objects and arrays.
+    options: mergeExecutorOptions(command.executor, command.options ?? {}, configuration),
     configurationName,
   }
+}
+
+/** A shell command override replaces the inherited single/array command shape. */
+export function mergeExecutorOptions(executor: string, base: Record<string, unknown>, override: Record<string, unknown>): Record<string, unknown> {
+  const merged = {
+    ...base,
+    ...override
+  }
+  if (/^(?:@isox-sh\/)?core:run-commands?$/.test(executor)) {
+    if (Object.hasOwn(override, 'command') && !Object.hasOwn(override, 'commands')) {
+      delete merged.commands
+    } else if (Object.hasOwn(override, 'commands') && !Object.hasOwn(override, 'command')) {
+      delete merged.command
+    }
+  }
+
+  return merged
 }

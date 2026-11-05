@@ -81,7 +81,9 @@ failure before running the executor rather than supplying an incomplete graph.
 project root, selected configuration, and empty dependency lists. Configured
 task IDs use `project:command:configuration`. It does not schedule prerequisites or
 compute task outputs and hashes; its task has `outputs: []` and `cache: false`.
-Project dependency edges remain available through `projectGraph`.
+Isox's runner expands target-level `dependsOn` before invoking the adapter;
+these scheduled prerequisites are not represented in the adapter's single-task
+`taskGraph`. Project dependency edges remain available through `projectGraph`.
 
 The adapter reads an optional JSON `nx.json` into `nxJsonConfiguration` (or uses
 `{}` when absent). Command configurations are merged before invoking the adapter.

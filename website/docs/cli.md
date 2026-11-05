@@ -180,7 +180,8 @@ Affected selection follows inferred and explicitly declared dependencies. Parall
 separate child CLI processes, and the GitHub actions distribute exact weighted
 project lists. See [affected projects and CI](/docs/affected-and-ci).
 Cached builds with declared outputs wait for selected dependencies, even with
-`--parallel=1`. Independent projects can run concurrently. Unselected prerequisites
-are not added; prepare their required outputs before running workers.
-Local task caching is opt-in; remote caching,
-dependency task scheduling and isolation remain on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
+`--parallel=1`. Independent projects can run concurrently. Targets with
+[`dependsOn`](/docs/configuration#task-prerequisites) expand required tasks outside
+the selected project list, within each worker's checkout.
+Local task caching is opt-in; remote caching and isolation remain on the
+[roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).

@@ -262,8 +262,7 @@ test('shell command cancellation stops descendants as well as the shell', async 
   assert.ok(ready, 'shell descendant did not start')
   controller.abort()
   await running
-  // The launcher can close before the two-second descendant grace period ends.
-  await new Promise(resolve => setTimeout(resolve, 2_500))
+  // Completion must include forced termination of uncooperative descendants.
   const heartbeat = await readFile(join(root, 'heartbeat'), 'utf8')
 
   await new Promise(resolve => setTimeout(resolve, 200))

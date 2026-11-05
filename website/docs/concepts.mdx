@@ -94,8 +94,10 @@ dynamically selected plugins. Dependencies contain Isox project names.
 <Note>
   The graph propagates affected changes. In multi-project execution, Isox also
   orders selected projects by dependency when a stage includes a target with
-  `cache: true` and declared outputs. It does not add missing prerequisite tasks
-  or order separate CI jobs. Prepare unselected prerequisites in every worker;
+  `cache: true` and declared outputs. Targets with
+  [`dependsOn`](/docs/configuration#task-prerequisites) also run prerequisites
+  outside the selected project list. Each CI worker expands its own task graph;
+  separate jobs do not share scheduling or task deduplication.
   see [execution ordering](/docs/affected-and-ci#execution-ordering).
 </Note>
 

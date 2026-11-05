@@ -5,7 +5,8 @@ import { runCachedTask } from '../cache/task'
 import { logger, LogLevels, pauseProgress } from '../logger'
 import { resolvePackageJson } from '../utils/resolve-package-json'
 import { readWorkspaceSettings } from '../workspace/settings'
-import { resolveCommandOptions } from './configuration'
+import { mergeExecutorOptions, resolveCommandOptions } from './configuration'
+import { createTaskGraph } from './task-graph'
 import { compactTaskOutput, reportTaskResult } from './task-logging'
 
 import type { TaskCacheOptions } from '../cache/task'
@@ -32,6 +33,41 @@ export async function runExecutor(
   signal?: AbortSignal,
   optionOverrides: Record<string, unknown> = {},
   cacheOptions: TaskCacheOptions = {},
+): Promise<void> {
+  const project = Object.hasOwn(workspace.projects, projectName) ? workspace.projects[projectName] : undefined
+  const command = Object.hasOwn(project?.targets ?? {}, commandName) ? project?.targets?.[commandName] : undefined
+  if (!command?.dependsOn?.length) {
+    return runExecutorTask(workspace, projectName, commandName, workspaceRoot, taskLogger, requestedConfiguration, signal, optionOverrides, cacheOptions)
+  }
+
+  const tasks = await createTaskGraph(workspaceRoot, workspace, [{
+    project: projectName,
+    target: commandName,
+    configuration: requestedConfiguration,
+    overrides: optionOverrides
+  }])
+  const prerequisites = new Set([...tasks.values()].flatMap(task => task.prerequisites))
+  for (const task of tasks.values()) {
+    if (signal?.aborted) {
+      return
+    }
+
+    await runExecutorTask(workspace, task.project, task.target, workspaceRoot, taskLogger, task.configuration, signal, task.overrides, cacheOptions, prerequisites.has(task.id))
+  }
+}
+
+/** Execute one already scheduled task, without expanding its prerequisites. */
+export async function runExecutorTask(
+  workspace: WorkspaceGraph,
+  projectName: string,
+  commandName: string,
+  workspaceRoot: string,
+  taskLogger: Logger = logger,
+  requestedConfiguration?: string,
+  signal?: AbortSignal,
+  optionOverrides: Record<string, unknown> = {},
+  cacheOptions: TaskCacheOptions = {},
+  requireCompletion = false,
 ): Promise<void> {
   const root = resolve(workspaceRoot)
   const settings = await readWorkspaceSettings(root)
@@ -80,12 +116,16 @@ export async function runExecutor(
     signal,
   }
 
-  const effectiveOptions = {
-    ...options,
-    ...optionOverrides
-  }
+  const effectiveOptions = mergeExecutorOptions(command.executor, options, optionOverrides)
 
-  await runCachedTask(context, effectiveOptions, pkgJsonPath, isNxExecutor, cacheOptions, () => executeExecutor(executorFn, context, effectiveOptions, isNxExecutor))
+  await runCachedTask(context, effectiveOptions, pkgJsonPath, isNxExecutor, cacheOptions, async () => {
+    const completed = await executeExecutor(executorFn, context, effectiveOptions, isNxExecutor)
+    if (requireCompletion && !completed && !signal?.aborted) {
+      throw new Error(`Prerequisite ${projectName}:${commandName} did not finish successfully. Continuous prerequisites are not supported.`)
+    }
+
+    return completed
+  })
 }
 
 async function executeExecutor(executorFn: Executor, context: ExecutorContext, options: Record<string, unknown>, isNxExecutor: boolean): Promise<boolean> {

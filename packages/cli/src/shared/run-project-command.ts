@@ -1,4 +1,4 @@
-import { createLogger, findWorkspaceRoot, logger, parseWorkspace, runExecutor } from '@isox-sh/core'
+import { createLogger, findWorkspaceRoot, logger, parseWorkspace, runExecutor, runExecutorTask } from '@isox-sh/core'
 
 import { withCancellation } from './cancellation'
 import { configurationName } from './options'
@@ -44,7 +44,12 @@ export async function runProjectCommand(
   process.chdir(workspaceRoot)
   const workspace = await parseWorkspace(workspaceRoot)
 
+  // The parent already expanded this worker's prerequisites; nested CLIs must plan their own.
+  const scheduledTask = process.env.ISOX_SCHEDULED_TASK
+  const execute = scheduledTask === '1' || scheduledTask === 'prerequisite' ? runExecutorTask : runExecutor
+  delete process.env.ISOX_SCHEDULED_TASK
+
   await withCancellation(controller =>
-    runExecutor(workspace, projectName, commandName, workspaceRoot, taskLogger, configuration, controller.signal, optionOverrides, { skipCache: options.skipCache }),
+    execute(workspace, projectName, commandName, workspaceRoot, taskLogger, configuration, controller.signal, optionOverrides, { skipCache: options.skipCache }, scheduledTask === 'prerequisite'),
   )
 }

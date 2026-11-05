@@ -20,8 +20,8 @@ in `project.json`, and an `isox.json` marker identifies the workspace root.
 Run individual projects or select affected projects and their dependents from
 Git changes. Native GitHub Actions distribute exact project lists across weighted
 CI jobs. Reuse successful task results with opt-in local caching.
-Prerequisite scheduling and cloud caching remain on the
-[roadmap](ROADMAP.md).
+Declare task prerequisites with [`dependsOn`](website/docs/configuration.md#task-prerequisites).
+Cloud caching remains on the [roadmap](ROADMAP.md).
 
 ## Get started
 

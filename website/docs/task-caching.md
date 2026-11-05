@@ -113,8 +113,9 @@ target's inputs, or all of its project files if those are unspecified. Its targe
 configuration and applicable named/default options participate too. For cacheable
 dependency targets, their actual declared output files also participate, so a
 newly rebuilt dependency invalidates consumers even if its sources are unchanged.
-This computes inputs; it does **not execute prerequisite tasks**. Prepare dependency
-outputs before running consumers. Explicitly include any other generated artifacts
+Hashing itself does not schedule tasks. Declare
+[`dependsOn`](/docs/configuration#task-prerequisites) to run prerequisite tasks
+before the consumer's cache lookup, or prepare those outputs explicitly. Explicitly include any other generated artifacts
 the task reads (for example, build outputs used by a `test` target) in `inputs`.
 
 Root `package.json`, `isox.json`, `tsconfig.json`, `tsconfig.base.json`, ignore
