@@ -19,31 +19,7 @@ export default async function runCommand(
   options: RunCommandOptions,
   context: ExecutorContext,
 ): Promise<ExecutorResult> {
-  if (options.command !== undefined && options.commands !== undefined) {
-    throw new Error('run-command accepts either command or commands, not both.')
-  }
-
-  const commands = options.commands === undefined ? [options.command] : options.commands
-  if (!Array.isArray(commands) || !commands.length) {
-    throw new Error('run-command requires a non-empty commands array.')
-  }
-
-  const normalized = commands.map(entry => {
-    if (typeof entry === 'object' && entry !== null && !Array.isArray(entry)
-      && Object.keys(entry).some(key => key !== 'command')) {
-      throw new Error('run-command command objects only support the command property.')
-    }
-
-    const command = typeof entry === 'object' && entry !== null && !Array.isArray(entry) ? entry.command : entry
-    if (typeof command !== 'string' || !command.trim()) {
-      throw new Error('run-command requires a non-empty command string for every command.')
-    }
-
-    return command
-  })
-  if (options.command !== undefined && typeof options.command !== 'string') {
-    throw new Error('run-command requires a non-empty command string.')
-  }
+  const commands = normalizeCommands(options)
 
   if (options.parallel !== undefined && typeof options.parallel !== 'boolean') {
     throw new Error('run-command parallel must be a boolean.')
@@ -59,8 +35,8 @@ export default async function runCommand(
     signal,
   })
 
-  if (options.parallel === false || normalized.length === 1) {
-    for (const command of normalized) {
+  if (options.parallel === false || commands.length === 1) {
+    for (const command of commands) {
       const result = await run(command, context.signal)
       if (!result.success) {
         return result
@@ -73,7 +49,7 @@ export default async function runCommand(
   const controller = new AbortController()
   const signal = context.signal ? AbortSignal.any([context.signal, controller.signal]) : controller.signal
   // Cancel siblings on failure and wait for all process trees to finish cleanup.
-  const results = await Promise.allSettled(normalized.map(async command => {
+  const results = await Promise.allSettled(commands.map(async command => {
     try {
       const result = await run(command, signal)
       if (!result.success) {
@@ -92,4 +68,37 @@ export default async function runCommand(
   }
 
   return { success: results.every(result => result.status === 'fulfilled' && result.value.success) }
+}
+
+function normalizeCommands(options: RunCommandOptions): string[] {
+  if (options.command !== undefined && options.commands !== undefined) {
+    throw new Error('run-command accepts either command or commands, not both.')
+  }
+
+  const commands = options.commands === undefined ? [options.command] : options.commands
+  if (!Array.isArray(commands) || !commands.length) {
+    throw new Error('run-command requires a non-empty commands array.')
+  }
+
+  const normalized = commands.map(entry => {
+    let command: unknown = entry
+    if (typeof entry === 'object' && entry !== null && !Array.isArray(entry)) {
+      if (Object.keys(entry).some(key => key !== 'command')) {
+        throw new Error('run-command command objects only support the command property.')
+      }
+
+      command = entry.command
+    }
+
+    if (typeof command !== 'string' || !command.trim()) {
+      throw new Error('run-command requires a non-empty command string for every command.')
+    }
+
+    return command
+  })
+  if (options.command !== undefined && typeof options.command !== 'string') {
+    throw new Error('run-command requires a non-empty command string.')
+  }
+
+  return normalized
 }

@@ -20,25 +20,8 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
   }
 
   await withCancellation(async controller => {
-    const stages = []
-    for (const [stageIndex, stage] of getCommandStages(options).entries()) {
-      const queue = projects.filter(name => Object.hasOwn(workspace.projects[name].targets ?? {}, stage.target))
-
-      const overrides = stageIndex === (options.preTargets?.length ?? 0) ? optionOverrides : {}
-      const hasDependencies = queue.some(name => workspace.projects[name].targets?.[stage.target].dependsOn?.length)
-      const tasks = hasDependencies ? await createTaskGraph(root, workspace, queue.map(project => ({
-        project,
-        target: stage.target,
-        configuration: stage.config,
-        overrides,
-      }))) : undefined
-      stages.push({
-        stage,
-        queue,
-        overrides,
-        tasks
-      })
-    }
+    // Validate every stage before pre-targets can create side effects.
+    const stages = await planStages(root, workspace, projects, options, optionOverrides)
 
     for (const { stage, queue, overrides, tasks } of stages) {
       if (controller.signal.aborted) {
@@ -49,10 +32,12 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
         continue
       }
 
-      const prerequisites = new Set([...tasks?.values() ?? []].flatMap(task => task.prerequisites))
+      const prerequisiteIds = new Set(Array.from(tasks?.values() ?? []).flatMap(task => task.prerequisites))
       const total = tasks?.size ?? queue.length
       const verbose = logger.level >= LogLevels.debug
-      const schedule = tasks ? await createTaskSchedule(root, workspace, tasks, controller.signal) : await createProjectSchedule(root, workspace, queue, stage.target, controller.signal)
+      const schedule = tasks
+        ? await createTaskSchedule(root, workspace, tasks, controller.signal)
+        : await createProjectSchedule(root, workspace, queue, stage.target, controller.signal)
       const display = verbose ? undefined : createTaskDisplay({
         target: stage.target,
         total
@@ -65,21 +50,28 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
       let failure: Error | undefined
       const worker = async () => {
         while (!controller.signal.aborted) {
-          const name = await schedule.next()
+          const id = await schedule.next()
 
-          if (name === undefined) {
+          if (id === undefined) {
             return
           }
 
-          const task = tasks?.get(name)
-          const projectName = task?.project ?? name
+          const task = tasks?.get(id)
+          const projectName = task?.project ?? id
           const target = task?.target ?? stage.target
-          const configuration = task?.configuration ?? (task ? undefined : stage.config ?? workspace.projects[name].targets?.[stage.target].defaultConfiguration)
+          const configuration = task
+            ? task.configuration
+            : stage.config ?? workspace.projects[projectName].targets?.[target].defaultConfiguration
           const taskOverrides = task?.overrides ?? overrides
           const reference = [projectName, target, configuration].filter(value => value !== undefined).join(':')
+          let scheduledTask = ''
+          if (tasks) {
+            scheduledTask = prerequisiteIds.has(id) ? 'prerequisite' : '1'
+          }
+
           let success: boolean
 
-          display?.start(name, reference)
+          display?.start(id, reference)
 
           try {
             const args = [process.argv[1], 'run']
@@ -102,19 +94,19 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
             }
 
             args.push('--', `${projectName}:${target}`)
-            // Executors get two seconds to stop their process trees before the CLI worker is killed.
+            // Give executors time to stop their child processes before killing the worker.
             const result = await runProcess(process.execPath, args, {
               cwd: root,
               signal: controller.signal,
               // The parent presents task results received over IPC.
               env: {
                 ...process.env,
-                ISOX_SCHEDULED_TASK: tasks ? prerequisites.has(name) ? 'prerequisite' : '1' : '',
+                ISOX_SCHEDULED_TASK: scheduledTask,
                 ISOX_PROGRESS: '0',
                 ISOX_TASK_OUTPUT: display ? 'live' : ''
               },
-              onMessage: display ? message => display.message(name, message) : undefined,
-              onOutput: display ? (chunk, stream) => display.output(name, chunk, stream) : undefined,
+              onMessage: display ? message => display.message(id, message) : undefined,
+              onOutput: display ? (chunk, stream) => display.output(id, chunk, stream) : undefined,
               gracePeriodMs: 5_000
             })
             success = result.success
@@ -123,16 +115,16 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
               throw new Error(`Task failed for ${reference}.`)
             }
           } catch (error) {
-            display?.finish(name, false, controller.signal.aborted)
+            display?.finish(id, false, controller.signal.aborted)
             failure ??= error instanceof Error ? error : new Error(String(error))
             controller.abort()
 
             return
           } finally {
-            schedule.done(name)
+            schedule.done(id)
           }
 
-          display?.finish(name, success, controller.signal.aborted)
+          display?.finish(id, success, controller.signal.aborted)
         }
       }
 
@@ -147,4 +139,28 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
       }
     }
   })
+}
+
+async function planStages(root: string, workspace: WorkspaceGraph, projects: string[], options: TargetPlanOptions, optionOverrides: Record<string, unknown>) {
+  const stages = []
+  for (const [stageIndex, stage] of getCommandStages(options).entries()) {
+    const queue = projects.filter(name => Object.hasOwn(workspace.projects[name].targets ?? {}, stage.target))
+
+    const overrides = stageIndex === (options.preTargets?.length ?? 0) ? optionOverrides : {}
+    const hasDependencies = queue.some(name => workspace.projects[name].targets?.[stage.target].dependsOn?.length)
+    const tasks = hasDependencies ? await createTaskGraph(root, workspace, queue.map(project => ({
+      project,
+      target: stage.target,
+      configuration: stage.config,
+      overrides,
+    }))) : undefined
+    stages.push({
+      stage,
+      queue,
+      overrides,
+      tasks
+    })
+  }
+
+  return stages
 }

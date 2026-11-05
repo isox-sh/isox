@@ -4,10 +4,7 @@
   "type": "object",
   "properties": {
     "command": {
-      "type": "string",
-      "minLength": 1,
-      "pattern": "\\S",
-      "description": "The shell command to execute."
+      "$ref": "#/definitions/command"
     },
     "cwd": {
       "type": "string",
@@ -19,19 +16,13 @@
       "items": {
         "oneOf": [
           {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "\\S",
-            "description": "The shell command to execute."
+            "$ref": "#/definitions/command"
           },
           {
             "type": "object",
             "properties": {
               "command": {
-                "type": "string",
-                "minLength": 1,
-                "pattern": "\\S",
-                "description": "The shell command to execute."
+                "$ref": "#/definitions/command"
               }
             },
             "required": [
@@ -61,5 +52,13 @@
         "commands"
       ]
     }
-  ]
+  ],
+  "definitions": {
+    "command": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "The shell command to execute."
+    }
+  }
 }

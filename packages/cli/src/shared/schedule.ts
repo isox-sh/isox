@@ -9,8 +9,11 @@ export function createSchedule(ids: Iterable<string>, prerequisites: Map<string,
     async next(): Promise<string | undefined> {
       while (!signal.aborted && pending.size) {
         for (const name of pending) {
-          if ((exclusive.has(name) ? running.size === 0 : ![...running].some(project => exclusive.has(project)))
-            && [...prerequisites.get(name) ?? []].every(dependency => completed.has(dependency))) {
+          const canRunAlongsideOthers = exclusive.has(name)
+            ? running.size === 0
+            : ![...running].some(id => exclusive.has(id))
+          const prerequisitesCompleted = [...prerequisites.get(name) ?? []].every(id => completed.has(id))
+          if (canRunAlongsideOthers && prerequisitesCompleted) {
             pending.delete(name)
             running.add(name)
 

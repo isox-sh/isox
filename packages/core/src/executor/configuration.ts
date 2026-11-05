@@ -30,7 +30,7 @@ export function resolveCommandOptions(
   }
 
   return {
-    // Match Nx: configuration values replace base values, including objects and arrays.
+    // Configuration values replace base values, including objects and arrays.
     options: mergeExecutorOptions(command.executor, command.options ?? {}, configuration),
     configurationName,
   }

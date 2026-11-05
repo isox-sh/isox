@@ -44,6 +44,7 @@ export async function runProjectCommand(
   process.chdir(workspaceRoot)
   const workspace = await parseWorkspace(workspaceRoot)
 
+  // The parent already expanded this worker's prerequisites; nested CLIs must plan their own.
   const scheduledTask = process.env.ISOX_SCHEDULED_TASK
   const execute = scheduledTask === '1' || scheduledTask === 'prerequisite' ? runExecutorTask : runExecutor
   delete process.env.ISOX_SCHEDULED_TASK

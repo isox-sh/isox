@@ -7,7 +7,7 @@ import type { WorkspaceGraph } from '@isox-sh/core'
 
 /** Order selected artifact builds without adding projects or serializing independent work. */
 export async function createProjectSchedule(root: string, workspace: WorkspaceGraph, projects: string[], target: string, signal: AbortSignal) {
-  const pending = new Set(projects)
+  const selectedProjects = new Set(projects)
   let exclusive = new Set<string>()
   const prerequisites = new Map<string, Set<string>>()
   const writesOutputs = projects.some(name => {
@@ -33,7 +33,7 @@ export async function createProjectSchedule(root: string, workspace: WorkspaceGr
         }
       }
 
-      prerequisites.set(name, new Set([...dependencies].filter(dependency => pending.has(dependency))))
+      prerequisites.set(name, new Set([...dependencies].filter(dependency => selectedProjects.has(dependency))))
     }
   }
 

@@ -3,7 +3,7 @@ import { minimatch } from 'minimatch'
 import { resolveWorkspaceDependencies } from '../workspace/dependencies'
 import { resolveCommandOptions } from './configuration'
 
-import type { WorkspaceGraph } from '../workspace/parser'
+import type { TargetDependency, WorkspaceGraph } from '../workspace/parser'
 
 export interface TaskRequest {
   project: string
@@ -21,13 +21,14 @@ export interface PlannedTask extends TaskRequest {
 export async function createTaskGraph(root: string, workspace: WorkspaceGraph, requests: TaskRequest[]): Promise<Map<string, PlannedTask>> {
   const tasks = new Map<string, PlannedTask>()
   const visiting: string[] = []
-  const requested = new Map(requests.map(request => {
+  const requestedTasks = new Map(requests.map(request => {
     const command = workspace.projects[request.project]?.targets?.[request.target]
     const configuration = request.configuration ?? command?.defaultConfiguration
 
-    return [[request.project, request.target, configuration].filter(value => value !== undefined).join(':'), request]
+    return [taskId(request.project, request.target, configuration), request]
   }))
-  let resolved: Promise<WorkspaceGraph> | undefined
+  let dependencyWorkspace: Promise<WorkspaceGraph> | undefined
+  const resolveDependencies = () => dependencyWorkspace ??= resolveWorkspaceDependencies(root, workspace)
   const visit = async (request: TaskRequest): Promise<string> => {
     const project = Object.hasOwn(workspace.projects, request.project) ? workspace.projects[request.project] : undefined
     if (!project) {
@@ -40,12 +41,13 @@ export async function createTaskGraph(root: string, workspace: WorkspaceGraph, r
     }
 
     const { configurationName, options } = resolveCommandOptions(command, request.project, request.target, request.configuration)
-    const id = [request.project, request.target, configurationName].filter(value => value !== undefined).join(':')
+    const id = taskId(request.project, request.target, configurationName)
     if (visiting.includes(id)) {
       throw new Error(`Task dependency cycle: ${[...visiting, id].join(' -> ')}`)
     }
 
-    const requestedTask = requested.get(id)
+    // Explicit CLI values win when a task is both requested and a prerequisite.
+    const requestedTask = requestedTasks.get(id)
     if (requestedTask) {
       request = {
         ...request,
@@ -75,42 +77,36 @@ export async function createTaskGraph(root: string, workspace: WorkspaceGraph, r
     }
     visiting.push(id)
     for (const entry of command.dependsOn ?? []) {
-      const dependency = typeof entry === 'string'
-        ? entry.startsWith('^') ? {
-          target: entry.slice(1),
-          dependencies: true
-        } : { target: entry }
-        : entry
-      let names: string[]
-      let target = dependency.target
+      const dependency = normalizeDependency(entry)
+      let projectNames: string[]
+      let targetPattern = dependency.target
       if (dependency.dependencies) {
-        resolved ??= resolveWorkspaceDependencies(root, workspace)
-        names = (await resolved).projects[request.project].dependencies ?? []
+        projectNames = (await resolveDependencies()).projects[request.project].dependencies ?? []
       } else if (dependency.projects !== undefined) {
         const patterns = typeof dependency.projects === 'string' ? [dependency.projects] : dependency.projects
-        names = Object.keys(workspace.projects).filter(name => patterns.some(pattern => minimatch(name, pattern)))
-      } else if (target.includes(':')) {
-        const separator = target.indexOf(':')
-        names = [target.slice(0, separator)]
-        target = target.slice(separator + 1)
+        projectNames = Object.keys(workspace.projects).filter(name => patterns.some(pattern => minimatch(name, pattern)))
+      } else if (targetPattern.includes(':')) {
+        const separator = targetPattern.indexOf(':')
+        projectNames = [targetPattern.slice(0, separator)]
+        targetPattern = targetPattern.slice(separator + 1)
       } else {
-        names = [request.project]
+        projectNames = [request.project]
       }
 
-      const traversed = new Set<string>()
+      const visitedProjects = new Set<string>()
       const addProject = async (name: string): Promise<void> => {
-        if (traversed.has(name)) {
+        if (visitedProjects.has(name)) {
           return
         }
 
-        traversed.add(name)
+        visitedProjects.add(name)
         const candidate = Object.hasOwn(workspace.projects, name) ? workspace.projects[name] : undefined
         if (!candidate) {
           throw new Error(`Project ${name} not found in workspace.`)
         }
 
-        const targets = Object.keys(candidate.targets ?? {}).filter(name => minimatch(name, target))
-        for (const targetName of targets) {
+        const matchingTargets = Object.keys(candidate.targets ?? {}).filter(name => minimatch(name, targetPattern))
+        for (const targetName of matchingTargets) {
           const definition = candidate.targets![targetName]
           const configuration = configurationName !== undefined && Object.hasOwn(definition.configurations ?? {}, configurationName)
             ? configurationName : undefined
@@ -125,21 +121,22 @@ export async function createTaskGraph(root: string, workspace: WorkspaceGraph, r
           })
           task.prerequisites.push(prerequisite)
         }
-        // Nx traverses projects without this target to find prerequisites further upstream.
-        if (!targets.length && dependency.dependencies) {
-          for (const upstream of (await resolved!).projects[name].dependencies ?? []) {
+        // Projects without this target can still lead to upstream prerequisites.
+        if (!matchingTargets.length && dependency.dependencies) {
+          for (const upstream of (await resolveDependencies()).projects[name].dependencies ?? []) {
             await addProject(upstream)
           }
         }
       }
 
-      for (const name of names) {
+      for (const name of projectNames) {
         await addProject(name)
       }
     }
 
     visiting.pop()
     task.prerequisites = [...new Set(task.prerequisites)]
+    // Insertion order lets direct runs execute prerequisites before their consumers.
     tasks.set(id, task)
 
     return id
@@ -150,4 +147,23 @@ export async function createTaskGraph(root: string, workspace: WorkspaceGraph, r
   }
 
   return tasks
+}
+
+function taskId(project: string, target: string, configuration?: string): string {
+  return [project, target, configuration].filter(value => value !== undefined).join(':')
+}
+
+function normalizeDependency(entry: string | TargetDependency): TargetDependency {
+  if (typeof entry !== 'string') {
+    return entry
+  }
+
+  if (entry.startsWith('^')) {
+    return {
+      target: entry.slice(1),
+      dependencies: true
+    }
+  }
+
+  return { target: entry }
 }

@@ -58,6 +58,7 @@ export async function runProcess(file: string, args: string[], options: RunProce
       }
 
       const cleanup = handleProcessCancellation(child, options.signal, error => {
+        // An already-aborted signal can report an error before cleanup is assigned.
         queueMicrotask(() => {
           void cleanup.finished.then(() => reject(error))
         })
