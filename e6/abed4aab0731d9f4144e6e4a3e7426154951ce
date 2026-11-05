@@ -1,0 +1,30 @@
+actions/plan/README.md
+  s_ccf5f79d803df0::t_80e009448b1cee 4
+actions/run-many/README.md
+  s_ccf5f79d803df0::t_80e009448b1cee 4
+tests/actions.test.mjs
+  s_ccf5f79d803df0::t_80e009448b1cee 141-146,164
+actions/shared/runtime.mjs
+  s_ccf5f79d803df0::t_1d9f694a7245d6 45,47,54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e6abed4aab0731d9f4144e6e4a3e7426154951ce",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_ccf5f79d803df0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ab3e-7250-7cd3-9769-274f300fb062",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
