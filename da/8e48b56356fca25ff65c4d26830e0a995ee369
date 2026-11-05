@@ -1,0 +1,83 @@
+packages/core/src/workspace/configuration.ts
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 23,29-39
+  s_3e915ccdd0a1b9::t_6934603dbd3af1 40
+packages/cli/src/shared/project-schedule.ts
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 4,40
+packages/cli/src/shared/run-project-command.ts
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 47-48,52
+website/docs/configuration.md
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 453-454,457-458
+website/docs/nx-migration.md
+  s_3e915ccdd0a1b9::t_96b52fdc993939 84-86
+packages/cli/src/shared/task-schedule.ts
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 10
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 2,8-9,11-20,25,27
+README.md
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 23-24
+ROADMAP.md
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 209-211,217-219
+  s_3e915ccdd0a1b9::t_43ec4da0c932ee 440-460
+packages/core/schemas/project.schema.json
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 134,201-221,223-224,226-228,232-237,239-254,256-265,267
+website/docs/concepts.mdx
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 97-100
+website/docs/introduction.mdx
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 80-85
+website/docs/prompts/migrate-nx-to-isox.md
+  s_3e915ccdd0a1b9::t_96b52fdc993939 269
+  s_3e915ccdd0a1b9::t_82b9c9cfce9cbb 270-271
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 129-130,144-146,369-373
+packages/cli/tests/affected.test.mjs
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 565-572
+  s_3e915ccdd0a1b9::t_ceb35ed46135a9 562-564,573-583
+packages/core/src/executor/task-graph.ts
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 48-52,57-58,60-61
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 53-56,59,62-66
+website/docs/contributing.mdx
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 137-138
+website/docs/core-api.md
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 285-286,291-292
+website/docs/typescript.md
+  s_3e915ccdd0a1b9::t_96b52fdc993939 139-140,318-320
+packages/cli/src/shared/schedule.ts
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 1-43
+packages/cli/src/shared/run-projects.ts
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 23,41-46,48-50,52,112
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 35-40,47,51
+website/docs/task-caching.md
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 116-118
+packages/cli/tests/depends-on.test.mjs
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 274-387
+  s_3e915ccdd0a1b9::t_b5538273362a04 271-273,388-393
+website/docs/cli.md
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 183-187
+actions/run-many/README.md
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 4-5,16-17
+packages/core/src/executor/runner.ts
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 124
+  s_3e915ccdd0a1b9::t_6ec62c31428a2f 125-126
+  s_3e915ccdd0a1b9::t_aee5bdbb4b99ea 49,55,70,127-131
+website/docs/affected-and-ci.md
+  s_3e915ccdd0a1b9::t_cb1be485c40c57 243,264,311-317,355-359
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "da8e48b56356fca25ff65c4d26830e0a995ee369",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_3e915ccdd0a1b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac3f-d86e-7b12-bbb3-c14891f1fd70",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
