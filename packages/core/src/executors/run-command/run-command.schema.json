@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "title": "Run command",
+  "title": "Run commands",
   "type": "object",
   "properties": {
     "command": {
@@ -12,8 +12,54 @@
     "cwd": {
       "type": "string",
       "description": "Working directory, resolved relative to the workspace root."
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S",
+            "description": "The shell command to execute."
+          },
+          {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S",
+                "description": "The shell command to execute."
+              }
+            },
+            "required": [
+              "command"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "description": "Shell commands to execute. Each entry is a string or an object with a command string."
+    },
+    "parallel": {
+      "type": "boolean",
+      "default": true,
+      "description": "Run commands concurrently. Set false to run in array order, stopping on the first failure."
     }
   },
-  "required": ["command"],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "oneOf": [
+    {
+      "required": [
+        "command"
+      ]
+    },
+    {
+      "required": [
+        "commands"
+      ]
+    }
+  ]
 }

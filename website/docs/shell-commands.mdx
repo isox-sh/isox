@@ -6,7 +6,8 @@ icon: "terminal"
 
 `core:run-command` runs a shell command and streams its output to your terminal.
 It is included with `@isox-sh/cli`; no separate executor installation is needed.
-The fully scoped reference is `@isox-sh/core:run-command`.
+The fully scoped reference is `@isox-sh/core:run-command`. Both also accept the
+plural alias `run-commands`.
 
 ## Wrap an existing script
 
@@ -39,12 +40,48 @@ Make sure the wrapped script does not call the same Isox command recursively.
 
 | Option | Required | Behavior |
 | --- | --- | --- |
-| `command` | Yes | Nonempty shell command string |
+| `command` | Either `command` or `commands` | Nonempty shell command string |
+| `commands` | Either `command` or `commands` | Nonempty array of strings or `{ "command": "..." }` objects |
+| `parallel` | No | Run array entries concurrently (default `true`); `false` runs them in order |
 | `cwd` | No | Working directory, relative to the workspace root or absolute; defaults to the workspace root |
 
 Commands inherit the environment and standard input, output, and error streams.
 A nonzero exit code or signal termination fails the Isox command. Cancellation
 propagates to the child process tree.
+
+## Run multiple commands
+
+```json
+{
+  "executor": "core:run-commands",
+  "options": {
+    "commands": ["node scripts/prepare.mjs", "npm run build"],
+    "parallel": false,
+    "cwd": "apps/web"
+  }
+}
+```
+
+Use exactly one of `command` or `commands`. Every entry runs in its own shell
+with the same `cwd`; changing directories in one entry does not affect another.
+Entries run in parallel by default. Set `parallel: false` to run them in order.
+A failed command stops the sequence or cancels parallel siblings. The executor
+waits for all child processes to finish before returning.
+
+String entries and command objects execute the same way. For example, this array
+uses both forms:
+
+```json
+{
+  "commands": [
+    "npm run lint",
+    { "command": "npm run test" }
+  ]
+}
+```
+
+Command objects accept only `command`; set `cwd` and `parallel` on the enclosing
+options object. Put each tool's arguments directly in its command string.
 
 ## Configure tool flags
 
@@ -72,8 +109,9 @@ If this definition is stored under `targets.check`, run
 `isox check web --config=strict`. The example assumes your workspace provides
 `scripts/check.mjs` and that it accepts `--strict`.
 
-The executor does not load `.env` files, expand Nx workspace tokens, or schedule
-dependency builds. Environment loading and required build ordering belong in the
-invoked tool, script, or CI workflow.
+The executor passes command strings to the shell without expanding workspace
+tokens or loading `.env` files. The invoked tools handle their own configuration.
+Use target-level
+[`dependsOn`](/docs/configuration#task-prerequisites) for required build ordering.
 
 For programmatic execution and cancellation helpers, see the [core API](/docs/core-api).
