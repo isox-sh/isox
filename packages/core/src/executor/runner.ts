@@ -5,7 +5,7 @@ import { runCachedTask } from '../cache/task'
 import { logger, LogLevels, pauseProgress } from '../logger'
 import { resolvePackageJson } from '../utils/resolve-package-json'
 import { readWorkspaceSettings } from '../workspace/settings'
-import { resolveCommandOptions } from './configuration'
+import { mergeExecutorOptions, resolveCommandOptions } from './configuration'
 import { createTaskGraph } from './task-graph'
 import { compactTaskOutput, reportTaskResult } from './task-logging'
 
@@ -116,10 +116,7 @@ export async function runExecutorTask(
     signal,
   }
 
-  const effectiveOptions = {
-    ...options,
-    ...optionOverrides
-  }
+  const effectiveOptions = mergeExecutorOptions(command.executor, options, optionOverrides)
 
   await runCachedTask(context, effectiveOptions, pkgJsonPath, isNxExecutor, cacheOptions, async () => {
     const completed = await executeExecutor(executorFn, context, effectiveOptions, isNxExecutor)

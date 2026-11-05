@@ -246,3 +246,26 @@ test('parallel spawn failures reject after cleaning up all commands', async t =>
     cwd: 'missing'
   }, { workspaceRoot: root }), { code: 'ENOENT' })
 })
+
+test('parallel failure waits for an uncooperative sibling descendant to stop', { skip: process.platform === 'win32' }, async t => {
+  const root = await commandsFixture(t)
+  await writeFile(join(root, 'launcher.cjs'), `
+    require('node:child_process').spawn(process.execPath, ['descendant.cjs'], { stdio: 'ignore' })
+    setInterval(() => {}, 100)
+  `)
+  await writeFile(join(root, 'descendant.cjs'), `
+    const fs = require('node:fs')
+    process.on('SIGTERM', () => {})
+    fs.writeFileSync('heartbeat', 'ready')
+    setInterval(() => fs.writeFileSync('heartbeat', String(Date.now())), 20)
+  `)
+  await writeFile(join(root, 'fail.cjs'), `
+    const fs = require('node:fs')
+    setTimeout(() => process.exit(9), 5000)
+    setInterval(() => { if (fs.existsSync('heartbeat')) process.exit(7) }, 10)
+  `)
+  assert.deepEqual(await runCommand({ commands: ['node launcher.cjs', 'node fail.cjs'] }, { workspaceRoot: root }), { success: false })
+  const stopped = await readFile(join(root, 'heartbeat'), 'utf8')
+  await new Promise(resolve => setTimeout(resolve, 150))
+  assert.equal(await readFile(join(root, 'heartbeat'), 'utf8'), stopped)
+})

@@ -86,6 +86,9 @@ options object. Put each tool's arguments directly in its command string.
 ## Configure tool flags
 
 Put tool flags in `command`. Use named configurations for repeatable variants.
+A configuration or CLI options override can switch between `command` and
+`commands`; the explicitly supplied form replaces the inherited form. Supplying
+both together in the same override is invalid.
 
 For example, `isox check web --strict` would pass an option named `strict` to this
 executor; it would not append `--strict` to your shell command. Define the full

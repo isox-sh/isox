@@ -84,17 +84,15 @@ for (const executor of ['@isox-sh/core:run-command', 'core:run-command', '@isox-
       targets: {
         build: {
           executor,
-          options: executor.endsWith(':run-commands')
-            ? {
-              commands: ['node build.cjs', { command: 'node verify.cjs' }],
-              parallel: false
-            }
-            : { command: 'node build.cjs' }
+          options: {
+            commands: ['node build.cjs', { command: 'node verify.cjs' }],
+            parallel: false
+          }
         }
       },
     })
     await write('build.cjs', "require('node:fs').writeFileSync('result.txt', 'built')")
-    await write('verify.cjs', "require('node:assert/strict').equal(require('node:fs').readFileSync('result.txt', 'utf8'), 'built')")
+    await write('verify.cjs', "require('node:assert/strict').equal(require('node:fs').readFileSync('result.txt', 'utf8'), 'built'); require('node:fs').writeFileSync('verified.txt', 'verified')")
     assert.throws(() => require.resolve('@isox-sh/core/package.json', { paths: [root] }), { code: 'MODULE_NOT_FOUND' })
     const result = spawnSync(process.execPath, [cliPath, 'build', 'demo'], {
       cwd: join(root, 'apps/demo'),
@@ -103,6 +101,7 @@ for (const executor of ['@isox-sh/core:run-command', 'core:run-command', '@isox-
 
     assert.equal(result.status, 0, result.stderr)
     assert.equal(await readFile(join(root, 'result.txt'), 'utf8'), 'built')
+    assert.equal(await readFile(join(root, 'verified.txt'), 'utf8'), 'verified')
   })
 }
 
@@ -291,3 +290,39 @@ test('CLI provides help', () => {
     assert.match(result.stdout, /isox build cli/)
   }
 })
+
+for (const executor of ['core:run-command', '@isox-sh/core:run-commands']) {
+  test(`${executor} configurations and CLI overrides replace the inherited command shape`, async t => {
+    const { root, write } = await fixture(t)
+    await write('isox.json', {})
+    await write('project.json', {
+      name: 'demo',
+      targets: {
+        single: {
+          executor,
+          options: { command: 'node record.cjs base' },
+          configurations: { array: { commands: ['node record.cjs array'] } }
+        },
+        multi: {
+          executor,
+          options: { commands: ['node record.cjs base'] },
+          configurations: { single: { command: 'node record.cjs single' } }
+        },
+      }
+    })
+    await write('record.cjs', "require('node:fs').writeFileSync('result.txt', process.argv[2])")
+    for (const [args, expected] of [
+      [['single', 'demo', '--config=array'], 'array'],
+      [['multi', 'demo', '--config=single'], 'single'],
+      [['single', 'demo', '--options=' + JSON.stringify({ commands: ['node record.cjs cli-array'] })], 'cli-array'],
+      [['multi', 'demo', '--options=' + JSON.stringify({ command: 'node record.cjs cli-single' })], 'cli-single'],
+    ]) {
+      const result = spawnSync(process.execPath, [cliPath, ...args], {
+        cwd: root,
+        encoding: 'utf8'
+      })
+      assert.equal(result.status, 0, result.stderr)
+      assert.equal(await readFile(join(root, 'result.txt'), 'utf8'), expected)
+    }
+  })
+}
