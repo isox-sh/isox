@@ -49,8 +49,12 @@ async function fixture(t, projects, settings = {}) {
     root,
     write,
     events: async () => (await readFile(join(root, 'events'), 'utf8')).trim().split('\n').map(line => JSON.parse(line)),
-    run: args => spawnSync(process.execPath, [cli, ...args], {
+    run: (args, env = {}) => spawnSync(process.execPath, [cli, ...args], {
       cwd: root,
+      env: {
+        ...process.env,
+        ...env
+      },
       encoding: 'utf8'
     }),
   }
@@ -320,7 +324,7 @@ for (const stage of ['build', 'finish']) {
   })
 }
 
-for (const mode of ['direct', 'run-many', 'api']) {
+for (const mode of ['direct', 'run-many', 'run-many-grouped', 'api']) {
   for (const stream of [false, true]) {
     test(`${mode} blocks dependents of a continuous ${stream ? 'stream' : 'result'}`, async t => {
       const f = await fixture(t, {
@@ -342,9 +346,11 @@ for (const mode of ['direct', 'run-many', 'api']) {
       if (mode === 'api') {
         await assert.rejects(runExecutor(await parseWorkspace(f.root), 'app', 'build', f.root), /Continuous prerequisites/)
       } else {
-        const result = f.run(mode === 'direct' ? ['build', 'app'] : ['run-many', '--target=build', '--projects=app'])
+        const args = mode === 'direct' ? ['build', 'app'] : ['run-many', '--target=build', '--projects=app']
+        const result = f.run(args, { GITHUB_ACTIONS: mode === 'run-many-grouped' ? 'true' : '' })
         assert.equal(result.status, 1)
-        assert.match(result.stderr, /Continuous prerequisites/)
+        // GitHub Actions groups task output on stdout, including worker errors.
+        assert.match(result.stdout + result.stderr, /Continuous prerequisites/)
       }
 
       assert.deepEqual(await f.events(), [{ id: 'watch' }])
