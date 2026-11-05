@@ -1,0 +1,26 @@
+packages/vitest/README.md
+  s_3e915ccdd0a1b9::t_3c4b78a426da0e 10-14
+website/docs/vitest.md
+  s_3e915ccdd0a1b9::t_3c4b78a426da0e 13-18,21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "744f132a77e6b2e242abd34a09a4a4d0502a4520",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_3e915ccdd0a1b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac3f-d86e-7b12-bbb3-c14891f1fd70",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
