@@ -1,7 +1,7 @@
 # Isox cache action
 
 Restore the workspace's `.isox` directory before running Isox, then automatically
-save an updated snapshot after the job succeeds. Place the action after checkout
+save an updated snapshot after the job succeeds, when GitHub permits cache writes. Place the action after checkout
 and Node.js setup, before any Isox commands:
 
 ```yaml
@@ -13,6 +13,9 @@ and Node.js setup, before any Isox commands:
 - run: npm ci
 - run: npx isox run-many --target=test
 ```
+
+The example assumes `@isox-sh/cli` is recorded in your development dependencies
+and lockfile, so `npm ci` installs the `isox` binary.
 
 The repository's shared `setup-isox` action includes this step before bootstrap.
 The cache action itself does not require an installed Isox CLI.
@@ -29,7 +32,11 @@ and restores through the shared prefix. The nested
 [`actions/cache`](https://github.com/actions/cache) action registers its own
 post-job save, so the snapshot contains changes made by later steps. Failed or
 cancelled jobs do not save snapshots. There is no exact-hit shortcut that prevents
-successful jobs from publishing updated state.
+successful jobs with cache-write access from publishing updated state.
+
+GitHub may restrict a job to read-only cache access based on its trigger or
+`cache-mode`. Such jobs can restore snapshots but cannot save updates. See
+[GitHub cache access](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching#controlling-cache-access-with-cache-mode).
 
 Parallel jobs each save their own snapshot. GitHub restores the most recently
 created matching snapshot; it does not merge entries or synchronize running jobs.

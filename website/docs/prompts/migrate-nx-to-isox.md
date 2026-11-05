@@ -71,6 +71,10 @@ Commands still need explicit executor references and effective options.
 Use this conversion to test existing executor-based projects before rewriting
 their source files. For the final explicit Isox format, follow the steps below.
 
+Install `@isox-sh/cli` as a workspace development dependency using the repository's
+package manager. The package provides the `isox` binary; use `npx isox`,
+`pnpm exec isox`, or `yarn isox` for a local installation.
+
 Keep the filename `project.json`. Run `isox init` at the workspace root to create
 `isox.json` containing the installed CLI's version from its `package.json`, for
 example `{ "version": "0.0.1" }`. When the root contains an `nx.json` file, init
@@ -187,8 +191,11 @@ Nx `main` and `transformers`; unknown native options fail rather than being igno
 output directory. This executor does not schedule dependency builds.
 
 Native asset patterns require a workspace-relative `input`, a `glob`, optional
-output-relative `output`, and optional `ignore`. Cleanup removes only stale owned,
-unchanged files and preserves unrelated output. Define `generatePackageJson: true`
+output-relative `output`, and optional `ignore`. For uncached targets, cleanup
+removes only stale owned, unchanged files and preserves unrelated output. Targets
+with `cache: true` replace declared output directories as a whole, including with
+`--skip-cache` or `clean: false`; keep source files and manually maintained assets
+outside those directories. Define `generatePackageJson: true`
 explicitly when a distributable manifest is required; it defaults to false. A
 source package.json is optional, but must include name/version when present.
 Without one, generation uses the Isox project name and workspace version (or
@@ -337,7 +344,7 @@ isolation. Build local executor packages before invoking their compiled files.
 
 ## 4. Update entry points and dependencies
 
-Install `isox` through the repository's package manager and update its existing
+Install `@isox-sh/cli` through the repository's package manager and update its existing
 lockfile. Core is a CLI dependency; built-in commands use the CLI's copy when
 core cannot be resolved from the workspace. Install `@isox-sh/core` directly only
 for API/type imports, editor schema paths, or an intentional workspace override.
@@ -357,8 +364,9 @@ Replace `nx affected` and `nx run-many` workflows with `isox affected` and
 `isox run-many`. Use `isox plan` and the native GitHub Actions to distribute exact
 project lists across weighted workers. Follow the [affected and CI guide](/docs/affected-and-ci)
 for Git selection, tags, named configurations, and pre/post stages. Prepare
-prerequisite outputs explicitly in each worker; the graph does not schedule
-dependency builds. For versioning and publishing, assess the native
+prerequisite outputs explicitly in each worker. Within a stage that includes
+cached outputs, Isox orders selected projects by dependency; it does not add
+unselected prerequisites or coordinate dependency order across matrix jobs. For versioning and publishing, assess the native
 [`semver:version` and `semver:github` executors](/docs/semver) against the existing
 release workflow. Preserve required build ordering and coverage; do not silently
 skip checks. Report unresolved needs for remote caching, generators beyond the

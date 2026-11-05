@@ -101,7 +101,7 @@
         "items": [
           {
             "label": "npm",
-            "href": "https://www.npmjs.com/package/isox"
+            "href": "https://www.npmjs.com/package/@isox-sh/cli"
           },
           {
             "label": "Issues",

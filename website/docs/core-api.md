@@ -9,7 +9,7 @@ Workspace discovery, native command execution, configuration types, and logging
 for [Isox](https://isox.sh). This package also supplies the built-in `run-command`
 executor and JSON schemas.
 
-For the command-line interface, install [`isox`](https://www.npmjs.com/package/isox).
+For the command-line interface, install [`@isox-sh/cli`](https://www.npmjs.com/package/@isox-sh/cli).
 Requires Node.js 24+.
 
 ## Install
@@ -19,7 +19,7 @@ npm install --save-dev @isox-sh/core
 ```
 
 Install core directly when importing its APIs/types or referencing its schemas.
-For CLI usage, `npm install --save-dev isox` installs core automatically, including
+For CLI usage, `npm install --save-dev @isox-sh/cli` installs core automatically, including
 the built-in `@isox-sh/core:run-command` executor. A direct workspace installation
 of core takes precedence over the CLI's copy when resolving commands.
 

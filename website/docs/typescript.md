@@ -134,8 +134,10 @@ compiler outputs still apply. Dependency-cache reuse alone does not skip compila
 can additionally restore a matching task result without invoking the compiler. See [dependency caching](/docs/configuration#discovery-cache)
 for validation costs and examples.
 
-Build dependencies with declarations enabled before building their consumers;
-Isox does not schedule prerequisite builds yet. Dependency configs come from the
+Build dependencies with declarations enabled before building their consumers.
+A multi-project stage with cached outputs orders the projects already selected,
+but does not add missing prerequisite builds. See
+[execution ordering](/docs/affected-and-ci#execution-ordering). Dependency configs come from the
 same command's `tsConfig` option (falling back to `build`, then the project's
 `tsconfig.json`). A matching named configuration takes precedence over the
 dependency's default configuration. Watch mode also monitors dependency output

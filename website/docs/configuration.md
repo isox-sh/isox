@@ -253,8 +253,8 @@ selection by default.
 
 ## Discovery cache
 
-Isox keeps two metadata caches with different purposes. Neither skips executor
-work. Opt-in [task results](/docs/task-caching) are stored separately under `.isox/tasks`.
+Isox keeps separate metadata caches for definitions, dependencies, and tool lookup.
+None of these skips executor work. Opt-in [task results](/docs/task-caching) are stored separately under `.isox/tasks`.
 
 | File | Contents | When it is checked |
 | --- | --- | --- |

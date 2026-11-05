@@ -7,23 +7,39 @@ icon: "rocket"
 
 ## Requirements
 
-Node.js 24+. Use your existing npm, pnpm, or Yarn workspace.
-Use Node.js 24 or 26+ if you also install the ESLint or Vitest plugins.
-Isox runs project commands without a background daemon. It also supports
-[affected selection and CI distribution](/docs/affected-and-ci).
+Use Node.js 24 or 26+ to work with all first-party plugins. The CLI, core,
+TypeScript executor, and Nx adapter also support Node.js 25. Keep your existing
+npm, pnpm, or Yarn workspace.
 
 ## Install
 
-Install the CLI in your workspace. Its core dependency is installed automatically:
+Install **`@isox-sh/cli`** at your workspace root. It provides the **`isox`**
+command and includes `@isox-sh/core` for built-in commands.
 
-```sh
-npm install --save-dev isox
-npx isox init
-```
+<Tabs>
+  <Tab title="npm">
+    ```sh
+    npm install --save-dev @isox-sh/cli
+    npx isox init
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```sh
+    pnpm add -Dw @isox-sh/cli
+    pnpm exec isox init
+    ```
 
-With pnpm, use `pnpm add -Dw isox` at the workspace root, then
-`pnpm exec isox init`. With Yarn, use `yarn add --dev isox`, then `yarn isox init`
-(Yarn Classic workspaces may need `-W` when installing at the root).
+    Omit `-w` if this is not a pnpm workspace.
+  </Tab>
+  <Tab title="Yarn">
+    ```sh
+    yarn add --dev @isox-sh/cli
+    yarn isox init
+    ```
+
+    Yarn Classic workspaces may need `-W` when installing at the root.
+  </Tab>
+</Tabs>
 
 `init` creates `isox.json` with the installed CLI's version and never overwrites
 an existing file. The nearest ancestor containing this file is the workspace
@@ -67,7 +83,7 @@ your workspace's lockfile. The examples use `npx isox`; `pnpm exec isox` and
 For a global CLI installation:
 
 ```sh
-npm install --global isox
+npm install --global @isox-sh/cli
 ```
 
 The built-in `@isox-sh/core:run-command` executor is available with both local and
@@ -77,6 +93,8 @@ need to be installed in the workspace.
 
 ## Define a project
 
+### Scaffold a TypeScript project
+
 To scaffold a TypeScript project, install `@isox-sh/js` in your workspace and run:
 
 ```sh
@@ -85,14 +103,12 @@ npx isox init @isox-sh/js packages/test --importPath=@org/test
 npx isox build test
 ```
 
-This requires an existing Isox workspace. It creates `project.json`,
-`tsconfig.json` for editors, `tsconfig.build.json` for compilation, and `src/index.ts`
-in a new directory, plus `tsconfig.base.json`
-at the workspace root if missing. The optional `--importPath` adds an alias to
-the base config's `compilerOptions.paths`. Existing settings and comments are
-preserved. Relative paths resolve from the current directory; absolute paths
-must also be inside the workspace. Existing destinations, duplicate project
-names, and conflicting aliases are rejected.
+The initializer creates a project with source files, editor and build configs,
+and a `build` target. `--importPath` adds a TypeScript alias for the package.
+Run it inside an initialized workspace with a new destination directory. See the
+[TypeScript guide](/docs/typescript) for generated files and configuration options.
+
+### Use an existing project
 
 For an existing npm workspace named `@example/web` with a `build` script, create
 `apps/web/project.json`:
@@ -129,8 +145,9 @@ For editor schema completion or direct imports of core APIs/types, optionally
 install `@isox-sh/core` as a direct dependency and reference its
 `schemas/project.schema.json`. This is not required to run built-in commands.
 
-Commands run from the workspace root by default. Set `options.cwd` on
-`run-command` to choose another directory. Shell commands inherit environment
+Shell commands run from the workspace root by default. Set `options.cwd` on
+`run-command` to choose another directory. Other executors define their own
+working-directory behavior. Shell commands inherit environment
 variables and terminal streams; a nonzero exit fails the command. Avoid scripts
 that call the same Isox command recursively.
 

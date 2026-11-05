@@ -92,9 +92,11 @@ Use explicit dependencies for relationships that cannot be inferred, such as
 dynamically selected plugins. Dependencies contain Isox project names.
 
 <Note>
-  The graph propagates affected changes. It does not schedule prerequisite tasks.
-  Build libraries before their consumers, and prepare required outputs in every
-  CI worker. Parallel commands do not imply a dependency execution order.
+  The graph propagates affected changes. In multi-project execution, Isox also
+  orders selected projects by dependency when a stage includes a target with
+  `cache: true` and declared outputs. It does not add missing prerequisite tasks
+  or order separate CI jobs. Prepare unselected prerequisites in every worker;
+  see [execution ordering](/docs/affected-and-ci#execution-ordering).
 </Note>
 
 ## Discovery caching
