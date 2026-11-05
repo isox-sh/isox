@@ -58,6 +58,14 @@ async function fixture(t, target) {
 test('adds the shorthand target, registers cache defaults once, and preserves metadata', async t => {
   const f = await fixture(t)
 
+  await f.write('package.json', {
+    devDependencies: {
+      vitest: '^4.0.0',
+      vite: '^6.0.0'
+    }
+  })
+  const manifest = await readFile(join(f.root, 'package.json'), 'utf8')
+
   await add({}, f.context)
   assert.deepEqual(await f.read('apps/demo/project.json'), {
     name: 'demo',
@@ -82,6 +90,8 @@ test('adds the shorthand target, registers cache defaults once, and preserves me
   await add({}, f.context)
   assert.equal(await readFile(join(f.projectRoot, 'project.json'), 'utf8'), project)
   assert.equal(await readFile(join(f.root, 'isox.json'), 'utf8'), settings)
+  assert.equal(await readFile(join(f.root, 'package.json'), 'utf8'), manifest)
+  await assert.rejects(readFile(join(f.projectRoot, 'package.json')), { code: 'ENOENT' })
 })
 
 test('existing scoped targets and explicit workspace defaults are preserved', async t => {
@@ -130,6 +140,7 @@ test('the CLI loads the packaged generator by project name and invalidates stale
   })
 
   assert.equal(result.status, 0, result.stderr)
+  await assert.rejects(readFile(join(f.root, 'package.json')), { code: 'ENOENT' })
   await assert.rejects(readFile(join(f.root, '.isox/workspace.json')), { code: 'ENOENT' })
   const workspace = await parseWorkspace(f.root, { logger: f.context.logger })
 

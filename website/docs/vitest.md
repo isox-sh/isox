@@ -10,12 +10,11 @@ icon: "flask"
 Native Vitest 5 test executor for Isox. Requires Node.js 24 or 26+; Vitest does not
 support Node.js 25.
 
-Install `@isox-sh/vitest` and `vitest` in your workspace. The executor includes
-Vitest to run suites; a direct Vitest development dependency lets your tests
-import its APIs and your editor resolve its types.
+Install `@isox-sh/vitest` in your workspace. The plugin includes Vitest and its
+required Vite runtime.
 
 ```sh
-npm install --save-dev @isox-sh/vitest vitest
+npm install --save-dev @isox-sh/vitest
 ```
 
 ## Add to an existing project
@@ -38,6 +37,9 @@ and registers missing `isox.json` defaults:
   }
 }
 ```
+
+The generator leaves root and project `package.json` files unchanged. Vite and
+Vitest remain dependencies of the plugin.
 
 Existing Vitest targets, options, configurations, cache opt-outs and output
 settings are preserved. Scoped default keys are recognized without adding a
