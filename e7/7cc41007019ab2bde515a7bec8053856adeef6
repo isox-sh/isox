@@ -1,0 +1,24 @@
+packages/cli/tests/depends-on.test.mjs
+  s_3e915ccdd0a1b9::t_a05430e8bf9419 52,54-57,327,349-350,352-353
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e77cc41007019ab2bde515a7bec8053856adeef6",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_3e915ccdd0a1b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac3f-d86e-7b12-bbb3-c14891f1fd70",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
