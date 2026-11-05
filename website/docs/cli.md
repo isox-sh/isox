@@ -154,16 +154,22 @@ Isox keeps project definitions, dependency analysis, and task results in `.isox`
 | Cache | Purpose | When it refreshes |
 | --- | --- | --- |
 | `workspace.json` | Project definitions and merged target defaults | `affected`, `plan`, and `run-many` refresh it; single-project commands reuse it |
-| `discovery.json` | Inferred dependencies | Validated when selection, caching, or an executor needs dependency analysis |
+| `discovery.json` | Inferred dependencies | Validated for Git-based `affected` / `plan` selection, task caching, output ordering, or an executor that needs dependencies |
 | `tasks/` | Successful task results | Used by native targets with `cache: true` |
+
+`affected --all`, `plan --all`, and ordinary `run-many` selection do not infer
+dependencies. Execution can request analysis separately for task caching,
+ordering selected projects with cached outputs, or executor needs.
 
 After editing project definitions, target defaults, or discovery rules, run
 `isox reset` before a single-project command. Source and import edits do not
 require a reset. A dependency-analysis cache hit alone does not skip execution.
 
-Use `--skip-cache` to bypass task-result reads and writes. Stop active builds
-before running `isox reset`: it removes all of `.isox`, including task results,
-TypeScript output ownership records, and build locks. Compiled output stays in place.
+Use `--skip-cache` to bypass task-result reads and writes. Before running
+`isox reset`, stop active builds and recover any needed interrupted-task backups
+from `.isox/tasks`. Reset removes all of `.isox`, including those backups, task
+results, TypeScript output ownership records, and build locks. Compiled output
+stays in place. See [output recovery](/docs/task-caching#output-ownership-and-recovery).
 
 See [cache behavior and invalidation](/docs/configuration#discovery-cache) and
 [task caching](/docs/task-caching) for details.

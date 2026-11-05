@@ -37,8 +37,8 @@ pnpm isox test js-e2e # Runs the TypeScript init/build end-to-end suite
 ## Tests
 
 Package tests live in their owning package's `tests/` directory. Repository-wide
-action and release-workflow tests live in the root `tests/` directory and run
-with `pnpm isox test workspace`. After bootstrapping,
+action, bootstrap, packaging, and release-workflow tests live in the root
+`tests/` directory and run with `pnpm isox test workspace`. After bootstrapping,
 `pnpm isox run-many --target=test` runs every project's test target, including the
 package suites, workspace tooling tests, end-to-end suite, and website validation. Use
 `pnpm isox test <project>` to run one suite, such as `pnpm isox test cli`.
