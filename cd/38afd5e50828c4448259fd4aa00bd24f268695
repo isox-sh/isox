@@ -1,0 +1,26 @@
+website/docs/cli.md
+  s_ccf5f79d803df0::t_4e2ccb881f3e2e 157,160-163,168-172
+website/docs/contributing.mdx
+  s_ccf5f79d803df0::t_4e2ccb881f3e2e 40-41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cd38afd5e50828c4448259fd4aa00bd24f268695",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_ccf5f79d803df0": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ab3e-7250-7cd3-9769-274f300fb062",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
