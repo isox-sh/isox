@@ -236,9 +236,16 @@ importers:
       minimatch:
         specifier: ^11.0.1
         version: 11.0.4
+      semver:
+        specifier: ^7.8.5
+        version: 7.8.5
       typescript:
         specifier: npm:@typescript/typescript6@^6.0.2
         version: '@typescript/typescript6@6.0.2'
+    devDependencies:
+      '@types/semver':
+        specifier: ^7.8.0
+        version: 7.8.0
     publishDirectory: ../../dist/core
 
   packages/e2e:

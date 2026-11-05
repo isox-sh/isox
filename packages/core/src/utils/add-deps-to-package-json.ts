@@ -1,3 +1,5 @@
+import { lt, minVersion, validRange } from 'semver'
+
 import { readJson } from './read-json'
 import { writeJson } from './write-json'
 
@@ -6,6 +8,22 @@ import type { WriteJsonContext } from './write-json'
 export interface PackageJsonDeps {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
+}
+
+export interface AddDepsToPackageJsonOptions {
+  /** Upgrade older semantic version ranges, comparing their minimum versions. */
+  upgradeExisting?: boolean
+}
+
+function isOlderVersion(current: string, requested: string): boolean {
+  if (!validRange(current) || !validRange(requested)) {
+    return false
+  }
+
+  const currentMinimum = minVersion(current)
+  const requestedMinimum = minVersion(requested)
+
+  return currentMinimum !== null && requestedMinimum !== null && lt(currentMinimum, requestedMinimum)
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -21,8 +39,12 @@ function validateDeps(value: unknown, field: string): asserts value is Record<st
   }
 }
 
-/** Add missing dependencies to the project's package.json, preserving existing versions. */
-export async function addDepsToPackageJson(deps: PackageJsonDeps, context: WriteJsonContext): Promise<void> {
+/** Add dependencies to the project's package.json, preserving existing versions by default. */
+export async function addDepsToPackageJson(
+  deps: PackageJsonDeps,
+  context: WriteJsonContext,
+  options: AddDepsToPackageJsonOptions = {},
+): Promise<void> {
   const fields = ['dependencies', 'devDependencies'] as const
 
   for (const field of fields) {
@@ -65,32 +87,31 @@ export async function addDepsToPackageJson(deps: PackageJsonDeps, context: Write
     }
   }
 
-  let changed = false
+  const changedFields = new Set<typeof fields[number]>()
 
   for (const field of fields) {
-    let entries = (manifest[field] ?? {}) as Record<string, string>
-    let fieldChanged = false
-
     for (const [name, version] of Object.entries(deps[field] ?? {})) {
-      // Keep a dependency in its existing section and retain its chosen version.
-      if (fields.some(key => Object.hasOwn(manifest[key] ?? {}, name))) {
+      const existingField = fields.find(key => Object.hasOwn(manifest[key] ?? {}, name))
+      const destination = existingField ?? field
+      const entries = (manifest[destination] ?? {}) as Record<string, string>
+
+      if (existingField && (!options.upgradeExisting || !isOlderVersion(entries[name], version))) {
         continue
       }
 
-      entries = {
+      manifest[destination] = {
         ...entries,
         [name]: version
       }
-      fieldChanged = true
-    }
-
-    if (fieldChanged) {
-      manifest[field] = Object.fromEntries(Object.entries(entries).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))
-      changed = true
+      changedFields.add(destination)
     }
   }
 
-  if (changed) {
+  for (const field of changedFields) {
+    manifest[field] = Object.fromEntries(Object.entries(manifest[field] as Record<string, string>).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0))
+  }
+
+  if (changedFields.size > 0) {
     await writeJson('package.json', manifest, context, { overwrite: exists })
   }
 }
