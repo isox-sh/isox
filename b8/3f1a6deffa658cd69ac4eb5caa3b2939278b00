@@ -1,0 +1,35 @@
+website/docs/core-api.md
+  s_3e915ccdd0a1b9::t_f9b962ad480dc4 222-226
+packages/core/src/utils/add-deps-to-package-json.ts
+  s_3e915ccdd0a1b9::t_409001a47e23c6 27-28
+  s_3e915ccdd0a1b9::t_f9b962ad480dc4 1-2,13-26,42-47,90,94-98,102,106,108,110-111,114
+packages/core/package.json
+  s_3e915ccdd0a1b9::t_f9b962ad480dc4 17,42-43
+  s_3e915ccdd0a1b9::t_82cf81e5150656 44
+packages/core/tests/add-deps-to-package-json.test.mjs
+  s_3e915ccdd0a1b9::t_5bfd97b393249f 91-99,101-110,115-124
+  s_3e915ccdd0a1b9::t_f9b962ad480dc4 86-90,100,111-114,125-132
+pnpm-lock.yaml
+  s_3e915ccdd0a1b9::t_10c86a66ca35d0 239-241,245-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b83f1a6deffa658cd69ac4eb5caa3b2939278b00",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_3e915ccdd0a1b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac3f-d86e-7b12-bbb3-c14891f1fd70",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
