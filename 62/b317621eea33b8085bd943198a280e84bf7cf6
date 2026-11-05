@@ -1,0 +1,42 @@
+packages/core/src/executors/run-command/run-command.schema.json
+  s_3e915ccdd0a1b9::t_9d4f58820a82f9 7,19,25,55-63
+packages/cli/src/shared/project-schedule.ts
+  s_3e915ccdd0a1b9::t_5f3f14d56c128c 10,36
+packages/cli/src/shared/run-project-command.ts
+  s_3e915ccdd0a1b9::t_2540dd570273f5 47
+packages/cli/src/shared/run-projects.ts
+  s_3e915ccdd0a1b9::t_1fa6fd08d498ae 23-24,35,38-40,53,55,59-60,62-64,67-71,74,97,104,108-109,118,124,127,143-166
+packages/cli/src/shared/schedule.ts
+  s_3e915ccdd0a1b9::t_4d723a3a4ed814 12-16
+packages/cli/src/shared/task-schedule.ts
+  s_3e915ccdd0a1b9::t_f1d6c128a312d7 7,9,15-16
+packages/core/src/executor/configuration.ts
+  s_3e915ccdd0a1b9::t_69f4cc7ce37129 33
+packages/core/src/executor/process.ts
+  s_3e915ccdd0a1b9::t_8a8996d2f91961 61
+packages/core/src/executor/task-graph.ts
+  s_3e915ccdd0a1b9::t_3816d135ea07a0 6,24,28,30-31,44,49-50,80-82,84,87-91,93,96,98,102,108-109,124-126,132,139,151-169
+packages/core/src/executors/run-command/run-command.executor.ts
+  s_3e915ccdd0a1b9::t_eebdb4035815c9 22,38-39,52,72-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "62b317621eea33b8085bd943198a280e84bf7cf6",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_3e915ccdd0a1b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac3f-d86e-7b12-bbb3-c14891f1fd70",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
