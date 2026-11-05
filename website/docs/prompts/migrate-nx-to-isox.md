@@ -126,7 +126,8 @@ source of truth if migrating against a different Isox version.
   Resolve any Nx patterns and exclusions before converting them. Isox also infers
   relationships from source imports, TypeScript aliases, and local package
   references. Preserve relationships that cannot be inferred as explicit entries.
-  These edges propagate affected changes; they do not schedule prerequisites.
+  These edges propagate affected changes and select dependency projects for
+  `dependsOn: ["^build"]`. Project edges alone do not schedule tasks.
 - Preserve applicable string `tags`. Neither tags nor dependencies enforce
   module boundaries or schedule commands.
 - Keep extra fields such as `sourceRoot`, `projectType`, or custom metadata when
@@ -140,8 +141,9 @@ source of truth if migrating against a different Isox version.
   are aliases). An explicit name takes precedence over `--prod`, then the command's
   default is used. Missing configurations fail. Selecting a configuration does
   not change the cached target definition.
-- `dependsOn` remains metadata and does not schedule prerequisites. Nx-schema
-  migration removes `cache` and `inputs` in memory; it retains output metadata for
+- Configure task prerequisites using [the supported `dependsOn` syntax](/docs/configuration#task-prerequisites).
+  Verify target names, configurations, and forwarded options. Continuous prerequisites
+  are unsupported. Nx-schema migration removes `cache` and `inputs` in memory; it retains output metadata for
   the adapter. Do not copy Nx input expressions into native cache declarations.
   For deterministic native targets, explicitly configure `cache: true`, `inputs`
   and disposable output directories using [local task caching](/docs/task-caching).
@@ -264,8 +266,9 @@ lockfile while retaining these executors. Nx's own workspace data cache is
 updated separately from `.isox`, even when Isox's project cache is reused.
 Graph failures stop execution. Without Nx installed, the adapter can only supply
 the explicit Isox graph, with no npm nodes.
-`taskGraph` describes only the selected command, with no scheduled prerequisites,
-computed outputs, or output caching. Use `projectGraph` for project dependency
+`taskGraph` describes only the selected command; the outer Isox runner schedules
+`dependsOn` prerequisites separately. The adapter graph has empty dependency lists and no
+computed outputs or output caching. Use `projectGraph` for project dependency
 traversal; a plugin requiring Nx's full task pipeline needs further migration.
 Explicit
 extra project and command properties override inferred metadata, including
@@ -363,10 +366,11 @@ a project command named `reset`.
 Replace `nx affected` and `nx run-many` workflows with `isox affected` and
 `isox run-many`. Use `isox plan` and the native GitHub Actions to distribute exact
 project lists across weighted workers. Follow the [affected and CI guide](/docs/affected-and-ci)
-for Git selection, tags, named configurations, and pre/post stages. Prepare
-prerequisite outputs explicitly in each worker. Within a stage that includes
-cached outputs, Isox orders selected projects by dependency; it does not add
-unselected prerequisites or coordinate dependency order across matrix jobs. For versioning and publishing, assess the native
+for Git selection, tags, named configurations, and pre/post stages. Declare
+`dependsOn` so each worker expands required tasks, including unselected projects.
+Without explicit prerequisites, stages with cached outputs only order selected
+projects by dependency. Workers do not coordinate dependency order or deduplicate
+tasks across matrix jobs. For versioning and publishing, assess the native
 [`semver:version` and `semver:github` executors](/docs/semver) against the existing
 release workflow. Preserve required build ordering and coverage; do not silently
 skip checks. Report unresolved needs for remote caching, generators beyond the

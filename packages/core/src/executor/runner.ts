@@ -46,12 +46,13 @@ export async function runExecutor(
     configuration: requestedConfiguration,
     overrides: optionOverrides
   }])
+  const prerequisites = new Set([...tasks.values()].flatMap(task => task.prerequisites))
   for (const task of tasks.values()) {
     if (signal?.aborted) {
       return
     }
 
-    await runExecutorTask(workspace, task.project, task.target, workspaceRoot, taskLogger, task.configuration, signal, task.overrides, cacheOptions)
+    await runExecutorTask(workspace, task.project, task.target, workspaceRoot, taskLogger, task.configuration, signal, task.overrides, cacheOptions, prerequisites.has(task.id))
   }
 }
 
@@ -66,6 +67,7 @@ export async function runExecutorTask(
   signal?: AbortSignal,
   optionOverrides: Record<string, unknown> = {},
   cacheOptions: TaskCacheOptions = {},
+  requireCompletion = false,
 ): Promise<void> {
   const root = resolve(workspaceRoot)
   const settings = await readWorkspaceSettings(root)
@@ -119,7 +121,14 @@ export async function runExecutorTask(
     ...optionOverrides
   }
 
-  await runCachedTask(context, effectiveOptions, pkgJsonPath, isNxExecutor, cacheOptions, () => executeExecutor(executorFn, context, effectiveOptions, isNxExecutor))
+  await runCachedTask(context, effectiveOptions, pkgJsonPath, isNxExecutor, cacheOptions, async () => {
+    const completed = await executeExecutor(executorFn, context, effectiveOptions, isNxExecutor)
+    if (requireCompletion && !completed && !signal?.aborted) {
+      throw new Error(`Prerequisite ${projectName}:${commandName} did not finish successfully. Continuous prerequisites are not supported.`)
+    }
+
+    return completed
+  })
 }
 
 async function executeExecutor(executorFn: Executor, context: ExecutorContext, options: Record<string, unknown>, isNxExecutor: boolean): Promise<boolean> {

@@ -450,11 +450,12 @@ automatically append flags to a shell command.
 
 Local `dependsOn` replaces inherited dependencies; use `[]` to clear them.
 A prerequisite uses the caller's configuration when it defines that configuration,
-otherwise its own default. Missing prerequisite targets are skipped; `^target`
+otherwise its own default. Missing targets on existing projects are skipped, but
+an unknown project named in `project:target` fails. `^target`
 continues through projects lacking that target to find upstream matches.
 Shared prerequisites run once per task graph, identified by project, target, and
-configuration. Each multi-target stage has its own graph. Cycles fail before any
-task executes, and failed prerequisites prevent dependent tasks from starting.
+configuration. Each multi-target stage has its own graph; all stage graphs are
+validated before the first stage runs. Cycles fail before any task executes, and failed prerequisites prevent dependent tasks from starting.
 
 Direct commands and the core `runExecutor` API expand prerequisites. `run-many`
 and `affected` expand them after project selection, including prerequisites outside

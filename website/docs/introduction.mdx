@@ -77,10 +77,12 @@ with [opt-in local caching](/docs/task-caching).
 
 <Note>
   Isox orders selected projects by dependency when a multi-project stage includes
-  cached outputs. It does not add missing prerequisite tasks or order separate CI
-  jobs. See [execution ordering](/docs/affected-and-ci#execution-ordering).
-  [Local task caching](/docs/task-caching) is available; automatic prerequisite
-  expansion and remote caching remain on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
+  cached outputs. Declare [`dependsOn`](/docs/configuration#task-prerequisites)
+  to add required tasks, including tasks outside the selected project list.
+  Separate CI jobs expand their own prerequisites; see
+  [execution ordering](/docs/affected-and-ci#execution-ordering).
+  [Local task caching](/docs/task-caching) is available; remote caching remains
+  on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
 </Note>
 
 ## Extend your tooling

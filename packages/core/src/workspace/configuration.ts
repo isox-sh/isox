@@ -20,13 +20,23 @@ export interface EnvironmentInput {
 
 export type TaskInput = string | EnvironmentInput
 
-export interface TargetDependency {
+interface TargetDependencyOptions {
   target: string
-  projects?: string | string[]
-  dependencies?: boolean
   params?: 'forward' | 'ignore'
   options?: 'forward' | 'ignore'
 }
+
+interface DependencyProjects {
+  dependencies?: boolean
+  projects?: never
+}
+
+interface SelectedProjects {
+  projects: string | string[]
+  dependencies?: never
+}
+
+export type TargetDependency = TargetDependencyOptions & (DependencyProjects | SelectedProjects)
 
 export interface TargetDefaults {
   dependsOn?: (string | TargetDependency)[]

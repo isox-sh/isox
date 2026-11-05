@@ -268,3 +268,126 @@ test('unknown explicit project references fail during planning', async t => {
   assert.match(result.stderr, /Project missing not found/)
   await assert.rejects(f.events(), { code: 'ENOENT' })
 })
+
+for (const projects of ['app,lib', 'lib,app']) {
+  test(`forwarded options reach explicitly selected shared tasks (${projects})`, async t => {
+    const f = await fixture(t, {
+      app: {
+        targets: {
+          build: target({
+            options: {
+              forwarded: 'yes',
+              value: 'base'
+            },
+            dependsOn: [{
+              projects: 'lib',
+              target: 'build',
+              options: 'forward'
+            }]
+          })
+        }
+      },
+      lib: { targets: { build: target({ options: { own: true } }) } },
+    })
+    const result = f.run(['run-many', '--target=build', `--projects=${projects}`, '--value=cli'])
+    assert.equal(result.status, 0, result.stderr)
+    const events = await f.events()
+    assert.equal(events.length, 2)
+    assert.deepEqual(events.find(event => event.id === 'lib:build').options, {
+      own: true,
+      forwarded: 'yes',
+      value: 'cli'
+    })
+  })
+}
+
+for (const stage of ['build', 'finish']) {
+  test(`a cycle in ${stage} fails before pre-targets execute`, async t => {
+    const f = await fixture(t, {
+      app: {
+        targets: {
+          prepare: target({}),
+          build: target({}),
+          finish: target({}),
+          [stage]: target({ dependsOn: [stage] }),
+        }
+      }
+    })
+    const result = f.run(['run-many', '--target=build', '--projects=app', '--pre-targets=prepare', '--post-targets=finish'])
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /Task dependency cycle/)
+    await assert.rejects(f.events(), { code: 'ENOENT' })
+  })
+}
+
+for (const mode of ['direct', 'run-many', 'api']) {
+  for (const stream of [false, true]) {
+    test(`${mode} blocks dependents of a continuous ${stream ? 'stream' : 'result'}`, async t => {
+      const f = await fixture(t, {
+        app: {
+          targets: {
+            build: target({ dependsOn: ['watch'] }),
+            watch: target({}),
+          }
+        }
+      })
+      await f.write('node_modules/fixture/run.cjs', `
+        const fs = require('node:fs')
+        const path = require('node:path')
+        module.exports = ${stream ? 'async function*' : 'async function'} (options, context) {
+          fs.appendFileSync(path.join(context.workspaceRoot, 'events'), JSON.stringify({ id: context.commandName }) + '\\n')
+          ${stream ? 'yield' : 'return'} { success: true, continuous: true }
+        }
+      `)
+      if (mode === 'api') {
+        await assert.rejects(runExecutor(await parseWorkspace(f.root), 'app', 'build', f.root), /Continuous prerequisites/)
+      } else {
+        const result = f.run(mode === 'direct' ? ['build', 'app'] : ['run-many', '--target=build', '--projects=app'])
+        assert.equal(result.status, 1)
+        assert.match(result.stderr, /Continuous prerequisites/)
+      }
+
+      assert.deepEqual(await f.events(), [{ id: 'watch' }])
+    })
+  }
+}
+
+test('whitespace prerequisite targets fail schema validation', () => {
+  for (const value of [' ', '\t', 'two words']) {
+    for (const dependsOn of [[value], [{ target: value }]]) {
+      assert.throws(() => parseProjectDefinition({ targets: { build: target({ dependsOn }) } }, 'project.json'), /Invalid project configuration/)
+    }
+  }
+})
+
+test('uncached task schedules skip runtime manifest reads', async t => {
+  const f = await fixture(t, {
+    app: {
+      targets: {
+        build: target({}),
+        prepare: target({})
+      }
+    }
+  })
+  // A malformed registry would throw if runtimeBuilds inspected it during scheduling.
+  await f.write('node_modules/fixture/executors.json', '{')
+  const { createTaskSchedule } = require('../../../dist/cli/shared/task-schedule')
+  const tasks = new Map([
+    ['app:prepare', {
+      id: 'app:prepare',
+      project: 'app',
+      target: 'prepare',
+      prerequisites: []
+    }],
+    ['app:build', {
+      id: 'app:build',
+      project: 'app',
+      target: 'build',
+      prerequisites: ['app:prepare']
+    }],
+  ])
+  const schedule = await createTaskSchedule(f.root, await parseWorkspace(f.root), tasks, new AbortController().signal)
+  assert.equal(await schedule.next(), 'app:prepare')
+  schedule.done('app:prepare')
+  assert.equal(await schedule.next(), 'app:build')
+})

@@ -44,10 +44,11 @@ export async function runProjectCommand(
   process.chdir(workspaceRoot)
   const workspace = await parseWorkspace(workspaceRoot)
 
-  const execute = process.env.ISOX_SCHEDULED_TASK === '1' ? runExecutorTask : runExecutor
+  const scheduledTask = process.env.ISOX_SCHEDULED_TASK
+  const execute = scheduledTask === '1' || scheduledTask === 'prerequisite' ? runExecutorTask : runExecutor
   delete process.env.ISOX_SCHEDULED_TASK
 
   await withCancellation(controller =>
-    execute(workspace, projectName, commandName, workspaceRoot, taskLogger, configuration, controller.signal, optionOverrides, { skipCache: options.skipCache }),
+    execute(workspace, projectName, commandName, workspaceRoot, taskLogger, configuration, controller.signal, optionOverrides, { skipCache: options.skipCache }, scheduledTask === 'prerequisite'),
   )
 }

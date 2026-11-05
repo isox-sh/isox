@@ -559,3 +559,25 @@ test.skipIf(process.platform === 'win32')('worker cancellation lets executors ki
   })
   assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' })
 })
+
+test('affected changed-file selection expands prerequisites outside the selected roots', async t => {
+  const { root, write, project, commit, run } = await affectedFixture(t)
+  const build = {
+    executor: '@fixture/plugin:record',
+    dependsOn: ['^build']
+  }
+  await project('app', {
+    dependencies: ['lib'],
+    targets: { build }
+  })
+  await project('lib', { targets: { build } })
+  const base = commit()
+  await write('packages/app/changed.ts', 'export const changed = true')
+  commit()
+  const selected = run('affected', '--target=build', '--print-matrix', `--base=${base}`)
+  assert.equal(selected.status, 0, selected.stderr)
+  assert.deepEqual(JSON.parse(selected.stdout), ['app'])
+  const result = run('affected', '--target=build', `--base=${base}`, '--parallel=2')
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual((await events(root)).map(({ project, phase }) => `${project}:${phase}`), ['lib:start', 'lib:end', 'app:start', 'app:end'])
+})

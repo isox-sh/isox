@@ -240,7 +240,7 @@ jobs:
           node-version: 24
       - uses: isox-sh/isox/actions/cache@main
       - run: npm ci
-      # Prepare any prerequisite build outputs before testing.
+      # Declare test prerequisites with dependsOn, or prepare their outputs here.
       - uses: isox-sh/isox/actions/plan@main
         id: plan
         with:
@@ -261,7 +261,7 @@ jobs:
           node-version: 24
       - uses: isox-sh/isox/actions/cache@main
       - run: npm ci
-      # Build or restore prerequisites needed by this worker's test commands here.
+      # This worker expands declared dependsOn tasks; prepare any other required outputs here.
       - uses: isox-sh/isox/actions/run-many@main
         with:
           plan: ${{ toJSON(matrix) }}
@@ -308,9 +308,13 @@ is required.
 When selected targets cache generated outputs, `run-many` orders selected projects
 by their dependencies before replacing those outputs. Independent projects still
 run concurrently up to `parallel`; consumers wait for selected dependencies to
-finish, including when `parallel` is `1`. This does not add prerequisite projects
-to the selection. Prepare any unselected prerequisites first, including in each
-CI checkout. Builds that replace the running CLI or a selected executor run alone while their outputs change, so
+finish, including when `parallel` is `1`. This implicit ordering only covers
+selected projects. Declare [`dependsOn`](/docs/configuration#task-prerequisites)
+to expand required tasks outside that selection. Prerequisites run before cache
+lookups and are deduplicated within each stage's task graph. Each matrix worker
+expands its own graph in its own checkout; workers do not share task deduplication
+or coordinate with other jobs. Builds that replace the running CLI or a selected
+executor run alone while their outputs change, so
 other workers keep access to their runtime files. Independent application builds
 continue to use the configured parallelism.
 
@@ -348,8 +352,8 @@ it. Do not keep the old worker-side `affectedOnly`, `index`/`count` slicing or
 project recomputation.
 
 Artifact upload/download remains part of your workflow. These actions do not
-implement `storeArtifacts`, `restoreArtifacts`, remote caching or prerequisite
-build scheduling. `dependencies` propagates affected changes but does not schedule
-`^build` tasks. Pre/post stages apply only within one shard. Prepare prerequisite
-outputs in every worker, or transfer them in explicitly ordered jobs; dependent
-builds must not rely on another matrix job finishing first.
+implement `storeArtifacts`, `restoreArtifacts`, or remote caching. Targets with
+`dependsOn: ["^build"]` schedule dependency builds in each worker; `dependencies`
+alone defines project edges without scheduling tasks. Pre/post stages apply only
+within one shard. For cross-job artifact reuse, transfer outputs through explicitly
+ordered jobs; dependent builds must not rely on another matrix job finishing first.

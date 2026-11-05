@@ -136,7 +136,8 @@ for validation costs and examples.
 
 Build dependencies with declarations enabled before building their consumers.
 A multi-project stage with cached outputs orders the projects already selected,
-but does not add missing prerequisite builds. See
+but does not add missing prerequisite builds by itself. Configure
+`dependsOn: ["^build"]` on the build target to include dependency builds. See
 [execution ordering](/docs/affected-and-ci#execution-ordering). Dependency configs come from the
 same command's `tsConfig` option (falling back to `build`, then the project's
 `tsconfig.json`). A matching named configuration takes precedence over the
@@ -314,7 +315,9 @@ watch mode does not reuse a persistent incremental compiler process.
 SIGINT/SIGTERM, an executor context's `AbortSignal`, and iterator cancellation
 stop polling and active compiler process groups. CLI interruption exits with 130
 or 143. Core reports each rebuild without logging final completion while watching.
-Isox does not schedule dependency builds; build prerequisites explicitly.
+Declare `dependsOn: ["^build"]` to build dependencies before starting the watcher,
+or build them explicitly. Prerequisites must be finite builds; do not forward
+`watch: true` to them.
 
 ## Reusing package generation in plugins
 

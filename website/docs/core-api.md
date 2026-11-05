@@ -282,12 +282,14 @@ literal import references; omit `includeTypes` to collect runtime references onl
 
 ## Scope and migration
 
-`runExecutor` executes one project command. The CLI also offers affected selection,
+`runExecutor` expands the requested target's `dependsOn` graph and executes its
+prerequisites before the project command. The CLI also offers affected selection,
 weighted planning, and multiple commands in isolated child CLI processes.
 Native targets can opt into [local task caching](/docs/task-caching).
 The ninth argument to `runExecutor` accepts `TaskCacheOptions`, for example
 `{ skipCache: true }`, independently of the eighth argument's executor overrides.
-Prerequisite task scheduling, remote caching and sandboxing remain planned.
+See [task prerequisites](/docs/configuration#task-prerequisites) for syntax and
+configuration propagation. Remote caching and sandboxing remain planned.
 Separate processes do not isolate filesystem access or make execution hermetic.
 
 The optional Nx adapter lives in the separately installed `@isox-sh/nx` package

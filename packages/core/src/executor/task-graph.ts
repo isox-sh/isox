@@ -45,11 +45,28 @@ export async function createTaskGraph(root: string, workspace: WorkspaceGraph, r
       throw new Error(`Task dependency cycle: ${[...visiting, id].join(' -> ')}`)
     }
 
-    if (tasks.has(id)) {
+    const requestedTask = requested.get(id)
+    if (requestedTask) {
+      request = {
+        ...request,
+        ...requestedTask,
+        overrides: {
+          ...request.overrides,
+          ...requestedTask.overrides
+        },
+      }
+    }
+
+    const existing = tasks.get(id)
+    if (existing) {
+      existing.overrides = {
+        ...request.overrides,
+        ...existing.overrides
+      }
+
       return id
     }
 
-    request = requested.get(id) ?? request
     const task: PlannedTask = {
       ...request,
       configuration: configurationName,

@@ -1,16 +1,14 @@
 import { createProjectGraph, logger, resolveWorkspaceDependencies } from '@isox-sh/core'
 
 import { runtimeBuilds } from './runtime-builds'
+import { createSchedule } from './schedule'
 
 import type { WorkspaceGraph } from '@isox-sh/core'
 
 /** Order selected artifact builds without adding projects or serializing independent work. */
 export async function createProjectSchedule(root: string, workspace: WorkspaceGraph, projects: string[], target: string, signal: AbortSignal) {
   const pending = new Set(projects)
-  const completed = new Set<string>()
-  const running = new Set<string>()
   let exclusive = new Set<string>()
-  const waiting = new Set<() => void>()
   const prerequisites = new Map<string, Set<string>>()
   const writesOutputs = projects.some(name => {
     const command = workspace.projects[name].targets?.[target]
@@ -39,39 +37,5 @@ export async function createProjectSchedule(root: string, workspace: WorkspaceGr
     }
   }
 
-  return {
-    async next(): Promise<string | undefined> {
-      while (!signal.aborted && pending.size) {
-        for (const name of pending) {
-          if ((exclusive.has(name) ? running.size === 0 : ![...running].some(project => exclusive.has(project)))
-            && [...prerequisites.get(name) ?? []].every(dependency => completed.has(dependency))) {
-            pending.delete(name)
-            running.add(name)
-
-            return name
-          }
-        }
-
-        await new Promise<void>(resolve => {
-          const wake = () => {
-            waiting.delete(wake)
-            signal.removeEventListener('abort', wake)
-            resolve()
-          }
-
-          waiting.add(wake)
-          signal.addEventListener('abort', wake, { once: true })
-        })
-      }
-
-      return undefined
-    },
-    done(name: string): void {
-      running.delete(name)
-      completed.add(name)
-      for (const wake of waiting) {
-        wake()
-      }
-    }
-  }
+  return createSchedule(projects, prerequisites, exclusive, signal)
 }

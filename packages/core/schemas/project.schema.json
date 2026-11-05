@@ -131,65 +131,7 @@
           "description": "Exclusive output directories, relative to the workspace. No globs. Omit for logs-only caching; use [] to clear inherited outputs."
         },
         "dependsOn": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "object",
-                "required": [
-                  "target"
-                ],
-                "properties": {
-                  "target": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "projects": {
-                    "oneOf": [
-                      {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      }
-                    ]
-                  },
-                  "dependencies": {
-                    "type": "boolean"
-                  },
-                  "params": {
-                    "enum": [
-                      "forward",
-                      "ignore"
-                    ]
-                  },
-                  "options": {
-                    "enum": [
-                      "forward",
-                      "ignore"
-                    ]
-                  }
-                },
-                "not": {
-                  "required": [
-                    "projects",
-                    "dependencies"
-                  ]
-                },
-                "additionalProperties": false
-              }
-            ]
-          },
-          "description": "Tasks that must succeed first. Use target for this project or ^target for dependency projects."
+          "$ref": "#/definitions/dependsOn"
         }
       },
       "additionalProperties": true
@@ -256,68 +198,73 @@
           "description": "Exclusive output directories, relative to the workspace. No globs. Omit for logs-only caching; use [] to clear inherited outputs."
         },
         "dependsOn": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "object",
-                "required": [
-                  "target"
-                ],
-                "properties": {
-                  "target": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "projects": {
-                    "oneOf": [
-                      {
-                        "type": "string",
-                        "minLength": 1
-                      },
-                      {
-                        "type": "array",
-                        "items": {
-                          "type": "string",
-                          "minLength": 1
-                        }
-                      }
-                    ]
-                  },
-                  "dependencies": {
-                    "type": "boolean"
-                  },
-                  "params": {
-                    "enum": [
-                      "forward",
-                      "ignore"
-                    ]
-                  },
-                  "options": {
-                    "enum": [
-                      "forward",
-                      "ignore"
-                    ]
-                  }
-                },
-                "not": {
-                  "required": [
-                    "projects",
-                    "dependencies"
-                  ]
-                },
-                "additionalProperties": false
-              }
-            ]
-          },
-          "description": "Tasks that must succeed first. Use target for this project or ^target for dependency projects."
+          "$ref": "#/definitions/dependsOn"
         }
       },
       "additionalProperties": true
+    },
+    "dependsOn": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^\\S+$"
+          },
+          {
+            "type": "object",
+            "required": [
+              "target"
+            ],
+            "properties": {
+              "target": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "^\\S+$"
+              },
+              "projects": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                ]
+              },
+              "dependencies": {
+                "type": "boolean"
+              },
+              "params": {
+                "enum": [
+                  "forward",
+                  "ignore"
+                ]
+              },
+              "options": {
+                "enum": [
+                  "forward",
+                  "ignore"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "projects",
+                "dependencies"
+              ]
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "description": "Tasks that must succeed first. Use target for this project or ^target for dependency projects."
     }
   }
 }

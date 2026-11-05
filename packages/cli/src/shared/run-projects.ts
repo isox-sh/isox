@@ -20,16 +20,9 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
   }
 
   await withCancellation(async controller => {
+    const stages = []
     for (const [stageIndex, stage] of getCommandStages(options).entries()) {
-      if (controller.signal.aborted) {
-        break
-      }
-
       const queue = projects.filter(name => Object.hasOwn(workspace.projects[name].targets ?? {}, stage.target))
-
-      if (!queue.length) {
-        continue
-      }
 
       const overrides = stageIndex === (options.preTargets?.length ?? 0) ? optionOverrides : {}
       const hasDependencies = queue.some(name => workspace.projects[name].targets?.[stage.target].dependsOn?.length)
@@ -39,6 +32,24 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
         configuration: stage.config,
         overrides,
       }))) : undefined
+      stages.push({
+        stage,
+        queue,
+        overrides,
+        tasks
+      })
+    }
+
+    for (const { stage, queue, overrides, tasks } of stages) {
+      if (controller.signal.aborted) {
+        break
+      }
+
+      if (!queue.length) {
+        continue
+      }
+
+      const prerequisites = new Set([...tasks?.values() ?? []].flatMap(task => task.prerequisites))
       const total = tasks?.size ?? queue.length
       const verbose = logger.level >= LogLevels.debug
       const schedule = tasks ? await createTaskSchedule(root, workspace, tasks, controller.signal) : await createProjectSchedule(root, workspace, queue, stage.target, controller.signal)
@@ -98,7 +109,7 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
               // The parent presents task results received over IPC.
               env: {
                 ...process.env,
-                ISOX_SCHEDULED_TASK: tasks ? '1' : '',
+                ISOX_SCHEDULED_TASK: tasks ? prerequisites.has(name) ? 'prerequisite' : '1' : '',
                 ISOX_PROGRESS: '0',
                 ISOX_TASK_OUTPUT: display ? 'live' : ''
               },

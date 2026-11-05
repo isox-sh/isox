@@ -206,15 +206,17 @@ shared writable namespace.
 ## 5. CI task distribution
 
 The initial GitHub Actions matrix workflow is implemented. Dependency task
-ordering and artifact transfer still need an explicit design; a matrix alone is
-not a distributed scheduler.
+ordering works within each worker through `dependsOn`. Cross-job task assignment,
+deduplication, and artifact transfer still need an explicit design; a matrix alone
+is not a distributed scheduler.
 
 - [x] Define matrix JSON with exact project lists, configuration, pre/post stages, worker concurrency, shard indices and weights.
 - [x] Balance projects with positive `plan.weight` values (default 1), deterministic heavy-first assignment and no empty shards.
 - [x] Add native plan/run-many actions and document migration from `nx-extend/actions`, without requiring Nx at runtime.
 - [x] Use the PR base SHA for pull requests and the nearest reachable Git tag for other events; select all projects when no tag is reachable. Honor explicit refs, reject shallow tag discovery, and verify planned/worker heads.
-- [ ] Extend matrix plans with native prerequisite task relationships once that contract is implemented.
-- [ ] Define execution waves or worker-side prerequisite handling so dependent builds do not race.
+- [ ] Extend matrix plans with cross-job prerequisite relationships and shared-task assignment.
+- [x] Expand prerequisite tasks within each worker and order its dependent builds.
+- [ ] Coordinate execution waves and deduplicate prerequisites across separate jobs.
 - [ ] Integrate remote results or artifact transfer between jobs, with deterministic retry/failure aggregation.
 - [x] Handle empty plans, the 256-job matrix limit, cancellation, bounded worker concurrency and failure aggregation.
 - [x] Dogfood weighted affected test jobs in our CI; test action output files and worker handoff locally. A hosted workflow run remains to be observed after push.
@@ -435,3 +437,24 @@ Documentation review: 2026-11-05.
   end-to-end suites passed all 10 tests with task caching bypassed.
 - Live external links were spot-checked; this was not a full external-link crawl
   or a visual browser review. Historical validation records above remain unchanged.
+
+Task prerequisites and command arrays, including review fixes: 2026-11-05.
+
+- Implemented and tested milestone 1's task graphs and milestone 2's affected-root
+  prerequisite expansion. Coverage includes chains, shared tasks, cycles across
+  stages, missing references, configuration forwarding, continuous-result rejection,
+  cached dependents, and changed-file affected selection.
+- Workers expand prerequisites within their own checkout. Cross-job scheduling,
+  shared-task assignment, deduplication, and artifact transfer remain unchecked
+  in milestone 5.
+- Command-array regressions cover all executor aliases, sequential and parallel
+  execution, configuration/CLI shape replacement, failure handling, and cancellation
+  that waits for uncooperative descendants to stop.
+- Bootstrap built all eight packages; ESLint and documentation build/link validation
+  passed. Full core (229 tests), CLI (112 passed, one optional packed-install test
+  skipped), and JS (59 tests) suites passed. The Nx suites passed 41 tests across
+  the final successful runs: one graph error-message assertion failed during the
+  concurrent run, then its complete ten-test file passed on rerun.
+- Before review, the final command-array additions had targeted coverage but the
+  full CLI suite had not been rerun after those additions. This review reran it.
+  Hosted CI and other operating systems were not validated locally.
