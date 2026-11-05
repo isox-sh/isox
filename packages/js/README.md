@@ -7,11 +7,14 @@ Requires Node.js 24+.
 npm install --save-dev @isox-sh/js
 ```
 
-The compiler still runs on every build. Workspace alias remapping can reuse
-dependency analysis from `.isox/discovery.json`; changed source metadata causes
-the invalidated project's included sources, including tests, to be reanalyzed.
-Package generation performs its own build-specific dependency analysis. See
-[cache behavior](https://github.com/isox-sh/isox/blob/main/website/docs/configuration.md#discovery-cache).
+The initializer registers local task caching defaults while preserving existing
+settings, including cache opt-outs. A cache hit restores outputs and skips
+compilation; use `--skip-cache` to force a build. Existing targets can opt in with `cache: true` and output declarations.
+See [task caching](https://isox.sh/docs/task-caching) and the TypeScript guide for
+configuration and output ownership.
+
+Dependency analysis has its own cache. Reusing that analysis alone does not skip
+compilation. See [discovery caching](https://isox.sh/docs/configuration#discovery-cache).
 
 ## Documentation
 

@@ -10,8 +10,6 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "paths": {
-      "isox": ["./packages/cli/src/index.ts"],
-      "isox/*": ["./packages/cli/src/*"],
       "@isox-sh/cli": ["./packages/cli/src/index.ts"],
       "@isox-sh/cli/*": ["./packages/cli/src/*"],
       "@isox-sh/core": ["./packages/core/src/index.ts"],

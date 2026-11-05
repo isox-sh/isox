@@ -5,6 +5,10 @@ sidebarTitle: "CLI reference"
 icon: "terminal"
 ---
 
+Install [`@isox-sh/cli`](/docs/getting-started) to get the `isox` binary.
+The examples below use `isox`; for a local installation, run `npx isox`,
+`pnpm exec isox`, or `yarn isox`.
+
 ## Commands
 
 | Command | Behavior |
@@ -23,7 +27,6 @@ icon: "terminal"
 In `isox build web`, `build` is the target name and `web` is the project name.
 Use `isox run web:build` when you prefer an explicit reference, or when the target
 name conflicts with a built-in CLI command such as `add` or `init`.
-Prefix examples with `npx`, `pnpm exec`, or `yarn` for a local CLI installation.
 
 ## Executor option overrides
 
@@ -64,6 +67,8 @@ comma- or newline-separated command lists. Use `--pre-targets-json` and
 commas. For example, `--pre-targets-json '["prepare,assets:acc"]'` runs
 `prepare,assets` with its `acc` configuration. Do not combine a list flag with its
 JSON counterpart. See [affected projects and CI](/docs/affected-and-ci) for stage ordering.
+
+## Task output
 
 `run-many` and executing `affected` show a live progress footer in interactive
 terminals. It lists running tasks with elapsed times and counts pending,
@@ -144,35 +149,30 @@ can be selected per invocation. Executor CLI flags override the selected configu
 
 ## Workspace cache
 
-Isox stores project definitions with merged target defaults and explicit
-dependencies in `.isox/workspace.json`. Project lookup reads that file directly,
-without recalculating defaults or analyzing sources and imports. Run `isox reset`
-after changing project definitions, target defaults, or discovery rules. Source
-edits do not invalidate this cache.
+Isox keeps project definitions, dependency analysis, and task results in `.isox`:
 
-`affected`, `plan`, and `run-many` read current definitions and rewrite
-`workspace.json` on every invocation. Workers spawned by `run-many` then load
-that cache. Selection does not infer dependencies; execution resolves
-them when selected targets cache outputs, to order selected builds safely.
-Affected selection additionally requests dependency analysis. Results are cached
-separately in `.isox/discovery.json`, checked only when analysis is requested.
-Executors request analysis themselves when needed; selecting all projects does
-not infer a graph.
+| Cache | Purpose | When it refreshes |
+| --- | --- | --- |
+| `workspace.json` | Project definitions and merged target defaults | `affected`, `plan`, and `run-many` refresh it; single-project commands reuse it |
+| `discovery.json` | Inferred dependencies | Validated for Git-based `affected` / `plan` selection, task caching, output ordering, or an executor that needs dependencies |
+| `tasks/` | Successful task results | Used by native targets with `cache: true` |
 
-A dependency-cache hit reuses dependency lists, not task results. Source metadata
-or resolution changes can invalidate an entry; reanalysis reads the invalidated
-project's included sources, including tests, rather than just the edited file.
-Unchanged dependency projects can still reuse their entries. A dependency-analysis hit alone does not skip an executor. Native targets with
-`cache: true` additionally hash their inputs and can restore [task results](/docs/task-caching).
-Use `--skip-cache` on execution commands to bypass result reads and writes.
+`affected --all`, `plan --all`, and ordinary `run-many` selection do not infer
+dependencies. Execution can request analysis separately for task caching,
+ordering selected projects with cached outputs, or executor needs.
 
-Reset removes the whole `.isox` directory, including task results, TypeScript ownership records
-and build locks; stop active builds first. It does not delete compiled output.
-The next project lookup recreates `workspace.json`; dependency analysis recreates
-`discovery.json` only when requested. Source or import edits do not require reset.
+After editing project definitions, target defaults, or discovery rules, run
+`isox reset` before a single-project command. Source and import edits do not
+require a reset. A dependency-analysis cache hit alone does not skip execution.
 
-See [cache behavior and invalidation](/docs/configuration#discovery-cache) for details and
-[Nx migration](/docs/nx-migration) for temporary adapter support.
+Use `--skip-cache` to bypass task-result reads and writes. Before running
+`isox reset`, stop active builds and recover any needed interrupted-task backups
+from `.isox/tasks`. Reset removes all of `.isox`, including those backups, task
+results, TypeScript output ownership records, and build locks. Compiled output
+stays in place. See [output recovery](/docs/task-caching#output-ownership-and-recovery).
+
+See [cache behavior and invalidation](/docs/configuration#discovery-cache) and
+[task caching](/docs/task-caching) for details.
 
 ## Current scope
 

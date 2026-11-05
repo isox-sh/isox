@@ -66,7 +66,7 @@ test so that `isox init` is exercised too.
 | `timeout` | Maximum milliseconds per command; defaults to `30000` |
 | `logger` | Optional core logger for fixture setup |
 
-Each directory must contain a `package.json` with the matching name. `isox` and
+Each directory must contain a `package.json` with the matching name. `@isox-sh/cli` and
 the CLI's `@isox-sh/core` are supplied automatically and are reserved names in
 `plugins`. `cliDirectory` lets you select a local CLI build instead of the bundled
 dependency. Package discovery does not assume a monorepo directory layout.
@@ -95,6 +95,6 @@ These tests exercise built local packages, not packed or published artifacts.
 
 ## Repository development
 
-Run `pnpm bootstrap`, then `pnpm isox test e2e-plugin` for this package's tests.
+Run `pnpm bootstrap`, then `pnpm isox test e2e` for this package's tests.
 The repository's init/build scenarios use this public API and run with
-`pnpm isox test e2e`.
+`pnpm isox test js-e2e`.

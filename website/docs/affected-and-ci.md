@@ -212,8 +212,8 @@ not leak into them. There is no implicit production configuration for build.
 
 ## GitHub Actions
 
-The actions run on Node.js 24 and require an installed Isox CLI with these commands
-and the project's executor plugins. Install dependencies in both planning and
+The actions run on Node.js 24 and require `@isox-sh/cli` and the project's executor
+plugins in the workspace dependencies. Install dependencies in both planning and
 worker jobs. The actions invoke that installed CLI without downloading packages.
 Use `cliPath` to select a custom built CLI JavaScript entry point relative to
 `workingDirectory`. `workingDirectory` selects a nested workspace.
@@ -270,8 +270,8 @@ jobs:
 
 The [cache action](https://github.com/isox-sh/isox/tree/main/actions/cache) restores
 `.isox` across compatible runners and later commits, then saves an updated
-snapshot after the job succeeds. It refreshes restored project definitions while
-retaining dependency analysis and other cache data. Each job saves a distinct
+snapshot after the job succeeds if GitHub permits cache writes. It refreshes
+restored project definitions while retaining dependency analysis and other cache data. Each job saves a distinct
 snapshot; GitHub restores the newest accessible match without merging parallel
 jobs' changes. Native targets explicitly configured for [task caching](/docs/task-caching)
 can reuse matching entries; other builds and tests still run.
@@ -302,6 +302,8 @@ The outputs are `matrix`, `hasPlan` (strings `true`/`false`), `base`, and `head`
 Gate matrix jobs using `hasPlan` as shown. A plan with different targets does not
 order those targets; separate build and deploy jobs with `needs` when ordering
 is required.
+
+### Execution ordering
 
 When selected targets cache generated outputs, `run-many` orders selected projects
 by their dependencies before replacing those outputs. Independent projects still

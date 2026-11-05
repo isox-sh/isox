@@ -138,6 +138,12 @@ test('action target options are explicit and reject typos and unsafe worker sett
 test('plan and run-many actions round trip exact weighted shards through GitHub output files', async t => {
   const { root, write, project, base, commit, git } = await affectedFixture(t)
 
+  // Resolve the installed scoped package, as consumers do without a cliPath override.
+  await write('node_modules/@isox-sh/cli/package.json', {
+    name: '@isox-sh/cli',
+    bin: { isox: './index.mjs' }
+  })
+  await write('node_modules/@isox-sh/cli/index.mjs', `import ${JSON.stringify(pathToFileURL(cliPath).href)}\n`)
   await project('lib', { plan: { weight: 4 } })
   const head = commit()
 
@@ -155,7 +161,7 @@ test('plan and run-many actions round trip exact weighted shards through GitHub 
     GITHUB_SHA: head,
     GITHUB_OUTPUT: join(root, 'outputs'),
     GITHUB_STEP_SUMMARY: join(root, 'summary'),
-    INPUT_CLIPATH: cliPath,
+    INPUT_CLIPATH: '',
     INPUT_TARGETS: 'build',
     INPUT_TARGETOPTIONS: JSON.stringify({
       build: {

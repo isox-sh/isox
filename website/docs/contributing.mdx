@@ -30,20 +30,21 @@ pnpm bootstrap # Builds core, the executors, and CLI from a clean checkout
 pnpm isox run-many --target=lint # Runs every project's lint target
 pnpm isox run-many --target=lint --fix # Automatically fixes supported lint issues
 pnpm isox run-many --target=test # Runs every project's test target
-pnpm isox test e2e # Runs only the end-to-end suite
+pnpm isox test e2e # Tests the plugin workspace helper
+pnpm isox test js-e2e # Runs the TypeScript init/build end-to-end suite
 ```
 
 ## Tests
 
 Package tests live in their owning package's `tests/` directory. Repository-wide
-action, bootstrap, and packaging tests live in the root `tests/` directory and run
-with `pnpm isox test workspace`. After bootstrapping,
+action, bootstrap, packaging, and release-workflow tests live in the root
+`tests/` directory and run with `pnpm isox test workspace`. After bootstrapping,
 `pnpm isox run-many --target=test` runs every project's test target, including the
 package suites, workspace tooling tests, end-to-end suite, and website validation. Use
 `pnpm isox test <project>` to run one suite, such as `pnpm isox test cli`.
 Rebuild changed packages before running their tests.
 
-The Vitest end-to-end suite lives in `e2e/` and runs with `pnpm isox test e2e`
+The Vitest end-to-end suite lives in `e2e/` and runs with `pnpm isox test js-e2e`
 after bootstrap. It uses the public [`@isox-sh/e2e`](/docs/plugin-testing)
 helper. Each test creates a workspace under `<root>/tmp/isox-e2e-*`, links the locally built
 CLI/core/JS packages, and runs the CLI as a child process. It creates `isox.json`
@@ -126,20 +127,23 @@ a temporary build config that maps dependencies to their compiled declarations. 
 prerequisites first; editor navigation and workspace discovery use the source
 aliases without needing a build. Root development
 dependencies keep the local plugins available to Node and the CLI; TypeScript
-paths do not rewrite emitted imports. Source package manifests omit internal
-`@isox-sh/*` dependencies, and package generation restores the dependencies needed
-by their published code and types. On-demand dependency analysis infers project edges, so
-package project definitions do not duplicate these imports.
+paths do not rewrite emitted imports. Most internal dependencies are inferred
+from source imports during package generation. Explicit dependencies remain where code resolves a package by name,
+such as the E2E helper's CLI dependency. On-demand dependency analysis infers
+project edges, so package project definitions do not duplicate these imports.
 
-Isox uses `dependencies` for affected selection but does not schedule prerequisite builds yet: build core before JS
-and the other packages when rebuilding manually. `pnpm bootstrap` seeds core and the JS executor
+For individual build commands, build prerequisites first: core before JS and
+the other packages. Multi-project stages with cached outputs order their selected
+projects by dependency, but do not add missing prerequisites. See
+[execution ordering](/docs/affected-and-ci#execution-ordering). `pnpm bootstrap` seeds core and the JS executor
 with TypeScript, then runs the package build commands through Isox. It also
 refreshes project discovery. After editing project definitions, run `isox reset`
 before single-project commands. Dependency requests from affected selection or
 the TypeScript builder validate `.isox/discovery.json` and reuse valid entries.
 Its source fingerprint uses file metadata, so editing a source or test file can
-reanalyze that project's included sources on the next request. Ordinary commands
-do not check this cache, and its reuse never skips a compiler invocation. See
+reanalyze that project's included sources on the next request. Commands that need
+neither dependencies nor task caching leave this analysis cache alone. Reusing analysis does not itself skip compilation; a task-result
+cache hit can. See
 [cache behavior](/docs/configuration#discovery-cache).
 
 ## Build outputs
@@ -293,7 +297,7 @@ For **each** package, open its npm settings and add a GitHub trusted publisher:
 | Environment | Leave empty; this workflow does not select an environment |
 | Allowed action | Allow direct `npm publish` |
 
-Configure this for `isox` and all published `@isox-sh/*` packages. Package creation
+Configure this for every published `@isox-sh/*` package, including `@isox-sh/cli`. Package creation
 and the npm-side trusted-publisher settings must be completed before the workflow
 can publish them. Repository metadata in the published packages must match this
 repository. A local dry run checks the current package versions and tarballs:

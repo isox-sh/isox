@@ -1,17 +1,27 @@
-# Isox
+# @isox-sh/cli
 
-A lightweight monorepo command runner with explicit project configuration.
-Requires Node.js 24+.
+The Isox command-line interface. Define commands in `project.json`, run individual
+projects, or select affected projects from Git changes. Requires Node.js 24+.
+
+## Get started
+
+Install the package in your workspace, then initialize it:
 
 ```sh
-npm install --save-dev isox
+npm install --save-dev @isox-sh/cli
+npx isox init
 ```
 
-Project definitions live in `.isox/workspace.json`. Dependency analysis is cached
-separately and checked only when requested; neither cache skips task execution.
-Use `isox reset` after project-definition changes before single-project commands.
-Source/import edits do not require reset. See
-[cache behavior](https://github.com/isox-sh/isox/blob/main/website/docs/configuration.md#discovery-cache).
+The package is named `@isox-sh/cli`; the command is `isox`. The CLI includes
+`@isox-sh/core` for built-in commands. With pnpm or Yarn, run the local binary
+with `pnpm exec isox` or `yarn isox`.
+
+Follow the getting started guide below to define your first project. Once it has
+a `build` target, run it with:
+
+```sh
+npx isox build my-app
+```
 
 ## Documentation
 

@@ -4,7 +4,7 @@
   <br />
   <p><b>A lightweight monorepo command runner with explicit project configuration.</b></p>
 
-[![npm version](https://img.shields.io/npm/v/isox.svg?style=flat-square&color=3b82f6)](https://npmjs.com/package/isox)
+[![npm version](https://img.shields.io/npm/v/@isox-sh/cli.svg?style=flat-square&color=3b82f6)](https://npmjs.com/package/@isox-sh/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Website](https://img.shields.io/badge/Website-isox.sh-blue.svg?style=flat-square)](https://isox.sh)
 [![Pull requests](https://img.shields.io/github/actions/workflow/status/isox-sh/isox/pull-requests.yml?style=flat-square&logo=github)](https://github.com/isox-sh/isox/actions/workflows/pull-requests.yml)
@@ -28,11 +28,12 @@ Prerequisite scheduling and cloud caching remain on the
 Requires Node.js 24+.
 
 ```sh
-npm install --save-dev isox
+npm install --save-dev @isox-sh/cli
 npx isox init
 ```
 
-Define your project's commands in `project.json`, then run:
+The package is `@isox-sh/cli`; it provides the `isox` command. Define your
+project's commands in `project.json`, then run:
 
 ```sh
 npx isox build my-app
@@ -47,6 +48,7 @@ reference, plugin development, and migration guides.
 
 - [CLI reference](website/docs/cli.md)
 - [Affected projects and GitHub Actions](website/docs/affected-and-ci.md)
+- [Task caching](website/docs/task-caching.md)
 - [Workspace and project configuration](website/docs/configuration.md)
 - [Release versioning and changelogs](website/docs/semver.md)
 - [ESLint executor](website/docs/eslint.md)

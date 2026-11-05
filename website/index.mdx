@@ -15,7 +15,7 @@ mode: "custom"
         <a className="home-secondary-button" href="https://github.com/isox-sh/isox">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
       <div className="home-install" aria-label="Install Isox">
-        <span aria-hidden="true">$</span><code>npm install -D isox</code>
+        <span aria-hidden="true">$</span><code>npm install -D @isox-sh/cli</code>
       </div>
       <p className="home-note">Open source. MIT licensed. No background daemon.</p>
     </div>
@@ -123,7 +123,7 @@ mode: "custom"
       <a className="home-button" href="/docs/getting-started">Follow the setup guide <span aria-hidden="true">→</span></a>
     </div>
     <ol className="home-steps">
-      <li><span className="home-step-number" aria-hidden="true">01</span><h3>Install and initialize</h3><p>From your workspace root:</p><pre tabIndex={0} aria-label="Install and initialize Isox"><code>{"npm install -D isox\nnpx isox init"}</code></pre></li>
+      <li><span className="home-step-number" aria-hidden="true">01</span><h3>Install and initialize</h3><p>From your workspace root:</p><pre tabIndex={0} aria-label="Install and initialize Isox"><code>{"npm install -D @isox-sh/cli\nnpx isox init"}</code></pre></li>
       <li><span className="home-step-number" aria-hidden="true">02</span><h3>Define a target</h3><p>Save the <a href="/docs/shell-commands#wrap-an-existing-script">shell-command example</a> as <code>apps/web/project.json</code>. It wraps the existing build script in that project.</p></li>
       <li><span className="home-step-number" aria-hidden="true">03</span><h3>Run your project</h3><p>Use its target and project name:</p><pre tabIndex={0} aria-label="Run your first build"><code>npx isox build web</code></pre></li>
     </ol>
@@ -135,7 +135,8 @@ mode: "custom"
     <div className="home-faq-list">
       <Accordion title="Do I need to change my build tools?"><p>No. The bundled shell executor runs your existing commands. Add native plugins project by project where they fit your workflow.</p></Accordion>
       <Accordion title="Do all projects need a tsconfig?"><p>No. Project discovery uses <code>project.json</code>. Package manifests and JavaScript imports contribute dependencies too. TypeScript configs provide aliases and compiler output information when available.</p></Accordion>
-      <Accordion title="Does Isox schedule dependency builds or cache task results?"><p>These features are on the <a href="https://github.com/isox-sh/isox/blob/main/ROADMAP.md">roadmap</a>. Today, build prerequisites explicitly before their consumers. Isox caches project definitions and on-demand dependency analysis separately; tasks still run on each invocation. See <a href="/docs/configuration#discovery-cache">cache behavior</a>.</p></Accordion>
+      <Accordion title="Can Isox reuse task results?"><p>Yes. Native targets can opt into <a href="/docs/task-caching">local task caching</a> with <code>cache: true</code>. Matching inputs reuse a successful result, replay logs, and restore declared outputs. Remote caching remains on the roadmap.</p></Accordion>
+      <Accordion title="Does Isox build prerequisites automatically?"><p>Isox orders selected projects by dependency when a multi-project stage includes targets with cached outputs. It does not add missing prerequisite tasks or coordinate dependencies across CI jobs. Prepare unselected prerequisites in your scripts or workflow. See <a href="/docs/affected-and-ci">execution and CI ordering</a>.</p></Accordion>
       <Accordion title="How do I refresh project discovery?"><p>After editing project definitions or changing which projects ignore rules include, run <code>isox reset</code> before a single-project command. Source and import edits do not require reset. Affected selection, planning, and run-many refresh definitions automatically; dependency requests validate their own cache. Stop active builds before resetting because it also clears TypeScript build state.</p></Accordion>
     </div>
   </section>

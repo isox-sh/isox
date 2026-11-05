@@ -7,7 +7,7 @@ and the built-in shell-command executor for Isox. Requires Node.js 24+.
 npm install --save-dev @isox-sh/core
 ```
 
-Install directly for API/type imports or schema paths. The `isox` CLI includes
+Install directly for API/type imports or schema paths. The `@isox-sh/cli` package includes
 core automatically for built-in commands.
 
 `parseWorkspace` caches project definitions only. `resolveWorkspaceDependencies`

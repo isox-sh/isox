@@ -8,6 +8,8 @@ icon: "cube"
 Define commands in each project's `project.json`, then run them from anywhere
 inside your workspace. Keep your package manager and the tools you already use.
 
+Install [`@isox-sh/cli`](/docs/getting-started) to use the `isox` command:
+
 ```sh
 npx isox build web
 npx isox affected --target=test --base=origin/main
@@ -74,9 +76,11 @@ with [opt-in local caching](/docs/task-caching).
 </CardGroup>
 
 <Note>
-  Project dependencies determine affected selection. Build prerequisite outputs
-  explicitly before running consumers. [Local task caching](/docs/task-caching) is
-  opt-in. Dependency task scheduling and remote caching are on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
+  Isox orders selected projects by dependency when a multi-project stage includes
+  cached outputs. It does not add missing prerequisite tasks or order separate CI
+  jobs. See [execution ordering](/docs/affected-and-ci#execution-ordering).
+  [Local task caching](/docs/task-caching) is available; automatic prerequisite
+  expansion and remote caching remain on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
 </Note>
 
 ## Extend your tooling

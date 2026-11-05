@@ -45,7 +45,10 @@ our CI. See [affected projects and CI](website/docs/affected-and-ci.md).
 `dependencies` does not yet schedule prerequisite tasks. `dependsOn`, remote
 artifact transfer, and sandboxing are not implemented. Native targets can opt into
 [deterministic hashing and local result caching](website/docs/task-caching.md).
-Build prerequisites must be prepared explicitly before workers run.
+Multi-project stages with cached outputs order selected projects by dependency,
+including with `--parallel=1`. They do not add unselected prerequisites or order
+separate matrix jobs. Prepare those prerequisites explicitly before workers run.
+See [execution ordering](website/docs/affected-and-ci.md#execution-ordering).
 
 `.isox/workspace.json` caches project definitions and explicit dependencies only.
 It does not cache task results or inferred edges. Single-project commands load
@@ -164,7 +167,7 @@ scheduling. Remote storage and sandboxing remain separate milestones.
 
 Reuse the local artifact contract through an optional storage interface. Start
 with one provider; GCP, Azure Blob, and S3 are potential adapters, not current
-integrations. No cloud deployment is required by this roadmap-writing task.
+integrations.
 
 - [ ] Define a small provider interface for fetching and publishing content-addressed task artifacts.
 - [ ] Choose and implement the first provider with documented credentials and namespace configuration.
@@ -421,3 +424,14 @@ Local task-cache review: 2026-10-26.
   build/link checks passed. All ten package/workspace/end-to-end suites passed
   with task-result reuse bypassed: **509 tests**, with the optional packed-install
   test skipped. Hosted CI and other operating systems were not rerun in this review.
+
+Documentation review: 2026-11-05.
+
+- Reviewed all 34 Markdown/MDX files against package metadata, project targets,
+  execution contracts, and the release workflow. Corrected stale task-cache claims,
+  selected-project ordering, E2E commands, and output recovery guidance.
+- Documentation build and internal anchor checks passed. All 40 JSON examples
+  parsed and 173 local link targets resolved. Plugin-helper and TypeScript
+  end-to-end suites passed all 10 tests with task caching bypassed.
+- Live external links were spot-checked; this was not a full external-link crawl
+  or a visual browser review. Historical validation records above remain unchanged.
