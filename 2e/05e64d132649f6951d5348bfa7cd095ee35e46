@@ -1,0 +1,61 @@
+packages/cli/src/shared/run-project-command.ts
+  s_3e915ccdd0a1b9::t_6b7b993f14ad35 1,47-49,51
+packages/core/src/executor/task-graph.ts
+  s_3e915ccdd0a1b9::t_ffc642fbaba9b6 24-29,36,41,47,51-58,62-65,82,88,94,118,123,127,130,134
+  s_3e915ccdd0a1b9::t_6b7b993f14ad35 1-23,30-35,37-40,42-46,48-50,59-61,66-81,83-87,89-93,95-117,119-122,124-126,128-129,131-133,135-136
+packages/core/schemas/project.schema.json
+  s_3e915ccdd0a1b9::t_6b7b993f14ad35 24,132-192,257-317
+website/docs/configuration.md
+  s_3e915ccdd0a1b9::t_abb94707af88e8 113
+  s_3e915ccdd0a1b9::t_ffc642fbaba9b6 114,376-390,392-400,451-461
+  s_3e915ccdd0a1b9::t_a6cfc68eb73b54 391,401-450,462-464
+packages/core/src/index.ts
+  s_3e915ccdd0a1b9::t_6b7b993f14ad35 30
+packages/core/src/executor/runner.ts
+  s_3e915ccdd0a1b9::t_ffc642fbaba9b6 43-48,53
+  s_3e915ccdd0a1b9::t_abb94707af88e8 37-42
+  s_3e915ccdd0a1b9::t_6b7b993f14ad35 9,36,49-52,54-59
+  s_3e915ccdd0a1b9::t_1e2adc10a7083e 60-68
+packages/cli/src/shared/task-schedule.ts
+  s_3e915ccdd0a1b9::t_ffc642fbaba9b6 30,34,41,46
+  s_3e915ccdd0a1b9::t_4ee1fcdaed0a3a 2,18-25,28,31-33,35-40,42-45,47-49,51-57
+  s_3e915ccdd0a1b9::t_49067891efbbbb 1,3-17,26-27,29,50
+packages/cli/tests/depends-on.test.mjs
+  s_3e915ccdd0a1b9::t_49067891efbbbb 105-109,189
+  s_3e915ccdd0a1b9::t_ffc642fbaba9b6 14-102,116-188,200-224
+  s_3e915ccdd0a1b9::t_818dc364f6d4a0 103-104,112,115,195-196,199,226-270
+  s_3e915ccdd0a1b9::t_dc6e40a55c6f3f 1-13,110-111,113-114,190-194,197-198,225
+packages/core/src/workspace/parser.ts
+  s_3e915ccdd0a1b9::t_6b7b993f14ad35 19
+ROADMAP.md
+  s_3e915ccdd0a1b9::t_abb94707af88e8 49-50
+  s_3e915ccdd0a1b9::t_ffc642fbaba9b6 32,45,112-115,132
+  s_3e915ccdd0a1b9::t_1f0e7657adc93c 116
+packages/core/src/workspace/configuration.ts
+  s_3e915ccdd0a1b9::t_6b7b993f14ad35 23-30,32
+packages/cli/src/shared/run-projects.ts
+  s_3e915ccdd0a1b9::t_ffc642fbaba9b6 6
+  s_3e915ccdd0a1b9::t_49067891efbbbb 44,112
+  s_3e915ccdd0a1b9::t_4ee1fcdaed0a3a 1,34-42,47,63-68,76,78,81-82,93,101,129
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e05e64d132649f6951d5348bfa7cd095ee35e46",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_3e915ccdd0a1b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac3f-d86e-7b12-bbb3-c14891f1fd70",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
