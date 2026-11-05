@@ -20,7 +20,16 @@ export interface EnvironmentInput {
 
 export type TaskInput = string | EnvironmentInput
 
+export interface TargetDependency {
+  target: string
+  projects?: string | string[]
+  dependencies?: boolean
+  params?: 'forward' | 'ignore'
+  options?: 'forward' | 'ignore'
+}
+
 export interface TargetDefaults {
+  dependsOn?: (string | TargetDependency)[]
   [key: string]: unknown
   options?: Record<string, unknown>
   configurations?: Record<string, Record<string, unknown>>

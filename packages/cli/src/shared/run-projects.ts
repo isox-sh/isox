@@ -1,8 +1,9 @@
-import { getCommandStages, logger, LogLevels, positiveInteger, runProcess, validateProjectCommands } from '@isox-sh/core'
+import { createTaskGraph, getCommandStages, logger, LogLevels, positiveInteger, runProcess, validateProjectCommands } from '@isox-sh/core'
 
 import { withCancellation } from './cancellation'
 import { createProjectSchedule } from './project-schedule'
 import { createTaskDisplay } from './task-display'
+import { createTaskSchedule } from './task-schedule'
 
 import type { TargetPlanOptions, TaskCacheOptions, WorkspaceGraph } from '@isox-sh/core'
 
@@ -30,11 +31,20 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
         continue
       }
 
+      const overrides = stageIndex === (options.preTargets?.length ?? 0) ? optionOverrides : {}
+      const hasDependencies = queue.some(name => workspace.projects[name].targets?.[stage.target].dependsOn?.length)
+      const tasks = hasDependencies ? await createTaskGraph(root, workspace, queue.map(project => ({
+        project,
+        target: stage.target,
+        configuration: stage.config,
+        overrides,
+      }))) : undefined
+      const total = tasks?.size ?? queue.length
       const verbose = logger.level >= LogLevels.debug
-      const schedule = await createProjectSchedule(root, workspace, queue, stage.target, controller.signal)
+      const schedule = tasks ? await createTaskSchedule(root, workspace, tasks, controller.signal) : await createProjectSchedule(root, workspace, queue, stage.target, controller.signal)
       const display = verbose ? undefined : createTaskDisplay({
         target: stage.target,
-        total: queue.length
+        total
       })
 
       if (verbose) {
@@ -50,8 +60,12 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
             return
           }
 
-          const configuration = stage.config ?? workspace.projects[name].targets?.[stage.target].defaultConfiguration
-          const reference = [name, stage.target, configuration].filter(value => value !== undefined).join(':')
+          const task = tasks?.get(name)
+          const projectName = task?.project ?? name
+          const target = task?.target ?? stage.target
+          const configuration = task?.configuration ?? (task ? undefined : stage.config ?? workspace.projects[name].targets?.[stage.target].defaultConfiguration)
+          const taskOverrides = task?.overrides ?? overrides
+          const reference = [projectName, target, configuration].filter(value => value !== undefined).join(':')
           let success: boolean
 
           display?.start(name, reference)
@@ -59,13 +73,13 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
           try {
             const args = [process.argv[1], 'run']
 
-            if (stageIndex === (options.preTargets?.length ?? 0) && Object.keys(optionOverrides).length) {
+            if (Object.keys(taskOverrides).length) {
               // JSON preserves booleans, numbers, arrays, and objects across workers.
-              args.push(`--options=${JSON.stringify(optionOverrides)}`)
+              args.push(`--options=${JSON.stringify(taskOverrides)}`)
             }
 
-            if (stage.config !== undefined) {
-              args.push(`--config=${stage.config}`)
+            if (configuration !== undefined) {
+              args.push(`--config=${configuration}`)
             }
 
             if (verbose) {
@@ -76,7 +90,7 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
               args.push('--skip-cache')
             }
 
-            args.push('--', `${name}:${stage.target}`)
+            args.push('--', `${projectName}:${target}`)
             // Executors get two seconds to stop their process trees before the CLI worker is killed.
             const result = await runProcess(process.execPath, args, {
               cwd: root,
@@ -84,6 +98,7 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
               // The parent presents task results received over IPC.
               env: {
                 ...process.env,
+                ISOX_SCHEDULED_TASK: tasks ? '1' : '',
                 ISOX_PROGRESS: '0',
                 ISOX_TASK_OUTPUT: display ? 'live' : ''
               },
@@ -94,7 +109,7 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
             success = result.success
 
             if (!result.success && !controller.signal.aborted) {
-              throw new Error(`Task failed for ${name}:${stage.target}.`)
+              throw new Error(`Task failed for ${reference}.`)
             }
           } catch (error) {
             display?.finish(name, false, controller.signal.aborted)
@@ -111,7 +126,7 @@ export async function runProjects(root: string, workspace: WorkspaceGraph, proje
       }
 
       try {
-        await Promise.all(Array.from({ length: Math.min(parallel, queue.length) }, worker))
+        await Promise.all(Array.from({ length: Math.min(parallel, total) }, worker))
       } finally {
         display?.stop()
       }

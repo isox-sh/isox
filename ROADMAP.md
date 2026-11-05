@@ -29,7 +29,7 @@ issues when useful; do not mark features complete solely because their
 configuration is accepted as custom metadata.
 
 Project dependency graphs, affected selection and weighted CI plans are now
-implemented. The next orchestration milestone is **1: prerequisite task graphs**.
+implemented. Prerequisite task graphs now expand `dependsOn` for direct and multi-project execution.
 Foundation runtime checks have a dedicated Node/OS CI matrix, currently disabled;
 its first hosted run remains to be confirmed. Unchecked command/configuration proposals below are
 not implemented contracts.
@@ -42,12 +42,12 @@ Weighted plans use `plan.weight` (default 1), exact project lists and bounded
 worker concurrency. Native GitHub actions plan/run these lists and are used in
 our CI. See [affected projects and CI](website/docs/affected-and-ci.md).
 
-`dependencies` does not yet schedule prerequisite tasks. `dependsOn`, remote
+`dependsOn` schedules prerequisite tasks using the project dependency graph. Remote
 artifact transfer, and sandboxing are not implemented. Native targets can opt into
 [deterministic hashing and local result caching](website/docs/task-caching.md).
 Multi-project stages with cached outputs order selected projects by dependency,
-including with `--parallel=1`. They do not add unselected prerequisites or order
-separate matrix jobs. Prepare those prerequisites explicitly before workers run.
+including with `--parallel=1`. Targets with `dependsOn` also add unselected prerequisites. Separate matrix
+jobs each execute their own prerequisite graph; they do not share task deduplication.
 See [execution ordering](website/docs/affected-and-ci.md#execution-ordering).
 
 `.isox/workspace.json` caches project definitions and explicit dependencies only.
@@ -109,11 +109,11 @@ source files while building the graph.
 - [x] Validate dependency references and report cycles with the complete cycle path during affected selection/planning.
 - [x] Build forward and reverse project edges with deterministic ordering and safe handling of isolated projects.
 - [x] Map package names, subpaths, TypeScript aliases and relative imports to project names; merge local package dependency fields and explicit additions, and reject duplicate package names.
-- [ ] Specify and validate native command prerequisites, including the proposed `dependsOn: ['^build']` dependency-command syntax.
-- [ ] Define missing prerequisite commands, self-project prerequisites, and configuration propagation explicitly.
-- [ ] Produce an inspectable task plan before executing; deduplicate shared prerequisites and identify tasks by project, command, and configuration.
-- [ ] Run the task DAG in dependency order, then add bounded concurrency with clear failure and cancellation behavior.
-- [ ] Test chains, diamonds, cycles, missing references, and failures that must block downstream tasks.
+- [x] Specify and validate native command prerequisites, including the proposed `dependsOn: ['^build']` dependency-command syntax.
+- [x] Define missing prerequisite commands, self-project prerequisites, and configuration propagation explicitly.
+- [x] Produce an inspectable task plan before executing; deduplicate shared prerequisites and identify tasks by project, command, and configuration.
+- [x] Run the task DAG in dependency order, then add bounded concurrency with clear failure and cancellation behavior.
+- [x] Test chains, diamonds, cycles, missing references, and failures that must block downstream tasks. See [dependency execution tests](packages/cli/tests/depends-on.test.mjs).
 
 Completion criterion: a build that requires dependency builds executes each
 prerequisite once, in valid order, with deterministic planning and useful errors.
@@ -129,7 +129,7 @@ use NUL-delimited paths.
 - [x] Map changed paths to the most specific project root; handle root projects, deletions, renames, unusual filenames, symlinked roots and nested workspaces.
 - [x] Define built-in workspace-wide inputs, configurable `affected.globalFiles`, and configurable exclusions; unowned paths are ignored by default.
 - [x] Include transitive dependents before filtering by command, tag expressions and `ci=off`.
-- [ ] Expand required prerequisite tasks after affected selection once milestone 1's task contract exists.
+- [x] Expand required prerequisite tasks after affected selection once milestone 1's task contract exists.
 - [x] Add `isox affected --target=...`, `--print-matrix` for project arrays, and `isox plan` for weighted matrix JSON.
 - [x] Keep JSON stdout free of logs, including verbose cache diagnostics; return stable empty results.
 - [x] Test with temporary Git repositories containing branching history, nested roots, local changes, renamed/deleted files and shallow clones.

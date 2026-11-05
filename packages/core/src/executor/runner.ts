@@ -6,6 +6,7 @@ import { logger, LogLevels, pauseProgress } from '../logger'
 import { resolvePackageJson } from '../utils/resolve-package-json'
 import { readWorkspaceSettings } from '../workspace/settings'
 import { resolveCommandOptions } from './configuration'
+import { createTaskGraph } from './task-graph'
 import { compactTaskOutput, reportTaskResult } from './task-logging'
 
 import type { TaskCacheOptions } from '../cache/task'
@@ -23,6 +24,39 @@ interface ResolvedExecutorPackage {
 }
 
 export async function runExecutor(
+  workspace: WorkspaceGraph,
+  projectName: string,
+  commandName: string,
+  workspaceRoot: string,
+  taskLogger: Logger = logger,
+  requestedConfiguration?: string,
+  signal?: AbortSignal,
+  optionOverrides: Record<string, unknown> = {},
+  cacheOptions: TaskCacheOptions = {},
+): Promise<void> {
+  const project = Object.hasOwn(workspace.projects, projectName) ? workspace.projects[projectName] : undefined
+  const command = Object.hasOwn(project?.targets ?? {}, commandName) ? project?.targets?.[commandName] : undefined
+  if (!command?.dependsOn?.length) {
+    return runExecutorTask(workspace, projectName, commandName, workspaceRoot, taskLogger, requestedConfiguration, signal, optionOverrides, cacheOptions)
+  }
+
+  const tasks = await createTaskGraph(workspaceRoot, workspace, [{
+    project: projectName,
+    target: commandName,
+    configuration: requestedConfiguration,
+    overrides: optionOverrides
+  }])
+  for (const task of tasks.values()) {
+    if (signal?.aborted) {
+      return
+    }
+
+    await runExecutorTask(workspace, task.project, task.target, workspaceRoot, taskLogger, task.configuration, signal, task.overrides, cacheOptions)
+  }
+}
+
+/** Execute one already scheduled task, without expanding its prerequisites. */
+export async function runExecutorTask(
   workspace: WorkspaceGraph,
   projectName: string,
   commandName: string,

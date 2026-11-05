@@ -16,7 +16,7 @@ interface ParseWorkspaceOptions {
   logger?: Logger
 }
 
-export type { ExecutorConfiguration, ProjectDefinition, TaskInput, EnvironmentInput, TargetDefaults } from './configuration'
+export type { ExecutorConfiguration, ProjectDefinition, TaskInput, EnvironmentInput, TargetDefaults, TargetDependency } from './configuration'
 
 export interface ProjectConfiguration extends ProjectDefinition {
   name: string
