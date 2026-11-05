@@ -219,6 +219,11 @@ and uses `readJson` and `writeJson` for project containment and file-action logg
 Repeated additions leave the file untouched. Run the workspace's package manager
 afterward to install dependencies and update its lockfile.
 
+Pass `{ upgradeExisting: true }` as the third argument to upgrade older versions
+in their existing section. Version ranges are compared by their minimum allowed
+version. Equal or newer versions and non-semver references such as `workspace:*`,
+tags, and file paths are preserved.
+
 ## Affected selection and planning
 
 Core exports `createProjectGraph`, `getGitChanges`, `getAffectedProjects`,

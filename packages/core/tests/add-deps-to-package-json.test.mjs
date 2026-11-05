@@ -83,6 +83,53 @@ test('creates a missing manifest and leaves empty requests untouched', async t =
   assert.deepEqual(JSON.parse(await readFile(context.file, 'utf8')), { devDependencies: { '@isox-sh/nx': '0.0.1' } })
 })
 
+test('opt-in upgrades preserve sections, newer versions, and non-semver references', async t => {
+  const context = await fixture(t)
+
+  await writeFile(context.file, JSON.stringify({
+    private: true,
+    dependencies: {
+      older: '~1.0.0',
+      newer: '^3.0.0'
+    },
+    devDependencies: {
+      same: '^2.0.0',
+      linked: 'workspace:*',
+      tagged: 'latest'
+    }
+  }))
+  const deps = {
+    devDependencies: {
+      older: '^2.0.0',
+      newer: '^2.0.0',
+      same: '^2.0.0',
+      linked: '^2.0.0',
+      tagged: '^2.0.0',
+      added: '^2.0.0'
+    }
+  }
+
+  await addDepsToPackageJson(deps, context, { upgradeExisting: true })
+  assert.deepEqual(JSON.parse(await readFile(context.file, 'utf8')), {
+    private: true,
+    dependencies: {
+      older: '^2.0.0',
+      newer: '^3.0.0'
+    },
+    devDependencies: {
+      same: '^2.0.0',
+      linked: 'workspace:*',
+      tagged: 'latest',
+      added: '^2.0.0'
+    }
+  })
+  const source = await readFile(context.file, 'utf8')
+
+  await addDepsToPackageJson(deps, context, { upgradeExisting: true })
+  assert.equal(await readFile(context.file, 'utf8'), source)
+  assert.equal(context.entries.length, 1)
+})
+
 test('repeated additions preserve exact contents and do not log another write', async t => {
   const context = await fixture(t)
   const source = '{ "devDependencies": { "@isox-sh/nx": "workspace:*" }, "custom": true }\n'

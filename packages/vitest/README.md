@@ -7,6 +7,11 @@ Vitest does not support Node.js 25.
 npm install --save-dev @isox-sh/vitest vitest
 ```
 
+The plugin includes the Vitest and Vite runtimes. A direct `vitest` dependency
+supports imports from `vitest` and `vitest/config` in your project and lets your
+editor resolve their types. `isox add @isox-sh/vitest <project>` configures the
+test target and cache defaults without changing package manifests.
+
 ## Documentation
 
 - [Vitest executor guide](https://github.com/isox-sh/isox/blob/main/website/docs/vitest.md)
