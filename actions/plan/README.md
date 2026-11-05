@@ -1,7 +1,7 @@
 # Isox plan action
 
 Select affected projects and distribute their exact names into weighted matrix
-shards. Install the workspace's Isox CLI first and check out full Git history.
+shards. Install `@isox-sh/cli` in the workspace first and check out full Git history.
 
 ```yaml
 - uses: isox-sh/isox/actions/plan@main

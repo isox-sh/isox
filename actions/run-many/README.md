@@ -1,7 +1,7 @@
 # Isox run-many action
 
 Run exactly one matrix row from the Isox plan action. Install the same workspace
-dependencies and prepare prerequisite build outputs before invoking it.
+dependencies, including `@isox-sh/cli`, and prepare prerequisite build outputs before invoking it.
 
 ```yaml
 - uses: isox-sh/isox/actions/run-many@main

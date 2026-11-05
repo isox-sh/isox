@@ -42,16 +42,16 @@ export function cliContext() {
   let manifest
 
   try {
-    manifest = require.resolve('isox/package.json', { paths: [cwd] })
+    manifest = require.resolve('@isox-sh/cli/package.json', { paths: [cwd] })
   } catch {
-    throw new Error('Install isox in the workspace before using this action, or provide cliPath to a built CLI entry point.')
+    throw new Error('Install @isox-sh/cli in the workspace before using this action, or provide cliPath to a built CLI entry point.')
   }
 
   const pkg = JSON.parse(readFileSync(manifest, 'utf8'))
   const bin = typeof pkg.bin === 'string' ? pkg.bin : pkg.bin?.isox
 
   if (!bin) {
-    throw new Error('The installed isox package does not declare an isox binary.')
+    throw new Error('The installed @isox-sh/cli package does not declare an isox binary.')
   }
 
   return {
