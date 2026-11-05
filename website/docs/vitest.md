@@ -10,11 +10,15 @@ icon: "flask"
 Native Vitest 5 test executor for Isox. Requires Node.js 24 or 26+; Vitest does not
 support Node.js 25.
 
-Install `@isox-sh/vitest` in your workspace. The plugin includes Vitest and its
-required Vite runtime.
+Install `@isox-sh/vitest` and `vitest` in your workspace. The plugin includes
+Vitest and its required Vite runtime for execution. The direct Vitest dependency
+lets your tests import `vitest`, your configuration import `vitest/config`, and
+your editor resolve their types. Isolated dependency layouts, such as pnpm's,
+do not expose the plugin's dependencies to project imports. A direct Vite
+dependency is not needed to run tests.
 
 ```sh
-npm install --save-dev @isox-sh/vitest
+npm install --save-dev @isox-sh/vitest vitest
 ```
 
 ## Add to an existing project
