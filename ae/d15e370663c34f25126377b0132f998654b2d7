@@ -1,0 +1,32 @@
+website/docs/vitest.md
+  s_3e915ccdd0a1b9::t_44bc11641b0cb8 13-14,17,41-42
+  s_3e915ccdd0a1b9::t_760383aa142084 43
+packages/vitest/package.json
+  s_3e915ccdd0a1b9::t_df6ffed70cd874 13
+packages/vitest/tests/add.test.mjs
+  s_3e915ccdd0a1b9::t_84158b528aba11 61-66
+  s_3e915ccdd0a1b9::t_44bc11641b0cb8 67-68,93-94,143
+pnpm-lock.yaml
+  s_3e915ccdd0a1b9::t_0ca40a82614095 309-311
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aed15e370663c34f25126377b0132f998654b2d7",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_3e915ccdd0a1b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac3f-d86e-7b12-bbb3-c14891f1fd70",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
