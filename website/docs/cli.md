@@ -171,9 +171,9 @@ Use `--skip-cache` to bypass task-result reads and writes. Before running
 `isox reset`, stop active builds and recover any needed interrupted-task backups
 from `.isox/tasks`. Reset removes all of `.isox`, including those backups, task
 results, TypeScript output ownership records, and build locks. Compiled output
-stays in place. See [output recovery](/docs/task-caching#output-ownership-and-recovery).
+stays in place. See [output recovery](/docs/cache-outputs#output-ownership-and-recovery).
 
-See [cache behavior and invalidation](/docs/configuration#discovery-cache) and
+See [cache behavior and invalidation](/docs/discovery-cache#discovery-cache) and
 [task caching](/docs/task-caching) for details.
 
 ## Current scope
@@ -183,7 +183,7 @@ separate child CLI processes, and the GitHub actions distribute exact weighted
 project lists. See [affected projects and CI](/docs/affected-and-ci).
 Cached builds with declared outputs wait for selected dependencies, even with
 `--parallel=1`. Independent projects can run concurrently. Targets with
-[`dependsOn`](/docs/configuration#task-prerequisites) expand required tasks outside
+[`dependsOn`](/docs/task-prerequisites#task-prerequisites) expand required tasks outside
 the selected project list, within each worker's checkout.
 Local task caching is opt-in; remote caching and isolation remain on the
 [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).

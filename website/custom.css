@@ -1,4 +1,24 @@
+/* Use an internal navbar link: Mintlify's primary CTA always opens a new tab. */
+#navbar .navbar-link > a[href="/docs/getting-started"] {
+  background: rgb(var(--primary-dark));
+  border-radius: 12px;
+  color: #fff;
+  padding: 8px 12px;
+  font-weight: 500;
+}
+#navbar .navbar-link > a[href="/docs/getting-started"]:hover {
+  background: #1d4ed8;
+}
+
 /* Homepage styles stay scoped so documentation uses Mintlify's own layout. */
+/* Hide the entire tab row, including its reserved space, on the homepage. */
+:root:has(.isox-home) {
+  --topbar-tabs-height: 0px !important;
+}
+body:has(.isox-home) #navbar div:has(> .nav-tabs) {
+  display: none;
+}
+
 .isox-home {
   --home-bg: #fff;
   --home-surface: #f6f8fc;
@@ -24,7 +44,7 @@
 }
 .isox-home * { box-sizing: border-box; }
 .isox-home :is(h1, h2, h3, p, pre, figure) { margin: 0; }
-.isox-home :is(section, h1, h2) { scroll-margin-top: 100px; }
+.isox-home :is(section, h1, h2, #project-example) { scroll-margin-top: 100px; }
 .isox-home a { color: inherit; text-decoration: none; }
 .isox-home a:hover { color: var(--home-blue); }
 .isox-home :is(a, summary, pre):focus-visible { outline: 2px solid var(--home-blue); outline-offset: 5px; border-radius: 4px; }
@@ -32,7 +52,7 @@
 .isox-home .home-container { width: min(1160px, calc(100% - 80px)); margin-inline: auto; }
 .isox-home .home-eyebrow { display: flex; align-items: center; gap: 10px; color: var(--home-blue); font: 11px/1.6 var(--home-mono); text-transform: uppercase; letter-spacing: 1.3px; margin-bottom: 20px; }
 .isox-home .home-status { width: 6px; height: 6px; border-radius: 50%; background: var(--home-blue); box-shadow: 0 0 0 4px var(--home-tint); flex: 0 0 auto; }
-.isox-home h1 { font-size: clamp(48px, 5.8vw, 76px); line-height: 1.04; letter-spacing: -.06em; font-weight: 650; }
+.isox-home h1 { font-size: clamp(46px, 4.7vw, 68px); line-height: 1.08; letter-spacing: -.06em; font-weight: 650; }
 .isox-home h2 { font-size: clamp(30px, 3.1vw, 40px); line-height: 1.18; letter-spacing: -.045em; font-weight: 620; }
 .isox-home h3 { font-size: 17px; line-height: 1.4; letter-spacing: -.025em; font-weight: 620; }
 .isox-home :is(h1, h2) > span { color: var(--home-blue); }
@@ -51,13 +71,13 @@
 .dark .isox-home .home-button:hover { background: #bed5ff; border-color: #bed5ff; }
 .isox-home .home-secondary-button { border-color: var(--home-line); background: var(--home-bg); }
 .isox-home .home-secondary-button:hover { border-color: var(--home-blue); background: var(--home-tint); }
-.isox-home .home-hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 68px; align-items: center; padding-block: 80px 66px; }
-.isox-home .home-description { max-width: 460px; font-size: 17px; line-height: 1.8; margin-top: 26px; }
+.isox-home .home-hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 56px; align-items: center; padding-block: 56px 48px; }
+.isox-home .home-description { max-width: 470px; font-size: 17px; line-height: 1.7; margin-top: 26px; }
 .isox-home .home-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-.isox-home .home-install { display: inline-flex; align-items: center; gap: 14px; margin-top: 26px; padding: 8px 12px; border: 1px solid var(--home-line); border-radius: 5px; background: var(--home-surface); font: 12px/1.7 var(--home-mono); }
+.isox-home .home-install { max-width: 100%; overflow-x: auto; display: inline-flex; align-items: center; gap: 14px; margin-top: 26px; padding: 8px 12px; border: 1px solid var(--home-line); border-radius: 5px; background: var(--home-surface); font: 12px/1.7 var(--home-mono); }
 .isox-home .home-install span { color: var(--home-muted); }
 .isox-home .home-install code { font: inherit; user-select: all; }
-.isox-home .home-note { margin-top: 12px; font-size: 11px; }
+.isox-home .home-note { margin-top: 12px; font-size: 12px; }
 .isox-home .home-demo { min-width: 0; position: relative; padding-block: 12px; }
 .isox-home .home-demo::before { content: ""; position: absolute; inset: -30px -26px 10px; pointer-events: none; background-image: radial-gradient(var(--home-line) .9px, transparent .9px); background-size: 16px 16px; mask-image: linear-gradient(to bottom, #000, transparent); }
 .isox-home .home-demo > * { position: relative; }
@@ -86,21 +106,21 @@
 .isox-home .home-compatibility-divider { width: 1px; height: 18px; background: var(--home-line); }
 .isox-home .home-compatibility a { font-size: 11px; white-space: nowrap; }
 .isox-home .home-compatibility a span { margin-left: 6px; color: var(--home-blue); }
-.isox-home .home-section { padding-block: 88px; }
+.isox-home .home-section { padding-block: 64px; }
 .isox-home .home-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 50px; margin-bottom: 38px; }
 .isox-home .home-section-heading > p { max-width: 360px; font-size: 14px; }
 .isox-home .home-feature-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--home-line); border-radius: 8px; overflow: hidden; }
-.isox-home .home-feature { padding: 27px; }
+.isox-home .home-feature { display: flex; flex-direction: column; align-items: flex-start; padding: 27px; }
 .isox-home .home-feature + .home-feature { border-left: 1px solid var(--home-line); }
-.isox-home .home-feature-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+.isox-home .home-feature-top { width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .isox-home .home-feature-symbol { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--home-line); border-radius: 6px; color: var(--home-blue); font: 15px var(--home-mono); background: var(--home-surface); }
 .isox-home .home-feature p { margin-top: 12px; font-size: 13px; }
-.isox-home .home-feature .home-text-link { margin-top: 24px; }
+.isox-home .home-feature .home-text-link { margin-top: auto; padding-top: 24px; }
 .isox-home .home-ci-section { background: var(--home-surface); border-block: 1px solid var(--home-line); }
-.isox-home .home-ci { display: grid; grid-template-columns: 1fr 1.15fr; align-items: center; gap: 64px; padding-block: 76px; }
+.isox-home .home-ci { display: grid; grid-template-columns: 1fr 1.15fr; align-items: center; gap: 64px; padding-block: 64px; }
 .isox-home .home-ci-copy > p:not([class]) { margin-top: 22px; max-width: 400px; }
 .isox-home .home-ci-copy .home-text-link { margin-top: 26px; }
-.isox-home .home-ci-copy .home-ci-boundary { font-size: 11px; max-width: 360px; margin-top: 28px; padding-left: 14px; border-left: 2px solid var(--home-line); }
+.isox-home .home-ci-copy .home-ci-boundary { font-size: 12px; max-width: 360px; margin-top: 28px; padding-left: 14px; border-left: 2px solid var(--home-line); }
 .isox-home .home-ci-demo { border: 1px solid var(--home-line); border-radius: 8px; background: var(--home-bg); min-width: 0; overflow: hidden; }
 .isox-home .home-graph { padding: 24px; }
 .isox-home .home-graph-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
@@ -118,15 +138,18 @@
 .isox-home .home-graph-dependents { display: grid; gap: 10px; }
 .isox-home .home-node-idle { grid-column: 1 / -1; display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; padding-block: 9px; background: var(--home-surface); color: var(--home-muted); margin-top: 2px; }
 .isox-home .home-node-idle .home-node-type { margin: 0; }
-.isox-home .home-graph-caption { font-size: 11px; line-height: 1.8; color: var(--home-muted); }
+.isox-home .home-graph-caption { font-size: 12px; line-height: 1.8; color: var(--home-muted); }
 .isox-home .home-ci-command { border-top: 1px solid var(--home-line); padding: 17px 24px; }
 .isox-home .home-ci-command .home-terminal-label { color: var(--home-muted); font-size: 9px; }
-.isox-home .home-ci-command pre { font-size: 11px; color: var(--home-text); }
+.isox-home .home-ci-command pre { font-size: 12px; color: var(--home-text); }
 .isox-home .home-plugin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .isox-home .home-plugin { display: flex; align-items: flex-start; gap: 15px; padding: 24px 20px; border: 1px solid var(--home-line); border-radius: 7px; transition: border-color .15s, background .15s; min-width: 0; }
 .isox-home .home-plugin:hover { border-color: var(--home-blue); background: var(--home-surface); color: var(--home-text); }
 .isox-home .home-plugin-icon { width: 35px; height: 35px; border: 1px solid var(--home-line); border-radius: 6px; display: grid; place-items: center; flex-shrink: 0; color: var(--home-blue); font: 14px var(--home-mono); background: var(--home-tint); }
+.isox-home .home-plugin > div { min-width: 0; }
 .isox-home .home-plugin h3 { font-size: 14px; }
+.isox-home .home-plugin-custom { background: var(--home-tint); border-color: var(--home-blue); }
+.isox-home .home-plugin-action { display: block; margin-top: 15px; color: var(--home-blue); font-size: 12px; font-weight: 600; }
 .isox-home .home-plugin p { margin-top: 6px; font-size: 12px; line-height: 1.7; }
 .isox-home .home-plugin code { display: block; margin-top: 15px; color: var(--home-muted); font-size: 10px; overflow-wrap: anywhere; }
 .isox-home .home-plugin-arrow { margin-left: auto; color: var(--home-muted); font-size: 13px; }
@@ -144,8 +167,8 @@
 .isox-home .home-steps p { margin-top: 10px; font-size: 12px; }
 .isox-home .home-steps a { text-decoration: underline; text-underline-offset: 3px; color: var(--home-text); }
 .isox-home .home-steps pre { margin-top: 15px; font-size: 11px; line-height: 1.9; padding: 12px; border: 1px solid var(--home-line); border-radius: 5px; background: var(--home-bg); }
-.isox-home .home-requirements { font-size: 10px; margin-top: 28px; }
-.isox-home .home-faq { display: grid; grid-template-columns: 1fr 1.35fr; gap: 70px; padding-block: 88px; }
+.isox-home .home-requirements { font-size: 12px; margin-top: 28px; }
+.isox-home .home-faq { display: grid; grid-template-columns: 1fr 1.35fr; gap: 70px; padding-block: 64px; }
 .isox-home .home-faq .home-text-link { margin-top: 22px; }
 .isox-home .home-faq-list { border-top: 1px solid var(--home-line); min-width: 0; }
 .isox-home .home-faq-list .accordion { margin-block: 0; border-radius: 0; border: 0; border-bottom: 1px solid var(--home-line); background: transparent; box-shadow: none; }
@@ -170,8 +193,8 @@
 }
 @media (max-width: 899px) {
   .isox-home .home-container { width: min(680px, calc(100% - 48px)); }
-  .isox-home .home-hero { grid-template-columns: 1fr; gap: 44px; padding-block: 56px 40px; }
-  .isox-home h1 { font-size: clamp(54px, 8.5vw, 72px); }
+  .isox-home .home-hero { grid-template-columns: minmax(0, 1fr); gap: 44px; padding-block: 56px 40px; }
+  .isox-home h1 { font-size: clamp(46px, 7.5vw, 64px); }
   .isox-home .home-description { max-width: 560px; }
   .isox-home .home-demo::before { inset-inline: -15px; }
   .isox-home .home-compatibility { flex-wrap: wrap; gap: 14px; }
@@ -183,7 +206,7 @@
   .isox-home .home-feature + .home-feature { border-left: 0; border-top: 1px solid var(--home-line); }
   .isox-home .home-feature-top { margin-bottom: 18px; }
   .isox-home .home-feature p { max-width: 520px; }
-  .isox-home .home-feature .home-text-link { margin-top: 16px; }
+  .isox-home .home-feature .home-text-link { padding-top: 16px; }
   .isox-home .home-ci { grid-template-columns: 1fr; gap: 30px; padding-block: 56px; }
   .isox-home .home-ci-copy > p:not([class]) { max-width: 540px; }
   .isox-home .home-ci-copy .home-ci-boundary { max-width: 490px; margin-top: 18px; }
@@ -195,12 +218,12 @@
 @media (max-width: 540px) {
   .isox-home .home-container { width: calc(100% - 40px); }
   .isox-home .home-hero { padding-top: 40px; }
-  .isox-home h1 { font-size: clamp(43px, 11.8vw, 60px); }
+  .isox-home h1 { font-size: clamp(40px, 10.6vw, 54px); }
   .isox-home .home-eyebrow { font-size: 9px; letter-spacing: 1px; }
   .isox-home .home-description { font-size: 15px; margin-top: 22px; }
   .isox-home :is(.home-button, .home-secondary-button) { gap: 15px; padding-inline: 15px; font-size: 12px; }
   .isox-home .home-demo-heading { font-size: 11px; }
-  .isox-home .home-demo-heading .home-index { font-size: 9px; }
+  .isox-home .home-demo-heading .home-index { display: none; }
   .isox-home .home-window-bar { padding-inline: 15px; font-size: 10px; }
   .isox-home .home-project-code { padding: 20px 15px; font-size: 11px; }
   .isox-home .home-terminal { padding-inline: 15px; }
@@ -215,7 +238,7 @@
   .isox-home .home-graph-heading .home-index { font-size: 7px; letter-spacing: .2px; }
   .isox-home .home-graph-node { padding: 10px; }
   .isox-home .home-node-type { font-size: 8px; }
-  .isox-home .home-ci-command pre { font-size: 10px; }
+  .isox-home .home-ci-command pre { font-size: 11px; }
   .isox-home .home-plugin-grid { grid-template-columns: 1fr; }
   .isox-home .home-plugin { padding: 20px; }
   .isox-home .home-migration-note { text-align: left; }

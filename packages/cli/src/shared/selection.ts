@@ -1,6 +1,7 @@
-import { createLogger, findWorkspaceRoot, getAffectedProjects, getGitChanges, logger, parseWorkspace, readWorkspaceSettings, resolveWorkspaceDependencies } from '@isox-sh/core'
+import { createLogger, findWorkspaceRoot, getAffectedTargetProjects, getGitChanges, logger, parseWorkspace, readWorkspaceSettings, resolveWorkspaceDependencies } from '@isox-sh/core'
 
 import type { SelectionOptions } from './options'
+import type { TargetPlanOptions } from '@isox-sh/core'
 
 export async function loadSelection(options: SelectionOptions) {
   if (options.all && (options.base !== undefined || options.head !== undefined || options.uncommitted || options.untracked)) {
@@ -22,7 +23,7 @@ export async function loadSelection(options: SelectionOptions) {
     return {
       root,
       workspace,
-      projects: Object.keys(workspace.projects).sort()
+      projectsFor: async () => Object.keys(workspace.projects).sort()
     }
   }
 
@@ -35,6 +36,6 @@ export async function loadSelection(options: SelectionOptions) {
   return {
     root,
     workspace: resolved,
-    projects: getAffectedProjects(resolved, changes.files, settings.affected)
+    projectsFor: (target: TargetPlanOptions) => getAffectedTargetProjects(root, resolved, changes.files, target, settings)
   }
 }

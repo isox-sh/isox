@@ -26,8 +26,14 @@ export function registerPlanAction(cli: CAC): void {
       }
 
       const targets = options.targetsJson === undefined ? [targetPlan(options)] : targetPlans(jsonValue(options.targetsJson, '--targets-json'))
-      const { workspace, projects } = await loadSelection(options)
+      const { workspace, projectsFor } = await loadSelection(options)
 
-      process.stdout.write(`${JSON.stringify(createProjectMatrix(workspace, projects, targets))}\n`)
+      const rows = await Promise.all(targets.map(async target => createProjectMatrix(workspace, await projectsFor(target), [target]).include))
+      const include = rows.flat()
+      if (include.length > 256) {
+        throw new Error('The plan exceeds the GitHub Actions limit of 256 matrix jobs. Reduce maxJobs or split the plan.')
+      }
+
+      process.stdout.write(`${JSON.stringify({ include })}\n`)
     })
 }

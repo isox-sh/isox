@@ -86,7 +86,7 @@ does not recursively scan them. File/content and real-path probes are recorded t
 Build-time dependency analysis currently includes project test files. A test's
 `require.resolve()` can therefore produce probes unrelated to the emitted build
 files. These records are checked only when dependency analysis is requested.
-See [cache fields and invalidation](/docs/configuration#discovery-cache).
+See [cache fields and invalidation](/docs/discovery-cache#discovery-cache).
 
 ## Executor package cannot be loaded
 
@@ -191,7 +191,7 @@ Git tag; a tag on HEAD produces an empty plan. Supply an earlier `base` or set
 Stop active builds and recover any needed backups from `.isox/tasks` before
 running `isox reset`. Reset removes stale locks and reservations, but also deletes
 those backups and all output ownership records. See
-[output recovery](/docs/task-caching#output-ownership-and-recovery).
+[output recovery](/docs/cache-outputs#output-ownership-and-recovery).
 
 Reset leaves compiled output in place. Uncached TypeScript builds preserve files
 whose ownership records were removed; cacheable targets still replace their

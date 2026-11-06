@@ -322,6 +322,22 @@ test('exclusions avoid hashing generated files and outside-project declarations 
   assert.notEqual(await f.hash(), excluded)
 })
 
+test('file exclusions still hash sources inside matching directory names', async t => {
+  const f = await fixture(t)
+  await f.write('apps/demo/docs.md/source.ts', 'export const value = 1')
+  await f.write('apps/demo/docs.md/README.md', 'first')
+
+  for (const pattern of ['{projectRoot}/**/*', '{projectRoot}/docs.md/**/*.ts']) {
+    f.command.inputs = [pattern, '!{projectRoot}/**/*.md']
+    const before = await f.hash()
+    await f.write('apps/demo/docs.md/source.ts', `export const value = ${JSON.stringify(pattern)}`)
+    const changed = await f.hash()
+    assert.notEqual(changed, before, pattern)
+    await f.write('apps/demo/docs.md/README.md', pattern)
+    assert.equal(await f.hash(), changed)
+  }
+})
+
 test('trailing directory separators preserve input matching and output exclusion', async t => {
   const f = await fixture(t)
 
@@ -1106,3 +1122,20 @@ test('dependency input paths support projectName tokens and exclusion globs', as
   await f.write('lib/input.txt', 'changed')
   assert.notEqual(await f.hash(), before)
 })
+
+for (const [exclusion, excluded] of [
+  ['!{projectRoot}/**/hidden', false],
+  ['!{projectRoot}/hidden', true],
+  ['!{projectRoot}/**/hidden/**', true],
+]) {
+  test(`cache and affected matching agree on literal file inputs with ${exclusion}`, async t => {
+    const f = await fixture(t)
+    const { getAffectedTargetProjects } = require('../../../dist/core')
+    f.command.inputs = ['{projectRoot}/hidden/file.txt', exclusion]
+    await f.write('apps/demo/hidden/file.txt', 'before')
+    const before = await f.hash()
+    await f.write('apps/demo/hidden/file.txt', 'after')
+    assert.equal(await f.hash() === before, excluded)
+    assert.deepEqual(await getAffectedTargetProjects(f.root, f.workspace, ['apps/demo/hidden/file.txt'], { target: 'build' }), excluded ? [] : ['demo'])
+  })
+}

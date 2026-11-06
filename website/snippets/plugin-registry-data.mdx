@@ -1,0 +1,58 @@
+export const plugins = [
+  {
+    "name": "@isox-sh/core",
+    "description": "Run existing scripts with core:run-command. Included with the Isox CLI; also provides the workspace and plugin APIs.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/core",
+    "docs": "/docs/shell-commands",
+    "category": "Task execution",
+    "official": true
+  },
+  {
+    "name": "@isox-sh/js",
+    "description": "Build TypeScript packages with js:tsc, watch for changes, and scaffold new libraries.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/js",
+    "docs": "/docs/typescript",
+    "category": "Build",
+    "official": true
+  },
+  {
+    "name": "@isox-sh/eslint",
+    "description": "Lint projects with eslint:lint and apply ESLint fixes through your project targets.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/eslint",
+    "docs": "/docs/eslint",
+    "category": "Lint",
+    "official": true
+  },
+  {
+    "name": "@isox-sh/vitest",
+    "description": "Run project test suites with vitest:test and generate Vitest configuration.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/vitest",
+    "docs": "/docs/vitest",
+    "category": "Test",
+    "official": true
+  },
+  {
+    "name": "@isox-sh/semver",
+    "description": "Version packages from conventional commits, write changelogs, and coordinate publishing hooks.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/semver",
+    "docs": "/docs/semver",
+    "category": "Release",
+    "official": true
+  },
+  {
+    "name": "@isox-sh/nx",
+    "description": "Use supported Nx 23 executors while migrating. Keep the corresponding Nx executor packages installed.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/nx",
+    "docs": "/docs/nx-migration",
+    "category": "Migration",
+    "official": true
+  },
+  {
+    "name": "@isox-sh/e2e",
+    "description": "Test your own plugins in temporary workspaces. A helper library for plugin authors, with no target executor.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/e2e",
+    "docs": "/docs/plugin-testing",
+    "category": "Plugin development",
+    "official": true
+  }
+]

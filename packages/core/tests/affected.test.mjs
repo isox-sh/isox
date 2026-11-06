@@ -10,6 +10,18 @@ import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const { createProjectGraph, getAffectedProjects, getGitChanges, createProjectMatrix, matchesTags, parseWorkspace } = require('../../../dist/core')
+const { workspaceFiles } = require('../../../dist/core/affected/projects')
+
+test('built-in global patterns cannot be changed by consumers', () => {
+  assert.ok(Object.isFrozen(workspaceFiles))
+  assert.throws(() => workspaceFiles.push('**/*'), TypeError)
+  const graph = workspace({
+    app: {},
+    lib: {}
+  })
+  assert.deepEqual(getAffectedProjects(graph, ['packages/app/source.ts']), ['app'])
+  assert.deepEqual(getAffectedProjects(graph, ['package.json']), ['app', 'lib'])
+})
 
 function workspace(definitions) {
   return {
@@ -486,4 +498,152 @@ test('matrix rows own their stage arrays', () => {
   assert.deepEqual(include[1].preTargets, ['build'])
   assert.deepEqual(include[1].postTargets, ['build'])
   assert.deepEqual(options.preTargets, ['build'])
+})
+
+const { getAffectedTargetProjects } = require('../../../dist/core')
+const command = inputs => ({
+  executor: 'core:run-command',
+  inputs
+})
+const productionSettings = {
+  namedInputs: {
+    files: ['{projectRoot}/**/*'],
+    production: ['files', '!{projectRoot}/**/*.md'],
+  },
+  targetDefaults: { build: { inputs: ['production', '^production'] } },
+}
+
+test('target inputs exclude documentation but website and shared consumers remain affected', async () => {
+  const graph = workspace({
+    lib: {},
+    app: { dependencies: ['lib'] },
+    website: { targets: { build: command(['{workspaceRoot}/packages/**/*.md']) } },
+    shared: { targets: { build: command(['{workspaceRoot}/tools/shared.json']) } },
+  })
+  const selected = files => getAffectedTargetProjects('.', graph, files, { target: 'build' }, productionSettings)
+  assert.deepEqual(await selected(['packages/lib/README.md']), ['website'])
+  assert.deepEqual(await selected(['packages/lib/src/index.ts']), ['app', 'lib'])
+  assert.deepEqual(await selected(['tools/shared.json']), ['shared'])
+  assert.deepEqual(await selected(['packages/lib/package.json']), ['app', 'lib'])
+  assert.deepEqual(await selected(['pnpm-lock.yaml']), ['app', 'lib', 'shared', 'website'])
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['pnpm-lock.yaml', 'packages/lib/README.md'], { target: 'build' }, {
+    ...productionSettings,
+    affected: {
+      ignoreFiles: ['pnpm-lock.yaml', '**/*.md'],
+      globalFiles: ['**/*.md']
+    },
+  }), [])
+})
+
+test('project overrides, automatic dependency inputs, and separate diamond branches match caching', async () => {
+  const graph = workspace({
+    lib: { namedInputs: { production: ['{projectRoot}/src/**', '!{projectRoot}/src/private/**'] } },
+    a: {
+      dependencies: ['lib'],
+      targets: { build: command(['production', '^production']) }
+    },
+    b: {
+      dependencies: ['lib'],
+      targets: { build: command(['production', '^{projectRoot}/README.md']) }
+    },
+    app: {
+      dependencies: ['a', 'b'],
+      targets: { build: command([]) }
+    },
+  })
+  const selected = files => getAffectedTargetProjects('.', graph, files, { target: 'build' }, productionSettings)
+  assert.deepEqual(await selected(['packages/lib/README.md']), ['app', 'b'])
+  assert.deepEqual(await selected(['packages/lib/src/index.ts']), ['a', 'app', 'lib'])
+  assert.deepEqual(await selected(['packages/lib/src/private/secret.ts']), [])
+})
+
+test('unconfigured targets preserve conservative ownership and dependency propagation', async () => {
+  const graph = workspace({
+    root: { root: '.' },
+    lib: {},
+    app: { dependencies: ['lib'] }
+  })
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['packages/lib/README.md'], { target: 'build' }), ['app', 'lib'])
+  graph.projects.lib.targets.build.inputs = ['{projectRoot}/src/**']
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['packages/lib/README.md'], { target: 'build' }), ['app'])
+})
+
+test('input matching handles deleted files, both rename paths, dotfiles and excluded directories', async t => {
+  const { root, write, commit } = await repository(t)
+  await write('packages/lib/src/old.ts')
+  await write('packages/lib/src/deleted.ts')
+  const base = commit()
+  await mkdir(join(root, 'packages/lib/docs'), { recursive: true })
+  await rename(join(root, 'packages/lib/src/old.ts'), join(root, 'packages/lib/docs/new.md'))
+  await rm(join(root, 'packages/lib/src/deleted.ts'))
+  commit()
+  const graph = workspace({ lib: { targets: { build: command(['{projectRoot}/src/**', '!{projectRoot}/src/hidden']) } } })
+  const { files } = await getGitChanges(root, { base })
+  assert.deepEqual(await getAffectedTargetProjects(root, graph, files, { target: 'build' }), ['lib'])
+  assert.deepEqual(await getAffectedTargetProjects(root, graph, ['packages/lib/src/.config'], { target: 'build' }), ['lib'])
+  assert.deepEqual(await getAffectedTargetProjects(root, graph, ['packages/lib/src/hidden/deleted.ts'], { target: 'build' }), [])
+})
+
+test('file exclusions do not exclude source files under matching directory names', async () => {
+  const graph = workspace({
+    lib: {},
+    app: { dependencies: ['lib'] }
+  })
+  const selected = files => getAffectedTargetProjects('.', graph, files, { target: 'build' }, productionSettings)
+  assert.deepEqual(await selected(['packages/lib/docs.md/source.ts']), ['app', 'lib'])
+  assert.deepEqual(await selected(['packages/lib/docs.md/nested/README.md']), [])
+  graph.projects.lib.targets.build.inputs = ['{projectRoot}/**/*', '!{projectRoot}/docs.md']
+  graph.projects.app.targets.build.inputs = []
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['packages/lib/docs.md/source.ts'], { target: 'build' }), [])
+})
+
+test('named input cycles fail instead of silently dropping tasks', async () => {
+  const graph = workspace({
+    lib: {
+      targets: { build: command(['loop']) },
+      namedInputs: { loop: ['loop'] }
+    }
+  })
+  await assert.rejects(getAffectedTargetProjects('.', graph, ['packages/lib/a.ts'], { target: 'build' }), /Named input cycle/)
+})
+
+test('custom default sets and executor defaults follow cache precedence', async () => {
+  const graph = workspace({
+    lib: { namedInputs: { default: ['{projectRoot}/src/**'] } },
+    app: {
+      dependencies: ['lib'],
+      targets: { build: command([]) }
+    },
+  })
+  const settings = { namedInputs: { default: ['{projectRoot}/**/*.md'] } }
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['packages/lib/README.md'], { target: 'build' }, settings), [])
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['packages/lib/src/a.ts'], { target: 'build' }, settings), ['app', 'lib'])
+  const defaults = {
+    targetDefaults: {
+      build: { inputs: [] },
+      'core:run-command': { inputs: ['{projectRoot}/src/**'] }
+    }
+  }
+  assert.deepEqual(await getAffectedTargetProjects('.', workspace({ lib: {} }), ['packages/lib/src/a.ts'], { target: 'build' }, defaults), ['lib'])
+})
+
+test('automatic artifacts and shared dependency inputs affect consumers', async () => {
+  const graph = workspace({
+    lib: {
+      targets: {
+        build: {
+          ...command(['{workspaceRoot}/tools/build.json']),
+          cache: true,
+          outputs: ['dist/lib']
+        }
+      }
+    },
+    app: { dependencies: ['lib'] },
+    explicit: {
+      dependencies: ['lib'],
+      targets: { build: command(['^{projectRoot}/src/**']) }
+    },
+  })
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['dist/lib/index.js'], { target: 'build' }), ['app', 'explicit'])
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['tools/build.json'], { target: 'build' }), ['app', 'lib'])
 })

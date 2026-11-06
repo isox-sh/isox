@@ -95,3 +95,36 @@ export function resolveTaskInputs(
     explicitDependencies
   }
 }
+
+/** Collect automatic dependency inputs without merging exclusions from separate branches. */
+export function collectTaskInputs(workspace: WorkspaceGraph, settings: WorkspaceSettings, projectName: string, target: string, inputs?: TaskInput[]): Map<string, TaskInput[][]> {
+  const projectInputs = new Map<string, TaskInput[][]>()
+  const visited = new Set<string>()
+
+  // Resolve every automatic dependency selection before hashing, since multiple branches
+  // can contribute inputs to the same transitive project regardless of traversal order.
+  function collectInputs(name: string, inputs?: TaskInput[]): void {
+    if (visited.has(name)) {
+      return
+    }
+
+    visited.add(name)
+    const resolved = resolveTaskInputs(workspace, settings, name, inputs)
+    for (const [project, entries] of resolved.projects) {
+      // Keep selections separate: one branch's exclusions cannot hide another branch's inputs.
+      projectInputs.set(project, [...(projectInputs.get(project) ?? []), entries])
+    }
+
+    if (!resolved.explicitDependencies) {
+      for (const dependency of workspace.projects[name].dependencies ?? []) {
+        const targets = workspace.projects[dependency]?.targets
+        const command = targets && Object.hasOwn(targets, target) ? targets[target] : undefined
+        collectInputs(dependency, command?.inputs)
+      }
+    }
+  }
+
+  collectInputs(projectName, inputs)
+
+  return projectInputs
+}

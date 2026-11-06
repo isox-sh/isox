@@ -95,10 +95,10 @@ dynamically selected plugins. Dependencies contain Isox project names.
   The graph propagates affected changes. In multi-project execution, Isox also
   orders selected projects by dependency when a stage includes a target with
   `cache: true` and declared outputs. Targets with
-  [`dependsOn`](/docs/configuration#task-prerequisites) also run prerequisites
+  [`dependsOn`](/docs/task-prerequisites#task-prerequisites) also run prerequisites
   outside the selected project list. Each CI worker expands its own task graph;
   separate jobs do not share scheduling or task deduplication.
-  see [execution ordering](/docs/affected-and-ci#execution-ordering).
+  see [execution ordering](/docs/github-actions#execution-ordering).
 </Note>
 
 ## Discovery caching
@@ -126,14 +126,14 @@ as project sources even when the request comes from a build.
 the definitions cache. Selecting all projects does not require dependency
 inference. Creating a project with `isox init <package> <path>` also refreshes it.
 `isox add <package> <project>` invalidates `workspace.json` after the generator runs.
-See [discovery boundaries](/docs/configuration#discovery-boundaries) for ignore
+See [discovery boundaries](/docs/project-discovery#discovery-boundaries) for ignore
 rules, nested workspaces, and symlinks.
 
 Both caches store metadata. Reusing a dependency list does not skip compilation.
 Native targets can separately opt into [local task caching](/docs/task-caching),
-which stores outputs and terminal logs under `.isox/tasks`. See [cache behavior and examples](/docs/configuration#discovery-cache)
+which stores outputs and terminal logs under `.isox/tasks`. See [cache behavior and examples](/docs/discovery-cache#discovery-cache)
 for the source fingerprint, resolution probes and invalidation rules.
-The TypeScript executor separately tracks [output ownership](/docs/typescript#typescript-state-files)
+The TypeScript executor separately tracks [output ownership](/docs/typescript-builds#typescript-state-files)
 under `.isox/tsc/`. `isox reset` removes all caches and this build state, so stop active builds
 before resetting.
 

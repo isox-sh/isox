@@ -1,0 +1,21 @@
+---
+title: "Plugin Registry"
+description: "Find official and community plugins for your Isox workspace."
+icon: "puzzle-piece"
+mode: "wide"
+---
+
+import { PluginDirectory } from '/snippets/plugin-directory.jsx';
+import { plugins } from '/snippets/plugin-registry-data.mdx';
+
+Find a plugin for your next build, test, or release. **Official** packages are
+maintained by the Isox team; **Community** packages are maintained by their authors.
+The registry includes executors, integrations, and tools for plugin development.
+
+<PluginDirectory plugins={plugins} />
+
+## Add your plugin
+
+Built something useful? [Submit your plugin](/docs/submit-plugin) to help other
+workspaces find it. Start with [your first plugin](/docs/plugin-quickstart) if
+you’re creating one.

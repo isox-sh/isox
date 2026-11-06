@@ -108,6 +108,6 @@ options schemas.
 
 The layout above describes a plugin with a local `dist` directory. This
 repository builds standalone packages into `<repository>/dist/<package>`; see
-[repository build outputs](/docs/contributing#build-outputs) for workspace links,
+[repository build outputs](/docs/repository-builds#build-outputs) for workspace links,
 package generation, and bootstrap behavior. In both layouts, executor and
 generator schemas are copied through the configured assets.

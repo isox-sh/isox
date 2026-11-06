@@ -5,9 +5,9 @@ sidebarTitle: "Affected projects and CI"
 icon: "code-branch"
 ---
 
-Isox selects changed projects and their transitive dependents using Git and
-dependencies inferred on demand for affected selection, plus explicit `dependencies`
-in each `project.json`. The same selection powers local
+Isox selects affected targets using Git changes, target inputs, and dependencies
+inferred on demand, plus explicit `dependencies` in each `project.json`.
+The same selection powers local
 execution, JSON project lists, and weighted GitHub Actions matrices.
 
 ## Local commands
@@ -50,20 +50,54 @@ to the children and return exit codes 130/143.
   outside a nested Isox workspace are ignored.
 - Changes to root manifests, lockfiles, `isox.json`, root `tsconfig*.json`,
   `eslint.config.*`, or `.github/**` affect every project, even with a root project.
-  Other files outside every known project do not affect any projects by default,
-  including files from deleted projects. Add shared scripts or other unowned inputs
-  to `affected.globalFiles` when their changes should affect every project.
+  Other files, including paths outside project roots, select targets whose inputs
+  consume them. Add shared scripts to `affected.globalFiles` when their changes
+  should affect every project regardless of inputs.
 - `affected.ignoreFiles` excludes matching files before checking global patterns
-  or project ownership. Ignored changes do not select projects or their dependents.
-- All transitive dependents are included **before** command and tag filtering.
+  or target inputs and project ownership. Ignored changes do not select projects or their dependents.
+- Targets without explicit inputs or a customized `default` named set retain
+  conservative selection: file owners and all transitive dependents are included
+  **before** command and tag filtering.
   On-demand analysis combines source imports, TypeScript aliases, local package references,
   and explicitly declared project dependencies. Type-only imports and tests count.
   Dynamically selected plugins need explicit dependencies; executor selections
   alone do not add edges. Unknown references and cycles fail with an explanation.
-  See [dependency discovery](/docs/configuration#dependency-discovery).
+  See [dependency discovery](/docs/project-discovery#dependency-discovery).
 - Projects without the requested command, with `plan.enabled: false`, or tagged `ci=off` are
   excluded from selection. Explicit `run-many --projects-json` runs exactly its
   list, including projects excluded from automatic selection.
+
+### Target inputs and prerequisites
+
+`affected` and each target in `plan` use the same resolved file inputs as task
+caching, even when `cache` is false. Target defaults apply first; target-level
+inputs replace inherited arrays. Named sets can nest, project sets override
+workspace sets, and exclusions win within each selection. Shared workspace paths
+select every consuming target, regardless of file ownership. Deleted paths and
+both rename paths are matched without requiring the files to exist.
+
+For example, code targets can use `inputs: ["production", "^production"]` with
+`production: ["{projectRoot}/**/*", "!{projectRoot}/**/*.md"]`. A website target
+can instead include `"{workspaceRoot}/packages/**/*.md"`. No Markdown files are
+excluded by default.
+
+Without a `^` input, dependency inputs come from each dependency's same-named
+target (or its `default` set when that target is absent). `^production` replaces
+that automatic source selection and resolves the set in every transitive
+dependency. Separate dependency branches retain independent exclusions.
+Project definitions, package manifests and cached dependency outputs remain
+automatic inputs even with `inputs: []`. Built-in and configured global files
+still select all eligible projects; `affected.ignoreFiles` takes precedence.
+Environment values, installed tool versions and runtime changes have no Git path;
+use `--all` when those changes need validation.
+
+Pre/post stages and `dependsOn` prerequisites also participate: a matching
+prerequisite selects its consuming project. Once selected, execution schedules
+all required prerequisites, including projects excluded from automatic selection.
+Input exclusions do not remove required tasks from that schedule. Circular named-input
+references, unknown dependency `^` sets, and invalid task graphs fail with an
+explanation rather than silently skipping work. Other unrecognized input strings
+are treated as workspace-relative file patterns, so a typo may match no files.
 
 ### Exclude a project from automatic selection
 
@@ -123,237 +157,26 @@ before their consumers. Executors can also request analysis.
 
 Every `run-many` invocation refreshes definitions; its child commands then load
 that definitions cache. These caches do not transfer build outputs between CI
-jobs or skip task execution. See [cache behavior](/docs/configuration#discovery-cache).
+jobs or skip task execution. See [cache behavior](/docs/discovery-cache#discovery-cache).
 Missing revisions or incomplete history are errors with fetch guidance; Isox
 does not turn a Git failure into a successful empty plan.
 
 ## Weighted distribution
 
-Set a positive numeric `plan.weight` in `project.json`:
-
-```json
-{
-  "name": "api",
-  "dependencies": ["shared"],
-  "plan": { "weight": 5 },
-  "targets": {
-    "test": { "executor": "vitest:test" }
-  }
-}
-```
-
-The default weight is **1**. Increasing it tells the planner that the project
-needs proportionally more work; fractional positive weights are accepted. This
-is an estimate you maintain, not measured execution time, and applies to every
-command on that project.
-
-For each target, the planner sorts projects by descending weight and assigns each
-to the shard with the lowest total weight. Equal loads prefer fewer projects,
-then the earlier shard. Project names break equal-weight ties. This makes plans
-deterministic and prevents a heavy project from being grouped with several other
-heavy projects merely because their names sort together.
-
-There are at most `maxJobs` non-empty shards (default `1`), at most one shard per
-selected project, and at most 256 rows across the entire matrix. `parallel`
-(default `1`) is the concurrency **inside each worker**, separate from the number
-of GitHub jobs. Each row contains:
-
-```json
-{
-  "target": "test",
-  "projects": ["api", "shared"],
-  "config": "",
-  "parallel": 1,
-  "preTargets": [],
-  "postTargets": [],
-  "tag": "",
-  "index": 1,
-  "count": 3,
-  "weight": 6
-}
-```
-
-`index` is one-based. `weight` is the sum of project weights. The exact `projects`
-list is authoritative; workers never rerun affected detection or calculate their
-own slices from `index` and `count`.
+See [Weighted distribution](/docs/ci-planning#weighted-distribution).
 
 ## Tag filters and multiple targets
 
-Filters support a literal tag (`backend`), equality (`type=frontend`), and
-inequality (`type!=frontend`). Commas mean AND; newlines mean OR. An inequality
-also matches a project without that tag key. Any matching forbidden value excludes
-the project, including a project with multiple values for the same key.
-
-```sh
-isox plan --target=build --tag='type!=frontend,type!=worker' --max-jobs=3
-```
-
-For multiple commands, use `plan --targets-json` with an array of objects whose
-fields are `target`, `tag`, `maxJobs`, `parallel`, `config`, `preTargets`, and
-`postTargets`. These are the same settings used by the plan action below.
-Unknown settings and duplicate target names fail. Create separate plans when
-running the same target with different configurations or filters.
-
-`preTargets` and `postTargets` are ordered arrays of commands, optionally
-`command:configuration`. Each entry is an exact command reference:
-`["prepare,assets:acc"]` runs the command named `prepare,assets` with configuration
-`acc`. The actions transfer these arrays as JSON, and planning and execution use
-the same core stage parser.
-
-On the CLI, `--pre-targets` and `--post-targets` split comma- or newline-separated
-lists. Use `--pre-targets-json '["prepare,assets:acc"]'` or `--post-targets-json`
-for exact names containing commas. Each JSON flag is mutually exclusive with its
-corresponding list flag.
-
-Each stage completes across the worker's projects before
-the next stage starts. Missing pre/post commands are skipped. Their configurations
-are explicit or use the command's default; the main target's configuration does
-not leak into them. There is no implicit production configuration for build.
+See [Tag filters and multiple targets](/docs/ci-planning#tag-filters-and-multiple-targets).
 
 ## GitHub Actions
 
-The actions run on Node.js 24 and require `@isox-sh/cli` and the project's executor
-plugins in the workspace dependencies. Install dependencies in both planning and
-worker jobs. The actions invoke that installed CLI without downloading packages.
-Use `cliPath` to select a custom built CLI JavaScript entry point relative to
-`workingDirectory`. `workingDirectory` selects a nested workspace.
-
-```yaml
-name: Affected tests
-on: [pull_request, workflow_dispatch]
-permissions:
-  contents: read
-
-jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.plan.outputs.matrix }}
-      hasPlan: ${{ steps.plan.outputs.hasPlan }}
-      head: ${{ steps.plan.outputs.head }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - uses: isox-sh/isox/actions/cache@main
-      - run: npm ci
-      # Declare test prerequisites with dependsOn, or prepare their outputs here.
-      - uses: isox-sh/isox/actions/plan@main
-        id: plan
-        with:
-          targets: test
-          targetOptions: '{"test":{"maxJobs":3,"parallel":2}}'
-
-  test:
-    needs: setup
-    if: needs.setup.outputs.hasPlan == 'true'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.setup.outputs.matrix) }}
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-      - uses: isox-sh/isox/actions/cache@main
-      - run: npm ci
-      # This worker expands declared dependsOn tasks; prepare any other required outputs here.
-      - uses: isox-sh/isox/actions/run-many@main
-        with:
-          plan: ${{ toJSON(matrix) }}
-          head: ${{ needs.setup.outputs.head }}
-```
-
-The [cache action](https://github.com/isox-sh/isox/tree/main/actions/cache) restores
-`.isox` across compatible runners and later commits, then saves an updated
-snapshot after the job succeeds if GitHub permits cache writes. It refreshes
-restored project definitions while retaining dependency analysis and other cache data. Each job saves a distinct
-snapshot; GitHub restores the newest accessible match without merging parallel
-jobs' changes. Native targets explicitly configured for [task caching](/docs/task-caching)
-can reuse matching entries; other builds and tests still run.
-
-For pull requests, planning compares the PR base SHA with the checked-out GitHub
-merge commit. For other events, including pushes, merge groups, and manual
-dispatches, it uses the nearest Git tag reachable from the checked-out commit.
-Both annotated and lightweight tags qualify; tags on unrelated branches do not.
-"Latest" follows Git history (`git describe --tags`), not version-number ordering
-or the most recently created tag across the repository.
-
-The `base`/`head` inputs take precedence, followed by `ISOX_BASE`/`ISOX_HEAD`.
-Without a reachable tag, non-PR runs select all projects. `affectedOnly: false`
-always selects all. A tag directly on HEAD produces an empty affected plan;
-provide an earlier `base` or disable affected selection to rebuild that release.
-The planner verifies the requested head matches the checkout and outputs resolved
-commit SHAs. Pass its `head` to workers to verify their checkout too.
-
-Use `fetch-depth: 0` in the planning job to fetch full history and tags. Automatic
-tag selection rejects shallow checkouts. It does not query the last successful
-workflow run; pass that revision as `base` if your deployment policy requires it.
-
-The plan action also accepts `targets` as a JSON array, such as
-`["prepare,assets", "build"]`. Use this form when a command name contains commas
-so the exact name survives planning and worker execution.
-
-The outputs are `matrix`, `hasPlan` (strings `true`/`false`), `base`, and `head`.
-Gate matrix jobs using `hasPlan` as shown. A plan with different targets does not
-order those targets; separate build and deploy jobs with `needs` when ordering
-is required.
+See [GitHub Actions](/docs/github-actions#github-actions).
 
 ### Execution ordering
 
-When selected targets cache generated outputs, `run-many` orders selected projects
-by their dependencies before replacing those outputs. Independent projects still
-run concurrently up to `parallel`; consumers wait for selected dependencies to
-finish, including when `parallel` is `1`. This implicit ordering only covers
-selected projects. Declare [`dependsOn`](/docs/configuration#task-prerequisites)
-to expand required tasks outside that selection. Prerequisites run before cache
-lookups and are deduplicated within each stage's task graph. Each matrix worker
-expands its own graph in its own checkout; workers do not share task deduplication
-or coordinate with other jobs. Builds that replace the running CLI or a selected
-executor run alone while their outputs change, so
-other workers keep access to their runtime files. Independent application builds
-continue to use the configured parallelism.
+See [Execution ordering](/docs/github-actions#execution-ordering).
 
 ### Migrating nx-extend workflows
 
-The design follows [nx-extend's actions](https://github.com/TriPSs/nx-extend/tree/master/actions),
-with explicit project lists, weight balancing, validated inputs and no Nx runtime.
-Replace dynamic inputs such as `buildMaxJobs` with a declared `targetOptions`
-object, for example:
-
-```yaml
-- uses: isox-sh/isox/actions/plan@main
-  id: plan-build
-  with:
-    targets: build
-    targetOptions: |
-      {
-        "build": {
-          "tag": "type!=frontend,type!=worker",
-          "maxJobs": 3,
-          "config": "acc"
-        }
-      }
-```
-
-A second deploy plan can use
-`{"deploy":{"tag":"type=backend","maxJobs":5,"config":"acc"}}`,
-and another can use
-`{"deploy":{"tag":"type=frontend","maxJobs":1,"parallel":1,"config":"acc"}}`.
-These examples assume the selected commands define an `acc` configuration.
-Use the existing `matrix` and `hasPlan` wiring and build/deploy `needs` guards.
-Pass `toJSON(matrix)` through a string input on your reusable workflow, then give
-that string to `actions/run-many`'s `plan` input. Keep the planner's `head` alongside
-it. Do not keep the old worker-side `affectedOnly`, `index`/`count` slicing or
-project recomputation.
-
-Artifact upload/download remains part of your workflow. These actions do not
-implement `storeArtifacts`, `restoreArtifacts`, or remote caching. Targets with
-`dependsOn: ["^build"]` schedule dependency builds in each worker; `dependencies`
-alone defines project edges without scheduling tasks. Pre/post stages apply only
-within one shard. For cross-job artifact reuse, transfer outputs through explicitly
-ordered jobs; dependent builds must not rely on another matrix job finishing first.
+See [Migrating nx-extend workflows](/docs/github-actions#migrating-nx-extend-workflows).
