@@ -1,3 +1,15 @@
+/* Use an internal navbar link: Mintlify's primary CTA always opens a new tab. */
+#navbar .navbar-link > a[href="/docs/getting-started"] {
+  background: rgb(var(--primary-dark));
+  border-radius: 12px;
+  color: #fff;
+  padding: 8px 12px;
+  font-weight: 500;
+}
+#navbar .navbar-link > a[href="/docs/getting-started"]:hover {
+  background: #1d4ed8;
+}
+
 /* Homepage styles stay scoped so documentation uses Mintlify's own layout. */
 /* Hide the entire tab row, including its reserved space, on the homepage. */
 :root:has(.isox-home) {

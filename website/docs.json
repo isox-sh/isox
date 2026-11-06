@@ -152,13 +152,12 @@
       {
         "label": "GitHub",
         "href": "https://github.com/isox-sh/isox"
+      },
+      {
+        "label": "Get started",
+        "href": "/docs/getting-started"
       }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Get started",
-      "href": "/docs/getting-started"
-    }
+    ]
   },
   "footer": {
     "socials": {
