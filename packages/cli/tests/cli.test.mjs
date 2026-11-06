@@ -330,19 +330,53 @@ for (const executor of ['core:run-command', '@isox-sh/core:run-commands']) {
 test('migrate accepts bare and explicit plan options from nested directories', async t => {
   const { root, write } = await fixture(t)
   await write('isox.json', {})
-  await write('migrations.json', { migrations: [] })
-  await write('plans/custom.json', { migrations: [] })
-  for (const args of [
-    ['--run-migrations'],
-    ['--run-migrations=plans/custom.json'],
-    ['--run-migrations', 'plans/custom.json'],
-    ['--run-migrations=missing.json', '--if-exists'],
+  await write('node_modules/@fixture/migrations/package.json', {
+    version: '1.0.0',
+    migrations: './migrations.json'
+  })
+  await write('node_modules/@fixture/migrations/migrations.json', {
+    migrations: {
+      standard: {
+        version: '1.0.0',
+        implementation: './standard.cjs'
+      },
+      custom: {
+        version: '1.0.0',
+        implementation: './custom.cjs'
+      },
+    }
+  })
+  for (const name of ['standard', 'custom']) {
+    await write(`node_modules/@fixture/migrations/${name}.cjs`, `module.exports = ({ workspaceRoot }) => require('node:fs').writeFileSync(require('node:path').join(workspaceRoot, 'marker'), '${name}')`)
+    await write(name === 'standard' ? 'migrations.json' : 'plans/custom.json', {
+      migrations: [{
+        package: '@fixture/migrations',
+        name,
+        version: '1.0.0'
+      }]
+    })
+  }
+
+  for (const [args, expected] of [
+    [['--run-migrations'], 'standard'],
+    [['--run-migrations', '--if-exists'], 'standard'],
+    [['--run-migrations', '--verbose', '--if-exists'], 'standard'],
+    [['--run-migrations=plans/custom.json'], 'custom'],
+    [['--run-migrations', 'plans/custom.json'], 'custom'],
+    [['--run-migrations=missing.json', '--if-exists'], null],
+    [['--run-migrations', 'missing.json', '--if-exists'], null],
   ]) {
+    await rm(join(root, 'marker'), { force: true })
     const result = spawnSync(process.execPath, [cliPath, 'migrate', ...args], {
       cwd: join(root, 'plans'),
       encoding: 'utf8'
     })
     assert.equal(result.status, 0, result.stderr)
+    if (expected === null) {
+      await assert.rejects(readFile(join(root, 'marker')), { code: 'ENOENT' })
+    } else {
+      assert.equal(await readFile(join(root, 'marker'), 'utf8'), expected)
+    }
   }
 
   for (const args of [[], ['latest', '--run-migrations'], ['latest', '--if-exists'], ['--unknown']]) {
@@ -354,12 +388,13 @@ test('migrate accepts bare and explicit plan options from nested directories', a
   }
 })
 
-test.skipIf(process.platform === 'win32')('migrate resolves registry metadata and collects published migration definitions', async t => {
+test('migrate resolves registry metadata and collects published migration definitions', async t => {
   const { root, write } = await fixture(t)
   await write('isox.json', {})
   await write('package.json', { devDependencies: { '@isox-sh/core': '~1.0.0' } })
   await write('node_modules/@isox-sh/core/package.json', { version: '1.0.0' })
-  await write('bin/npm', `#!${process.execPath}
+  const npmScript = process.platform === 'win32' ? 'bin/node_modules/npm/bin/npm-cli.js' : 'bin/npm'
+  await write(npmScript, `#!${process.execPath}
 const fs = require('node:fs')
 const path = require('node:path')
 const assert = require('node:assert/strict')
@@ -378,7 +413,7 @@ if (args[0] === 'view') {
   fs.writeFileSync(path.join(root, 'migrations.json'), JSON.stringify({ migrations: { update: { version: '2.0.0', implementation: './update.js' } } }))
 }
 `)
-  await require('node:fs/promises').chmod(join(root, 'bin/npm'), 0o755)
+  await require('node:fs/promises').chmod(join(root, npmScript), 0o755)
   const result = spawnSync(process.execPath, [cliPath, 'migrate', 'latest'], {
     cwd: root,
     encoding: 'utf8',

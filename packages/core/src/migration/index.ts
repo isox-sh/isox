@@ -1,9 +1,8 @@
 import { execFile } from 'node:child_process'
-import { existsSync } from 'node:fs'
 import { lstat, mkdtemp, readFile, rm } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
-import { delimiter, dirname, join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { promisify } from 'node:util'
 
 import { compare, gt, valid } from 'semver'
@@ -12,6 +11,7 @@ import { logger } from '../logger'
 import { readJson } from '../utils/read-json'
 import { resolvePackageJson } from '../utils/resolve-package-json'
 import { writeJson } from '../utils/write-json'
+import { npmCommand } from './npm-command'
 
 import type { Logger } from '../logger'
 
@@ -80,22 +80,6 @@ function definitions(value: unknown): Record<string, MigrationDefinition> {
 }
 
 const execute = promisify(execFile)
-
-function npmCommand(): [string, string[]] {
-  if (process.platform !== 'win32') {
-    return ['npm', []]
-  }
-
-  // .cmd launchers cannot be passed to execFile; invoke npm's JS entry without a shell.
-  for (const directory of [dirname(process.execPath), ...(process.env.PATH ?? '').split(delimiter)]) {
-    const script = join(directory, 'node_modules', 'npm', 'bin', 'npm-cli.js')
-    if (existsSync(script)) {
-      return [process.execPath, [script]]
-    }
-  }
-
-  throw new Error('Cannot locate npm. Install Node.js with npm and add it to PATH.')
-}
 
 /** npm supplies registry/auth configuration; package lifecycle scripts are never run while planning. */
 export const resolveMigrationPackage: MigrationPackageResolver = async (name, target, workspaceRoot) => {
@@ -307,7 +291,10 @@ export async function runMigrations(workspaceRoot: string, file = 'migrations.js
     }
   } finally {
     // A failed migration may have already changed project configuration.
-    await rm(join(cacheDirectory, 'workspace.json'), { force: true })
+    await rm(join(cacheDirectory, 'workspace.json'), {
+      recursive: true,
+      force: true
+    })
   }
 
   logger.success(`Completed ${tasks.length} migration(s).`)

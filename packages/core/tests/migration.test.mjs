@@ -180,3 +180,24 @@ test('failed migrations stop subsequent scripts and invalidate cached discovery'
   await assert.rejects(read('.isox/workspace.json'), { code: 'ENOENT' })
   assert.deepEqual(await read('migrations.json'), plan)
 })
+
+test('migration cleanup removes a directory-shaped discovery cache', async t => {
+  const { root, write } = await fixture(t)
+  await write('migrations.json', { migrations: [] })
+  await write('.isox/workspace.json/corrupt', 'invalid cache')
+  await runMigrations(root)
+  await assert.rejects(readFile(join(root, '.isox/workspace.json')), { code: 'ENOENT' })
+})
+
+test('Windows npm resolution honors PATH, falls back beside Node, and reports missing npm', async t => {
+  const { npmCommand } = await import('../../../dist/core/migration/npm-command.js')
+  const { root, write } = await fixture(t)
+  const executable = join(root, 'node/node.exe')
+  const besideNode = join(root, 'node/node_modules/npm/bin/npm-cli.js')
+  const onPath = join(root, 'bin/node_modules/npm/bin/npm-cli.js')
+  assert.throws(() => npmCommand('win32', executable, join(root, 'missing')), /Cannot locate npm/)
+  await write('node/node_modules/npm/bin/npm-cli.js', '')
+  assert.deepEqual(npmCommand('win32', executable, ''), [executable, [besideNode]])
+  await write('bin/node_modules/npm/bin/npm-cli.js', '')
+  assert.deepEqual(npmCommand('win32', executable, `${join(root, 'missing')};${join(root, 'bin')}`), [executable, [onPath]])
+})
