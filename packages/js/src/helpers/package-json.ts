@@ -312,7 +312,7 @@ export async function generatePackageJson(
     manifest.imports = rewriteImports(manifest.imports)
   }
 
-  if (manifest.main === undefined && manifest.executors === undefined && manifest.generators === undefined) {
+  if (manifest.main === undefined && manifest.executors === undefined && manifest.generators === undefined && manifest.migrations === undefined) {
     const main = ['index.js', 'index.mjs', 'index.cjs'].find(file => available().has(resolve(outDir, file)))
 
     if (main) {
@@ -320,7 +320,7 @@ export async function generatePackageJson(
     }
   }
 
-  if (manifest.types === undefined && manifest.typings === undefined && manifest.executors === undefined && manifest.generators === undefined) {
+  if (manifest.types === undefined && manifest.typings === undefined && manifest.executors === undefined && manifest.generators === undefined && manifest.migrations === undefined) {
     const types = [
       'index.d.ts',
       'index.d.mts',

@@ -528,3 +528,28 @@ test('packages migration registries and rewrites implementation paths for instal
   assert.match(await read('dist/migrations/update.js'), /exports.default/)
   assert.deepEqual(JSON.parse(await read('metadata/migrations.json')), registry)
 })
+
+test('migration-only packages do not infer root entry points or exports', async t => {
+  const { write, read, context } = await fixture(t)
+  await write('package.json', {
+    name: '@fixture/migrations',
+    version: '1.0.0',
+    migrations: './migrations.json'
+  })
+  await write('migrations.json', {
+    migrations: {
+      update: {
+        version: '1.0.0',
+        implementation: './dist/index.js'
+      }
+    }
+  })
+  assert.deepEqual(await tsc({
+    generatePackageJson: true,
+    generateExportsField: true
+  }, context), { success: true })
+  const manifest = JSON.parse(await read('dist/package.json'))
+  assert.equal(manifest.main, undefined)
+  assert.equal(manifest.types, undefined)
+  assert.equal(manifest.exports?.['.'], undefined)
+})
