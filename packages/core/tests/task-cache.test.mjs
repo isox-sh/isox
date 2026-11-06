@@ -960,10 +960,11 @@ test('named inputs expand shared sets, exclusions, environment values, and proje
     assert.notEqual(await f.hash(), before, file)
   }
 
-  const before = await f.hash()
   const previous = process.env.ISOX_NAMED_INPUT_TEST
 
   try {
+    process.env.ISOX_NAMED_INPUT_TEST = 'baseline'
+    const before = await f.hash()
     process.env.ISOX_NAMED_INPUT_TEST = 'changed'
     assert.notEqual(await f.hash(), before)
   } finally {
@@ -1059,4 +1060,49 @@ test('workspace target defaults resolve named inputs through discovery and cache
   await f.write('libs/lib/input.txt', 'changed')
   await run()
   assert.equal(await f.runs(), 2)
+})
+
+for (const dependencies of [['lib'], ['lib', 'leaf'], ['leaf', 'lib']]) {
+  test(`automatic dependency targets retain transitive named inputs in order ${dependencies}`, async t => {
+    const f = await fixture(t)
+    f.workspace.projects.demo.dependencies = dependencies
+    f.workspace.projects.lib.dependencies = ['leaf']
+    f.workspace.projects.lib.targets.build.inputs = ['^production']
+    f.workspace.projects.leaf = {
+      name: 'leaf',
+      root: 'libs/leaf'
+    }
+    await f.write('isox.json', {
+      namedInputs: {
+        default: ['{projectRoot}/input.txt'],
+        production: ['{workspaceRoot}/shared/{projectName}.txt', '!{projectRoot}/input.txt'],
+      }
+    })
+    await f.write('libs/leaf/input.txt', 'source')
+    await f.write('shared/leaf.txt', 'first')
+    const before = await f.hash()
+    await f.write('shared/leaf.txt', 'changed')
+    assert.notEqual(await f.hash(), before)
+    const after = await f.hash()
+    await f.write('libs/leaf/input.txt', 'changed source')
+    if (dependencies.includes('leaf')) {
+      assert.notEqual(await f.hash(), after)
+    } else {
+      assert.equal(await f.hash(), after)
+    }
+  })
+}
+
+test('dependency input paths support projectName tokens and exclusion globs', async t => {
+  const f = await fixture(t)
+  f.command.inputs = ['^{projectName}/**/*', '^!{projectName}/ignored.txt', '^{projectRoot}/**/*', '^!{projectRoot}/ignored.txt']
+  await f.write('lib/input.txt', 'first')
+  await f.write('lib/ignored.txt', 'first')
+  await f.write('libs/lib/ignored.txt', 'first')
+  const before = await f.hash()
+  await f.write('lib/ignored.txt', 'changed')
+  await f.write('libs/lib/ignored.txt', 'changed')
+  assert.equal(await f.hash(), before)
+  await f.write('lib/input.txt', 'changed')
+  assert.notEqual(await f.hash(), before)
 })

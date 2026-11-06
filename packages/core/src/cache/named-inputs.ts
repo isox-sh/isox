@@ -43,6 +43,7 @@ export function resolveTaskInputs(
       if (entry.startsWith('^')) {
         explicitDependencies = true
         const reference = entry.slice(1)
+        const path = reference.replace(/^!/, '')
         const pending = new Set(project.dependencies ?? [])
         const visited = new Set([name])
 
@@ -59,7 +60,7 @@ export function resolveTaskInputs(
           }
 
           if (reference !== 'default' && !Object.hasOwn(names, reference)
-            && !reference.startsWith('{projectRoot}') && !reference.startsWith('{workspaceRoot}')) {
+            && !['{projectRoot}', '{workspaceRoot}', '{projectName}'].some(token => path.startsWith(token))) {
             throw new Error(`Unknown named input ${reference} in project ${dependency}.`)
           }
 

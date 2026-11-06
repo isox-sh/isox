@@ -30,7 +30,8 @@
     "vitest:test": {
       "cache": true,
       "inputs": [
-        "default"
+        "default",
+        "{workspaceRoot}/dist/**/*"
       ]
     }
   }
