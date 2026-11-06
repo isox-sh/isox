@@ -1106,3 +1106,14 @@ test('dependency input paths support projectName tokens and exclusion globs', as
   await f.write('lib/input.txt', 'changed')
   assert.notEqual(await f.hash(), before)
 })
+
+test('cache and affected inputs exclude directory ancestors even for literal file inclusions', async t => {
+  const f = await fixture(t)
+  const { getAffectedTargetProjects } = require('../../../dist/core')
+  f.command.inputs = ['{projectRoot}/hidden/file.txt', '!{projectRoot}/**/hidden']
+  await f.write('apps/demo/hidden/file.txt', 'before')
+  const before = await f.hash()
+  await f.write('apps/demo/hidden/file.txt', 'after')
+  assert.equal(await f.hash(), before)
+  assert.deepEqual(await getAffectedTargetProjects(f.root, f.workspace, ['apps/demo/hidden/file.txt'], { target: 'build' }), [])
+})

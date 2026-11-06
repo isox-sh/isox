@@ -5,9 +5,9 @@ sidebarTitle: "Affected projects and CI"
 icon: "code-branch"
 ---
 
-Isox selects changed projects and their transitive dependents using Git and
-dependencies inferred on demand for affected selection, plus explicit `dependencies`
-in each `project.json`. The same selection powers local
+Isox selects affected targets using Git changes, target inputs, and dependencies
+inferred on demand, plus explicit `dependencies` in each `project.json`.
+The same selection powers local
 execution, JSON project lists, and weighted GitHub Actions matrices.
 
 ## Local commands
@@ -50,12 +50,14 @@ to the children and return exit codes 130/143.
   outside a nested Isox workspace are ignored.
 - Changes to root manifests, lockfiles, `isox.json`, root `tsconfig*.json`,
   `eslint.config.*`, or `.github/**` affect every project, even with a root project.
-  Other files outside every known project do not affect any projects by default,
-  including files from deleted projects. Add shared scripts or other unowned inputs
-  to `affected.globalFiles` when their changes should affect every project.
+  Other files, including paths outside project roots, select targets whose inputs
+  consume them. Add shared scripts to `affected.globalFiles` when their changes
+  should affect every project regardless of inputs.
 - `affected.ignoreFiles` excludes matching files before checking global patterns
-  or project ownership. Ignored changes do not select projects or their dependents.
-- All transitive dependents are included **before** command and tag filtering.
+  or target inputs and project ownership. Ignored changes do not select projects or their dependents.
+- Targets without explicit inputs or a customized `default` named set retain
+  conservative selection: file owners and all transitive dependents are included
+  **before** command and tag filtering.
   On-demand analysis combines source imports, TypeScript aliases, local package references,
   and explicitly declared project dependencies. Type-only imports and tests count.
   Dynamically selected plugins need explicit dependencies; executor selections
@@ -64,6 +66,36 @@ to the children and return exit codes 130/143.
 - Projects without the requested command, with `plan.enabled: false`, or tagged `ci=off` are
   excluded from selection. Explicit `run-many --projects-json` runs exactly its
   list, including projects excluded from automatic selection.
+
+### Target inputs and prerequisites
+
+`affected` and each target in `plan` use the same resolved file inputs as task
+caching, even when `cache` is false. Target defaults apply first; target-level
+inputs replace inherited arrays. Named sets can nest, project sets override
+workspace sets, and exclusions win within each selection. Shared workspace paths
+select every consuming target, regardless of file ownership. Deleted paths and
+both rename paths are matched without requiring the files to exist.
+
+For example, code targets can use `inputs: ["production", "^production"]` with
+`production: ["{projectRoot}/**/*", "!{projectRoot}/**/*.md"]`. A website target
+can instead include `"{workspaceRoot}/packages/**/*.md"`. No Markdown files are
+excluded by default.
+
+Without a `^` input, dependency inputs come from each dependency's same-named
+target (or its `default` set when that target is absent). `^production` replaces
+that automatic source selection and resolves the set in every transitive
+dependency. Separate dependency branches retain independent exclusions.
+Project definitions, package manifests and cached dependency outputs remain
+automatic inputs even with `inputs: []`. Built-in and configured global files
+still select all eligible projects; `affected.ignoreFiles` takes precedence.
+Environment values, installed tool versions and runtime changes have no Git path;
+use `--all` when those changes need validation.
+
+Pre/post stages and `dependsOn` prerequisites also participate: a matching
+prerequisite selects its consuming project. Once selected, execution schedules
+all required prerequisites, including projects excluded from automatic selection.
+Input exclusions do not remove required tasks from that schedule. Invalid named
+inputs or task graphs fail with an explanation rather than silently skipping work.
 
 ### Exclude a project from automatic selection
 

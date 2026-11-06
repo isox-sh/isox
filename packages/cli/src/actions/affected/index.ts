@@ -19,7 +19,7 @@ export function registerAffectedAction(cli: CAC): void {
     .action(async (options: AffectedActionOptions) => {
       const selected = await loadSelection(options)
       const plan = targetPlan(options)
-      const projects = selectProjects(selected.workspace, selected.projects, plan.target, plan.tag)
+      const projects = selectProjects(selected.workspace, await selected.projectsFor(plan), plan.target, plan.tag)
 
       validateProjectCommands(selected.workspace, projects, plan)
 

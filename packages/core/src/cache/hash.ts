@@ -7,7 +7,7 @@ import { resolveCommandOptions } from '../executor/configuration'
 import { resolveWorkspaceDependencies } from '../workspace/dependencies'
 import { readWorkspaceSettings } from '../workspace/settings'
 import { comparisonPath, digest, inside, noSymlinks, slash, snapshot, stableJson, statIfExists } from './files'
-import { resolveTaskInputs } from './named-inputs'
+import { collectTaskInputs } from './named-inputs'
 import { executorFiles, installedVersions } from './tools'
 
 import type { ExecutorContext } from '../executor/types'
@@ -76,7 +76,8 @@ export async function validateOutputs(context: ExecutorContext): Promise<string[
   return paths
 }
 
-async function fileInputs(root: string, projectRoot: string, inputs: TaskInput[], outputs: string[], projectName = ''): Promise<unknown> {
+/** Shared lexical matching also works for deleted paths and both sides of renames. */
+export function createInputMatcher(projectRoot: string, inputs: TaskInput[], outputs: string[], projectName: string) {
   const patterns = inputs.filter((input): input is string => typeof input === 'string')
   const positive = patterns.filter(pattern => !pattern.startsWith('!')).map(pattern => expandPath(pattern, projectRoot, projectName))
   const negative = patterns.filter(pattern => pattern.startsWith('!')).map(pattern => expandPath(pattern.slice(1), projectRoot, projectName))
@@ -85,15 +86,24 @@ async function fileInputs(root: string, projectRoot: string, inputs: TaskInput[]
     nonegate: true,
     nocomment: true
   }) || pattern === '.' || path === pattern || path.startsWith(`${pattern}/`)
-  const excluded = (path: string) => {
-    const rel = slash(relative(root, path))
+  const excluded = (path: string): boolean => path.split('/').some(part => reserved.has(part.toLowerCase()))
+    || outputs.some(output => path === output || path.startsWith(`${output}/`))
+    || path.split('/').some((_part, index, parts) => negative.some(pattern => matches(parts.slice(0, index + 1).join('/'), pattern)))
 
-    return rel.split('/').some(part => reserved.has(part.toLowerCase()))
-      || outputs.some(output => rel === output || rel.startsWith(`${output}/`))
-      || negative.some(pattern => matches(rel, pattern))
+  return {
+    positive,
+    excluded,
+    selected: (path: string) => positive.some(pattern => matches(path, pattern)),
+    matches: (path: string) => positive.some(pattern => matches(path, pattern))
+      && !excluded(path),
   }
+}
 
-  const selected = (path: string) => positive.some(pattern => matches(slash(relative(root, path)), pattern))
+async function fileInputs(root: string, projectRoot: string, inputs: TaskInput[], outputs: string[], projectName = ''): Promise<unknown> {
+  const patterns = inputs.filter((input): input is string => typeof input === 'string')
+  const { positive, excluded: excludes, selected: selects } = createInputMatcher(projectRoot, inputs, outputs, projectName)
+  const excluded = (path: string) => excludes(slash(relative(root, path)))
+  const selected = (path: string) => selects(slash(relative(root, path)))
   const files = new Map()
   // Start at each glob's literal prefix rather than walking the whole workspace.
   for (const pattern of positive) {
@@ -141,33 +151,7 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
   })
   const pending = new Set([context.projectName])
   const settings = await readWorkspaceSettings(root)
-  const projectInputs = new Map<string, TaskInput[][]>()
-  const visited = new Set<string>()
-
-  // Resolve every automatic dependency selection before hashing, since multiple branches
-  // can contribute inputs to the same transitive project regardless of traversal order.
-  function collectInputs(name: string, inputs?: TaskInput[]): void {
-    if (visited.has(name)) {
-      return
-    }
-
-    visited.add(name)
-    const resolved = resolveTaskInputs(workspace, settings, name, inputs)
-    for (const [project, entries] of resolved.projects) {
-      // Keep selections separate: one branch's exclusions cannot hide another branch's inputs.
-      projectInputs.set(project, [...(projectInputs.get(project) ?? []), entries])
-    }
-
-    if (!resolved.explicitDependencies) {
-      for (const dependency of workspace.projects[name].dependencies ?? []) {
-        const targets = workspace.projects[dependency]?.targets
-        const command = targets && Object.hasOwn(targets, context.commandName) ? targets[context.commandName] : undefined
-        collectInputs(dependency, command?.inputs)
-      }
-    }
-  }
-
-  collectInputs(context.projectName, context.command.inputs)
+  const projectInputs = collectTaskInputs(workspace, settings, context.projectName, context.commandName, context.command.inputs)
   const outputs = outputPaths(context.command, context.project.root, context.projectName)
   const tasks = []
 

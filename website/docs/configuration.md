@@ -295,10 +295,18 @@ remain available. `default` falls back to `["{projectRoot}/**/*"]` when undefine
 
 Dependency references prefixed with `^` replace automatic dependency source
 selection for that task. They do not remove dependency configuration, manifests,
-or declared build artifacts from the cache key. Inputs select cache content;
+or declared build artifacts from the cache key. Inputs select cache content and affected tasks;
 [`dependsOn`](#task-prerequisites) schedules tasks. See
 [named inputs](/docs/task-caching#named-inputs) for examples and
 [cache keys](/docs/task-caching#inputs-and-the-key) for automatic inputs and path restrictions.
+
+The same input resolution controls `affected` and each target in `plan`, including
+shared paths outside the project root. Targets without explicit `inputs` or a
+customized `default` set retain conservative owner/dependent selection. Automatic
+project metadata and dependency artifacts still participate; Git selection cannot
+detect environment or runtime changes. `affected.ignoreFiles` applies first,
+then global-file rules, then target inputs and prerequisite inputs. See
+[target selection](/docs/affected-and-ci#target-inputs-and-prerequisites).
 
 ## Discovery boundaries
 

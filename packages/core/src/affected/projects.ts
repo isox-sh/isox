@@ -8,7 +8,7 @@ import type { WorkspaceGraph } from '../workspace/parser'
 import type { WorkspaceSettings } from '../workspace/settings'
 
 // These affect the whole workspace even when a root project owns their paths.
-const workspaceFiles = [
+export const workspaceFiles = [
   '.gitignore', '.isoxignore',
   'isox.json', 'package.json', 'package-lock.json', 'npm-shrinkwrap.json',
   'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'yarn.lock', 'bun.lock', 'bun.lockb',

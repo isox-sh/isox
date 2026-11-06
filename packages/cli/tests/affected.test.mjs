@@ -581,3 +581,56 @@ test('affected changed-file selection expands prerequisites outside the selected
   assert.equal(result.status, 0, result.stderr)
   assert.deepEqual((await events(root)).map(({ project, phase }) => `${project}:${phase}`), ['lib:start', 'lib:end', 'app:start', 'app:end'])
 })
+
+test('multi-target plans select each target by its inputs', async t => {
+  const { write, project, commit, run } = await affectedFixture(t)
+  await write('isox.json', {
+    namedInputs: { production: ['{projectRoot}/**/*', '!{projectRoot}/**/*.md'] },
+    targetDefaults: { build: { inputs: ['production', '^production'] } },
+  })
+  await project('website', {
+    targets: {
+      docs: {
+        executor: '@fixture/plugin:record',
+        inputs: ['{workspaceRoot}/packages/**/*.md']
+      }
+    }
+  })
+  const base = commit()
+  await write('packages/lib/README.md', 'changed documentation')
+  commit()
+  const result = run('plan', `--base=${base}`, '--targets-json', JSON.stringify([{ target: 'build' }, { target: 'docs' }]))
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(result.stdout).include.map(row => [row.target, row.projects]), [['docs', ['website']]])
+})
+
+test('prerequisite input changes select consumers and execute required tasks', async t => {
+  const { root, write, project, commit, run } = await affectedFixture(t)
+  await project('app', {
+    targets: {
+      build: {
+        executor: '@fixture/plugin:record',
+        inputs: [],
+        dependsOn: ['lib:prepare']
+      }
+    },
+  })
+  await project('lib', {
+    plan: { enabled: false },
+    targets: {
+      prepare: {
+        executor: '@fixture/plugin:record',
+        inputs: ['{workspaceRoot}/tools/generate.json']
+      }
+    },
+  })
+  const base = commit()
+  await write('tools/generate.json', '{}')
+  commit()
+  const selected = run('affected', '--target=build', '--print-matrix', `--base=${base}`)
+  assert.equal(selected.status, 0, selected.stderr)
+  assert.deepEqual(JSON.parse(selected.stdout), ['app'])
+  const result = run('affected', '--target=build', `--base=${base}`)
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual((await events(root)).map(({ project, target, phase }) => `${project}:${target}:${phase}`), ['lib:prepare:start', 'lib:prepare:end', 'app:build:start', 'app:build:end'])
+})
