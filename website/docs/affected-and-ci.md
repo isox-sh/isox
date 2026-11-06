@@ -94,8 +94,10 @@ use `--all` when those changes need validation.
 Pre/post stages and `dependsOn` prerequisites also participate: a matching
 prerequisite selects its consuming project. Once selected, execution schedules
 all required prerequisites, including projects excluded from automatic selection.
-Input exclusions do not remove required tasks from that schedule. Invalid named
-inputs or task graphs fail with an explanation rather than silently skipping work.
+Input exclusions do not remove required tasks from that schedule. Circular named-input
+references, unknown dependency `^` sets, and invalid task graphs fail with an
+explanation rather than silently skipping work. Other unrecognized input strings
+are treated as workspace-relative file patterns, so a typo may match no files.
 
 ### Exclude a project from automatic selection
 
