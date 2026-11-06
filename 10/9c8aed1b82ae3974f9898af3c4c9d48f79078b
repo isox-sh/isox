@@ -1,0 +1,24 @@
+website/docs/plugin-packaging.md
+  s_8a7fbe3184e953::t_f085f0ca8dc17e 26-27,64,75-78,112-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "109c8aed1b82ae3974f9898af3c4c9d48f79078b",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_8a7fbe3184e953": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b00c-2576-7171-9b63-6c2144b9793e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
