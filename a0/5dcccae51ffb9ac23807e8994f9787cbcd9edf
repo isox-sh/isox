@@ -1,0 +1,59 @@
+packages/cli/src/actions/affected/index.ts
+  s_f1fad2b2f2f9f5::t_682b912c424c8b 22
+website/docs/configuration.md
+  s_f1fad2b2f2f9f5::t_3d7425f9c11923 298,303-309
+  s_f1fad2b2f2f9f5::t_d5b633a34b5f1e 310
+website/docs/affected-and-ci.md
+  s_f1fad2b2f2f9f5::t_3d7425f9c11923 53-55,57-60,70-98
+  s_f1fad2b2f2f9f5::t_d6f15f43481dd5 8-10
+  s_f1fad2b2f2f9f5::t_46feac1c3a4bb9 99
+packages/core/tests/task-cache.test.mjs
+  s_f1fad2b2f2f9f5::t_d6f15f43481dd5 1109-1119
+packages/cli/src/shared/selection.ts
+  s_f1fad2b2f2f9f5::t_682b912c424c8b 1,39
+  s_f1fad2b2f2f9f5::t_3d7425f9c11923 4
+  s_f1fad2b2f2f9f5::t_4874bed1d445bb 26
+packages/cli/src/actions/plan/index.ts
+  s_f1fad2b2f2f9f5::t_682b912c424c8b 29,31-35,37
+  s_f1fad2b2f2f9f5::t_3d7425f9c11923 36
+packages/core/src/affected/inputs.ts
+  s_f1fad2b2f2f9f5::t_ea8e0f3b8ff039 47-50,75-79
+  s_f1fad2b2f2f9f5::t_57a16e3fcbf8b1 1-30,32-42,44-46,51-60,62-71,73-74,80-83,85-86,88-91,93-99,105-109,111-112
+  s_f1fad2b2f2f9f5::t_3d7425f9c11923 31,43,61,72,84,87,92,100-104,110
+packages/core/src/index.ts
+  s_f1fad2b2f2f9f5::t_682b912c424c8b 33
+packages/core/src/cache/named-inputs.ts
+  s_f1fad2b2f2f9f5::t_3d7425f9c11923 128
+  s_f1fad2b2f2f9f5::t_ff5bb5e2fbf950 98-127,129-130
+packages/core/src/affected/projects.ts
+  s_f1fad2b2f2f9f5::t_682b912c424c8b 11
+packages/core/src/cache/hash.ts
+  s_f1fad2b2f2f9f5::t_ff5bb5e2fbf950 10,79-80,89-90,93-97,100,102-106,154
+  s_f1fad2b2f2f9f5::t_bcc793708fa74e 91,98
+packages/cli/tests/affected.test.mjs
+  s_f1fad2b2f2f9f5::t_3d7425f9c11923 584-636
+packages/core/tests/affected.test.mjs
+  s_f1fad2b2f2f9f5::t_ea8e0f3b8ff039 584-624
+  s_f1fad2b2f2f9f5::t_3d7425f9c11923 490-583
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a05dcccae51ffb9ac23807e8994f9787cbcd9edf",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_f1fad2b2f2f9f5": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b25e-679d-7da1-b388-438ecb66e459",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
