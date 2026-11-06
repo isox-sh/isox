@@ -23,6 +23,18 @@ a `build` target, run it with:
 npx isox build my-app
 ```
 
+## Upgrading
+
+```sh
+isox migrate latest
+pnpm install # or npm install / yarn install
+isox migrate --run-migrations
+```
+
+Review the dependency updates and generated `migrations.json` before installing.
+You can pass an exact version instead of `latest`. See the CLI reference for
+migration plans and publishing package migrations.
+
 ## Documentation
 
 - [Getting started](https://github.com/isox-sh/isox/blob/main/website/docs/getting-started.md)

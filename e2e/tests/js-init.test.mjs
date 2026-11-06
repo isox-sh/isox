@@ -19,7 +19,10 @@ for (const pathStyle of ['relative', 'absolute']) {
     assert.ok(!(await readdir(root)).includes('isox.json'))
 
     await runIsox(['init'])
-    assert.deepEqual(await readJson('isox.json', workspaceContext), { version })
+    assert.deepEqual(await readJson('isox.json', workspaceContext), {
+      version,
+      namedInputs: { default: ['{projectRoot}/**/*'] }
+    })
 
     const projectRoot = join(root, 'packages/test')
     const projectContext = { projectRoot }

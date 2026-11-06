@@ -57,6 +57,7 @@ export interface ExecutorConfiguration extends TargetDefaults {
 
 /** The contents of an Isox project.json, before its name and root are resolved. */
 export interface ProjectDefinition {
+  namedInputs?: Record<string, TaskInput[]>
   [key: string]: unknown
   $schema?: string
   name?: string

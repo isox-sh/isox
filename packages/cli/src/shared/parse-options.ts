@@ -19,13 +19,14 @@ export function preserveOptionValues(cli: CAC): void {
     const flags = definition.rawName.split(/[ ,]+/).filter(flag => flag.startsWith('-'))
 
     for (const name of [...definition.names, ...flags.map(flag => flag.replace(/^-+/, ''))]) {
-      options[name] = { type: definition.isBoolean ? 'boolean' : 'string' }
+      options[name] = { type: definition.required ? 'string' : 'boolean' }
       aliases.set(name, definition)
     }
   }
 
+  const args = cli.rawArgs.slice(2)
   const { tokens } = parseArgs({
-    args: cli.rawArgs.slice(2),
+    args,
     options,
     strict: false,
     allowPositionals: true,
@@ -45,9 +46,19 @@ export function preserveOptionValues(cli: CAC): void {
     }
 
     // Node includes the assignment separator in short options (-c=acc); CAC does not.
-    const value = token.inlineValue && token.rawName.length === 2 && token.value?.startsWith('=')
+    let value = token.inlineValue && token.rawName.length === 2 && token.value?.startsWith('=')
       ? token.value.slice(1)
       : token.value
+
+    // parseArgs has no optional string type. Read a following positional value ourselves.
+    if (!definition.required && !token.inlineValue) {
+      const next = args[token.index + 1]
+      value = next && !next.startsWith('-') ? next : undefined
+    }
+
+    if (value === undefined && !definition.required) {
+      continue
+    }
 
     if (value === undefined || value === '') {
       throw new Error(`option \`${definition.rawName}\` value is missing`)

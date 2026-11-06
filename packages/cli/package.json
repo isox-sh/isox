@@ -9,7 +9,8 @@
     "isox": "../../dist/cli/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "migrations.json"
   ],
   "dependencies": {
     "cac": "^7.1.0"
@@ -36,5 +37,6 @@
     "registry": "https://registry.npmjs.org/",
     "directory": "../../dist/cli",
     "linkDirectory": true
-  }
+  },
+  "migrations": "./migrations.json"
 }

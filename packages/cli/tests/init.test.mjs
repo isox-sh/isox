@@ -11,6 +11,8 @@ const { tmpdir } = require('node:os')
 const { join, resolve } = require('node:path')
 const { version } = require('../package.json')
 
+const namedInputs = { default: ['{projectRoot}/**/*'] }
+
 const cliPath = resolve(__dirname, '../../../dist/cli/index.js')
 
 async function fixture(t) {
@@ -42,7 +44,10 @@ test('init uses the CLI package version and creates a marker that other actions 
 
   assert.equal(result.status, 0, result.stderr)
   assert.match(result.stdout, /Created .*isox.json/)
-  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), { version })
+  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), {
+    version,
+    namedInputs
+  })
   assert.deepEqual((await readdir(root)).sort(), ['isox.json', 'package.json'])
 
   const reset = run(root, 'reset')
@@ -59,6 +64,7 @@ test('init includes Nx settings and the plugin dependency when nx.json exists in
   assert.equal(result.status, 0, result.stderr)
   assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), {
     version,
+    namedInputs,
     nx: { executors: ['@nx'] }
   })
   assert.equal(await readFile(join(root, 'nx.json'), 'utf8'), '{}\n')
@@ -122,7 +128,10 @@ test('init ignores nx.json in parent or nested directories', async (t) => {
   const result = run(nested, 'init')
 
   assert.equal(result.status, 0, result.stderr)
-  assert.deepEqual(JSON.parse(await readFile(join(nested, 'isox.json'), 'utf8')), { version })
+  assert.deepEqual(JSON.parse(await readFile(join(nested, 'isox.json'), 'utf8')), {
+    version,
+    namedInputs
+  })
 })
 
 test('init ignores a directory named nx.json', async (t) => {
@@ -132,7 +141,10 @@ test('init ignores a directory named nx.json', async (t) => {
   const result = run(root, 'init')
 
   assert.equal(result.status, 0, result.stderr)
-  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), { version })
+  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), {
+    version,
+    namedInputs
+  })
 })
 
 test('init preserves existing files, including malformed configuration', async (t) => {

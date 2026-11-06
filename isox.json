@@ -4,16 +4,25 @@
   "affected": {
     "globalFiles": []
   },
+  "namedInputs": {
+    "default": [
+      "{projectRoot}/**/*"
+    ]
+  },
   "targetDefaults": {
     "eslint:lint": {
       "cache": true,
       "inputs": [
-        "{projectRoot}/**/*",
+        "default",
         "{workspaceRoot}/eslint.config.*"
       ]
     },
     "js:tsc": {
       "cache": true,
+      "inputs": [
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.build.json"
+      ],
       "outputs": [
         "{workspaceRoot}/dist/{projectName}"
       ]
@@ -21,7 +30,7 @@
     "vitest:test": {
       "cache": true,
       "inputs": [
-        "{projectRoot}/**/*",
+        "default",
         "{workspaceRoot}/dist/**/*"
       ]
     }

@@ -41,8 +41,9 @@ command and includes `@isox-sh/core` for built-in commands.
   </Tab>
 </Tabs>
 
-`init` creates `isox.json` with the installed CLI's version and never overwrites
-an existing file. The nearest ancestor containing this file is the workspace
+`init` creates `isox.json` with the installed CLI's version and
+`namedInputs: { "default": ["{projectRoot}/**/*"] }`. It never overwrites an
+existing file. The nearest ancestor containing this file is the workspace
 root. Add `.isox/` to `.gitignore`.
 
 ## Run your first command

@@ -84,8 +84,9 @@ stored, even when the executor does not use a `watch` option.
 
 ## Inputs and the key
 
-`inputs` is an array of file patterns and `{ "env": "NAME" }` declarations. Omit it
-to include all files under the project root. An explicit array **replaces** that
+`inputs` is an array of file patterns, named input references, and
+`{ "env": "NAME" }` declarations. Omit it to use the `default` named input, which
+includes all project files unless overridden. An explicit array **replaces** that
 default; `[]` declares no project file or environment inputs. Shared workspace
 metadata and dependency inputs still participate.
 
@@ -108,8 +109,9 @@ metadata and dependency inputs still participate.
 
 The SHA-256 key also includes effective options after configuration and CLI
 overrides, the selected configuration name, project definitions, and inputs of
-transitive project dependencies. For each dependency, Isox uses its same-named
-target's inputs, or all of its project files if those are unspecified. Its target
+transitive project dependencies. Unless dependency inputs are selected with `^`,
+Isox uses each dependency's same-named target inputs, or its `default` named input
+if those are unspecified. Its target
 configuration and applicable named/default options participate too. For cacheable
 dependency targets, their actual declared output files also participate, so a
 newly rebuilt dependency invalidates consumers even if its sources are unchanged.
@@ -128,6 +130,47 @@ Installed dependency contents are assumed to match their manifests and lockfile;
 record patched dependencies in the lockfile. External tools and configuration not
 represented by these inputs need explicit file/environment declarations.
 Keys conservatively differ across checkout paths and runtime/platform changes.
+
+## Named inputs
+
+Define reusable input sets in `isox.json` and reference them from target `inputs`,
+including targets configured through `targetDefaults`:
+
+```json
+{
+  "namedInputs": {
+    "sharedGlobals": ["{workspaceRoot}/tools/config.json", { "env": "NODE_ENV" }],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "production": ["default", "!{projectRoot}/**/*.test.ts"]
+  },
+  "targetDefaults": {
+    "build": {
+      "cache": true,
+      "inputs": ["production", "^production"]
+    }
+  }
+}
+```
+
+`production` reads the current project's set. `^production` reads that set from
+every direct and transitive dependency, even projects without a `build` target.
+It replaces the automatic dependency source selection for this task. Dependency
+configuration, manifests, and declared build artifacts still participate in the
+cache key. `^{projectRoot}/src/**/*.ts` selects dependency files directly.
+
+A project's `project.json` can also define `namedInputs`. A project definition
+replaces the workspace set with the same name; other workspace sets remain
+available. References and path tokens are resolved in each owning project, so
+each dependency can supply its own `production` set. Sets may contain other set
+names, file patterns, exclusions, and environment declarations. `[]` defines an
+empty set. Circular references and unknown dependency set names fail with an error.
+
+Set names start with a letter or underscore and contain letters, digits,
+underscores, or hyphens. A string matching a defined set expands that set;
+other ordinary strings retain their meaning as workspace-relative file patterns.
+Use `{workspaceRoot}/name` to select a path whose name matches a set.
+`sharedGlobals` is a conventional name with no automatic behavior: reference it
+from `default` or another set to include it.
 
 ## Output ownership and recovery
 

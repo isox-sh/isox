@@ -143,7 +143,7 @@ source of truth if migrating against a different Isox version.
   not change the cached target definition.
 - Configure task prerequisites using [the supported `dependsOn` syntax](/docs/configuration#task-prerequisites).
   Verify target names, configurations, and forwarded options. Continuous prerequisites
-  are unsupported. Nx-schema migration removes `cache` and `inputs` in memory; it retains output metadata for
+  are unsupported. Nx-schema migration removes `cache`, `inputs`, and `namedInputs` in memory; it retains output metadata for
   the adapter. Do not copy Nx input expressions into native cache declarations.
   For deterministic native targets, explicitly configure `cache: true`, `inputs`
   and disposable output directories using [local task caching](/docs/task-caching).

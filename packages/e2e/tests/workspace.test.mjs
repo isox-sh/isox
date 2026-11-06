@@ -56,7 +56,10 @@ test('detects the caller workspace, supplies the CLI, and cleans up only its own
     private: true,
   })
   await workspace.runIsox(['init'])
-  assert.deepEqual(await readJson('isox.json', { projectRoot: workspace.root }), { version: workspace.version })
+  assert.deepEqual(await readJson('isox.json', { projectRoot: workspace.root }), {
+    version: workspace.version,
+    namedInputs: { default: ['{projectRoot}/**/*'] }
+  })
   await writeFile(join(root, 'tmp/keep'), 'keep')
   await workspace.cleanup()
   await workspace.cleanup()

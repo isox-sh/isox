@@ -5,7 +5,9 @@ import { minimatch } from 'minimatch'
 
 import { resolveCommandOptions } from '../executor/configuration'
 import { resolveWorkspaceDependencies } from '../workspace/dependencies'
+import { readWorkspaceSettings } from '../workspace/settings'
 import { comparisonPath, digest, inside, noSymlinks, slash, snapshot, stableJson, statIfExists } from './files'
+import { resolveTaskInputs } from './named-inputs'
 import { executorFiles, installedVersions } from './tools'
 
 import type { ExecutorContext } from '../executor/types'
@@ -138,6 +140,34 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
     logger: context.logger
   })
   const pending = new Set([context.projectName])
+  const settings = await readWorkspaceSettings(root)
+  const projectInputs = new Map<string, TaskInput[][]>()
+  const visited = new Set<string>()
+
+  // Resolve every automatic dependency selection before hashing, since multiple branches
+  // can contribute inputs to the same transitive project regardless of traversal order.
+  function collectInputs(name: string, inputs?: TaskInput[]): void {
+    if (visited.has(name)) {
+      return
+    }
+
+    visited.add(name)
+    const resolved = resolveTaskInputs(workspace, settings, name, inputs)
+    for (const [project, entries] of resolved.projects) {
+      // Keep selections separate: one branch's exclusions cannot hide another branch's inputs.
+      projectInputs.set(project, [...(projectInputs.get(project) ?? []), entries])
+    }
+
+    if (!resolved.explicitDependencies) {
+      for (const dependency of workspace.projects[name].dependencies ?? []) {
+        const targets = workspace.projects[dependency]?.targets
+        const command = targets && Object.hasOwn(targets, context.commandName) ? targets[context.commandName] : undefined
+        collectInputs(dependency, command?.inputs)
+      }
+    }
+  }
+
+  collectInputs(context.projectName, context.command.inputs)
   const outputs = outputPaths(context.command, context.project.root, context.projectName)
   const tasks = []
 
@@ -152,7 +182,7 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
     const configuration = command && name !== context.projectName
       ? resolveCommandOptions(command, name, context.commandName, context.configurationName && Object.hasOwn(command.configurations ?? {}, context.configurationName) ? context.configurationName : undefined)
       : undefined
-    const inputs = command?.inputs ?? ['{projectRoot}/**/*']
+    const inputs = projectInputs.get(name) ?? []
     const dependencyOutputs = name !== context.projectName && command?.cache === true
       ? outputPaths(command, project.root, project.name)
       : []
@@ -161,7 +191,7 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
       name,
       project,
       configuration,
-      inputs: await fileInputs(root, project.root, inputs, [...outputs, ...dependencyOutputs], project.name),
+      inputs: await Promise.all(inputs.map(selection => fileInputs(root, project.root, selection, [...outputs, ...dependencyOutputs], project.name))),
       // Without a prerequisite scheduler, source hashes alone cannot tell whether
       // a dependency was rebuilt. Include its actual declared build artifacts.
       artifacts: name !== context.projectName
@@ -183,7 +213,7 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
   const shared = await fileInputs(root, '.', ['package.json', 'isox.json', 'tsconfig.json', 'tsconfig.base.json', '.gitignore', '.isoxignore', ...lockfiles], outputs)
 
   return digest(stableJson({
-    version: 2,
+    version: 4,
     // Absolute paths can affect sourcemaps and arbitrary native plugins. Prefer
     // a conservative miss when moving a checkout to another location.
     root,

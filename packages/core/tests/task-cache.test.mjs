@@ -8,7 +8,7 @@ import { dirname, join, resolve } from 'node:path'
 import { test } from 'vitest'
 
 const require = createRequire(import.meta.url)
-const { createLogger, runExecutor, resetWorkspace } = require('../../../dist/core')
+const { createLogger, runExecutor, resetWorkspace, parseWorkspace } = require('../../../dist/core')
 const { taskHash } = require('../../../dist/core/cache/hash')
 const { storeTask, restoreTask } = require('../../../dist/core/cache/store')
 const { parseProjectDefinition } = require('../../../dist/core/workspace/configuration')
@@ -145,6 +145,7 @@ test('native caching is opt-in and validates declarations', () => {
   }, 'project.json'))
   const migrated = parseProjectDefinition({
     $schema: 'nx/schemas/project-schema.json',
+    namedInputs: { default: [{ runtime: 'node --version' }] },
     targets: {
       build: {
         ...build,
@@ -156,6 +157,7 @@ test('native caching is opt-in and validates declarations', () => {
   }, 'project.json')
 
   assert.equal(migrated.targets.build.cache, undefined)
+  assert.equal(migrated.namedInputs, undefined)
   assert.equal(migrated.targets.build.inputs, undefined)
   assert.deepEqual(migrated.targets.build.outputs, ['{options.outputPath}'])
 })
@@ -928,4 +930,179 @@ test.skipIf(process.platform === 'win32')('restore rechecks output paths after t
     return true
   }), /Symlinks/)
   assert.equal(await readFile(join(f.root, 'elsewhere/file'), 'utf8'), 'must survive')
+})
+
+test('named inputs expand shared sets, exclusions, environment values, and project overrides', async t => {
+  const f = await fixture(t)
+
+  await f.write('isox.json', {
+    namedInputs: {
+      default: ['{projectRoot}/**/*'],
+      shared: ['{workspaceRoot}/shared.txt', { env: 'ISOX_NAMED_INPUT_TEST' }],
+      production: ['default', '!{projectRoot}/**/*.test.txt', 'shared']
+    }
+  })
+  f.command.inputs = ['production', '^production']
+  f.workspace.projects.lib.namedInputs = {
+    production: ['{projectRoot}/input.txt']
+  }
+  await f.write('apps/demo/ignored.test.txt', 'one')
+  await f.write('libs/lib/ignored.txt', 'one')
+  const original = await f.hash()
+
+  await f.write('apps/demo/ignored.test.txt', 'two')
+  await f.write('libs/lib/ignored.txt', 'two')
+  assert.equal(await f.hash(), original)
+  for (const file of ['apps/demo/input.txt', 'libs/lib/input.txt', 'shared.txt']) {
+    const before = await f.hash()
+
+    await f.write(file, 'updated')
+    assert.notEqual(await f.hash(), before, file)
+  }
+
+  const previous = process.env.ISOX_NAMED_INPUT_TEST
+
+  try {
+    process.env.ISOX_NAMED_INPUT_TEST = 'baseline'
+    const before = await f.hash()
+    process.env.ISOX_NAMED_INPUT_TEST = 'changed'
+    assert.notEqual(await f.hash(), before)
+  } finally {
+    if (previous === undefined) {
+      delete process.env.ISOX_NAMED_INPUT_TEST
+    } else {
+      process.env.ISOX_NAMED_INPUT_TEST = previous
+    }
+  }
+})
+
+test('dependency named inputs cover transitive projects without matching targets', async t => {
+  const f = await fixture(t)
+
+  await f.write('isox.json', { namedInputs: { production: ['{projectRoot}/input.txt'] } })
+  f.workspace.projects.lib.dependencies = ['leaf']
+  f.workspace.projects.leaf = {
+    name: 'leaf',
+    root: 'libs/leaf'
+  }
+  f.command.inputs = ['{projectRoot}/**/*', '^production']
+  await f.write('libs/leaf/input.txt', 'first')
+  const original = await f.hash()
+
+  await f.write('libs/leaf/ignored.txt', 'ignored')
+  assert.equal(await f.hash(), original)
+  await f.write('libs/leaf/input.txt', 'second')
+  assert.notEqual(await f.hash(), original)
+  f.command.inputs = ['^{projectRoot}/input.txt']
+  const directPattern = await f.hash()
+
+  await f.write('libs/leaf/input.txt', 'third')
+  assert.notEqual(await f.hash(), directPattern)
+})
+
+test('omitted inputs use named default sets and invalid definitions fail clearly', async t => {
+  const f = await fixture(t)
+
+  delete f.command.inputs
+  await f.write('isox.json', { namedInputs: { default: ['{projectRoot}/input.txt'] } })
+  const original = await f.hash()
+
+  await f.write('apps/demo/ignored.txt', 'ignored')
+  assert.equal(await f.hash(), original)
+  f.command.inputs = ['cycle']
+  await f.write('isox.json', {
+    namedInputs: {
+      cycle: ['other'],
+      other: ['cycle']
+    }
+  })
+  await assert.rejects(f.hash(), /Named input cycle: demo:cycle -> demo:other -> demo:cycle/)
+  f.command.inputs = ['^missing']
+  await assert.rejects(f.hash(), /Unknown named input missing in project lib/)
+  await f.write('isox.json', { namedInputs: { broken: 'not-an-array' } })
+  await assert.rejects(f.hash(), /Invalid workspace configuration/)
+  assert.throws(() => parseProjectDefinition({ namedInputs: { broken: [{ env: '' }] } }, 'project.json'), /Invalid project configuration/)
+})
+
+test('workspace target defaults resolve named inputs through discovery and cache replay', async t => {
+  const f = await fixture(t)
+
+  await f.write('isox.json', {
+    namedInputs: {
+      source: ['{projectRoot}/input.txt'],
+      unused: []
+    },
+    targetDefaults: {
+      build: {
+        cache: true,
+        inputs: ['source', '^source']
+      }
+    }
+  })
+  await f.write('apps/demo/project.json', {
+    name: 'demo',
+    dependencies: ['lib'],
+    targets: {
+      build: {
+        executor: '@fixture/plugin:build',
+        outputs: ['dist/demo']
+      }
+    }
+  })
+  await f.write('libs/lib/project.json', { name: 'lib' })
+  const workspace = await parseWorkspace(f.root, { logger: f.context.logger })
+  const run = () => runExecutor(workspace, 'demo', 'build', f.root, f.context.logger)
+
+  await run()
+  await f.write('libs/lib/excluded.txt', 'ignored')
+  await run()
+  assert.equal(await f.runs(), 1)
+  await f.write('libs/lib/input.txt', 'changed')
+  await run()
+  assert.equal(await f.runs(), 2)
+})
+
+for (const dependencies of [['lib'], ['lib', 'leaf'], ['leaf', 'lib']]) {
+  test(`automatic dependency targets retain transitive named inputs in order ${dependencies}`, async t => {
+    const f = await fixture(t)
+    f.workspace.projects.demo.dependencies = dependencies
+    f.workspace.projects.lib.dependencies = ['leaf']
+    f.workspace.projects.lib.targets.build.inputs = ['^production']
+    f.workspace.projects.leaf = {
+      name: 'leaf',
+      root: 'libs/leaf'
+    }
+    await f.write('isox.json', {
+      namedInputs: {
+        default: ['{projectRoot}/input.txt'],
+        production: ['{workspaceRoot}/shared/{projectName}.txt', '!{projectRoot}/input.txt'],
+      }
+    })
+    await f.write('libs/leaf/input.txt', 'source')
+    await f.write('shared/leaf.txt', 'first')
+    const before = await f.hash()
+    await f.write('shared/leaf.txt', 'changed')
+    assert.notEqual(await f.hash(), before)
+    const after = await f.hash()
+    await f.write('libs/leaf/input.txt', 'changed source')
+    if (dependencies.includes('leaf')) {
+      assert.notEqual(await f.hash(), after)
+    } else {
+      assert.equal(await f.hash(), after)
+    }
+  })
+}
+
+test('dependency input paths support projectName tokens and exclusion globs', async t => {
+  const f = await fixture(t)
+  f.command.inputs = ['^{projectName}/**/*', '^!{projectName}/ignored.txt', '^{projectRoot}/**/*', '^!{projectRoot}/ignored.txt']
+  await f.write('lib/input.txt', 'first')
+  await f.write('lib/ignored.txt', 'first')
+  await f.write('libs/lib/ignored.txt', 'first')
+  const before = await f.hash()
+  await f.write('lib/ignored.txt', 'changed')
+  await f.write('libs/lib/ignored.txt', 'changed')
+  assert.equal(await f.hash(), before)
+  await f.write('lib/input.txt', 'changed')
+  assert.notEqual(await f.hash(), before)
 })

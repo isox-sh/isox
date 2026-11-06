@@ -498,3 +498,58 @@ test('relative manifest-less dependencies retain the configured project name', a
 
   assert.deepEqual(manifest.dependencies, { alias: 'npm:@fixture/other@0.0.0' })
 })
+
+test('packages migration registries and rewrites implementation paths for installation', async t => {
+  const { write, read, context } = await fixture(t)
+  await write('src/migrations/update.ts', 'export default async () => {}')
+  const registry = {
+    migrations: {
+      update: {
+        version: '0.0.2',
+        implementation: '../dist/migrations/update',
+        description: 'Update settings'
+      }
+    }
+  }
+  await write('metadata/migrations.json', registry)
+  await write('package.json', {
+    name: '@fixture/plugin',
+    version: '0.0.2',
+    migrations: './metadata/migrations.json'
+  })
+  assert.deepEqual(await tsc({ generatePackageJson: true }, context), { success: true })
+  const manifest = JSON.parse(await read('dist/package.json'))
+  assert.equal(manifest.migrations, './metadata/migrations.json')
+  const generated = JSON.parse(await read('dist/metadata/migrations.json'))
+  assert.deepEqual(generated.migrations.update, {
+    ...registry.migrations.update,
+    implementation: './../migrations/update.js'
+  })
+  assert.match(await read('dist/migrations/update.js'), /exports.default/)
+  assert.deepEqual(JSON.parse(await read('metadata/migrations.json')), registry)
+})
+
+test('migration-only packages do not infer root entry points or exports', async t => {
+  const { write, read, context } = await fixture(t)
+  await write('package.json', {
+    name: '@fixture/migrations',
+    version: '1.0.0',
+    migrations: './migrations.json'
+  })
+  await write('migrations.json', {
+    migrations: {
+      update: {
+        version: '1.0.0',
+        implementation: './dist/index.js'
+      }
+    }
+  })
+  assert.deepEqual(await tsc({
+    generatePackageJson: true,
+    generateExportsField: true
+  }, context), { success: true })
+  const manifest = JSON.parse(await read('dist/package.json'))
+  assert.equal(manifest.main, undefined)
+  assert.equal(manifest.types, undefined)
+  assert.equal(manifest.exports?.['.'], undefined)
+})
