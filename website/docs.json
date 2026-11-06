@@ -18,59 +18,123 @@
   },
   "favicon": "/images/favicon.svg",
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Get started",
-        "pages": [
-          "docs/introduction",
-          "docs/getting-started",
-          "docs/concepts"
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "docs/introduction",
+              "docs/getting-started",
+              "docs/concepts"
+            ]
+          },
+          {
+            "group": "Run your workspace",
+            "pages": [
+              "docs/shell-commands",
+              "docs/task-prerequisites",
+              "docs/task-caching",
+              "docs/cache-inputs",
+              "docs/cache-outputs",
+              "docs/cache-limits"
+            ]
+          },
+          {
+            "group": "Build and test",
+            "pages": [
+              "docs/typescript",
+              "docs/typescript-builds",
+              "docs/typescript-packages",
+              "docs/eslint",
+              "docs/vitest"
+            ]
+          },
+          {
+            "group": "Continuous integration",
+            "pages": [
+              "docs/affected-and-ci",
+              "docs/ci-planning",
+              "docs/github-actions"
+            ]
+          },
+          {
+            "group": "Release and migrate",
+            "pages": [
+              "docs/semver",
+              "docs/prereleases",
+              "docs/release-publishing",
+              "docs/migrations",
+              "docs/nx-migration",
+              "docs/prompts/migrate-nx-to-isox"
+            ]
+          },
+          {
+            "group": "Help",
+            "pages": [
+              "docs/troubleshooting"
+            ]
+          }
         ]
       },
       {
-        "group": "Run your workspace",
-        "pages": [
-          "docs/configuration",
-          "docs/task-caching",
-          "docs/cli",
-          "docs/affected-and-ci",
-          "docs/troubleshooting"
+        "tab": "Plugins",
+        "groups": [
+          {
+            "group": "Build a plugin",
+            "pages": [
+              "docs/custom-plugins",
+              "docs/plugin-quickstart",
+              "docs/plugin-packaging"
+            ]
+          },
+          {
+            "group": "Add capabilities",
+            "pages": [
+              "docs/custom-executors",
+              "docs/plugin-generators",
+              "docs/plugin-migrations"
+            ]
+          },
+          {
+            "group": "Test and integrate",
+            "pages": [
+              "docs/plugin-testing",
+              "docs/plugin-helpers",
+              "docs/core-api",
+              "docs/planning-api"
+            ]
+          }
         ]
       },
       {
-        "group": "Executors",
-        "pages": [
-          "docs/shell-commands",
-          "docs/typescript",
-          "docs/eslint",
-          "docs/vitest",
-          "docs/semver"
-        ]
-      },
-      {
-        "group": "Extend Isox",
-        "pages": [
-          "docs/custom-plugins",
-          "docs/plugin-packaging",
-          "docs/custom-executors",
-          "docs/plugin-generators",
-          "docs/plugin-migrations",
-          "docs/plugin-testing",
-          "docs/core-api"
-        ]
-      },
-      {
-        "group": "Migration",
-        "pages": [
-          "docs/migrations",
-          "docs/nx-migration",
-          "docs/prompts/migrate-nx-to-isox"
-        ]
-      },
-      {
-        "group": "Contributing",
-        "pages": [
-          "docs/contributing"
+        "tab": "Reference",
+        "groups": [
+          {
+            "group": "CLI and configuration",
+            "pages": [
+              "docs/cli",
+              "docs/configuration",
+              "docs/project-configuration",
+              "docs/release-options"
+            ]
+          },
+          {
+            "group": "Workspace internals",
+            "pages": [
+              "docs/project-discovery",
+              "docs/discovery-cache"
+            ]
+          },
+          {
+            "group": "Contribute to Isox",
+            "pages": [
+              "docs/contributing",
+              "docs/repository-builds",
+              "docs/repository-releases"
+            ]
+          }
         ]
       }
     ]

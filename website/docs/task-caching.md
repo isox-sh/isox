@@ -5,7 +5,7 @@ icon: "database"
 ---
 
 Task caching skips a native executor when a successful result exists for the same
-inputs. It is separate from [workspace discovery and dependency analysis](/docs/configuration#discovery-cache).
+inputs. It is separate from [workspace discovery and dependency analysis](/docs/discovery-cache#discovery-cache).
 Targets opt in with `cache: true`, locally or through
 [workspace target defaults](/docs/configuration#target-defaults). The JS initializer
 and Vitest add generator register cache defaults when missing.
@@ -84,227 +84,20 @@ stored, even when the executor does not use a `watch` option.
 
 ## Inputs and the key
 
-`inputs` is an array of file patterns, named input references, and
-`{ "env": "NAME" }` declarations. Omit it to use the `default` named input, which
-includes all project files unless overridden. An explicit array **replaces** that
-default; `[]` declares no project file or environment inputs. Shared workspace
-metadata and dependency inputs still participate.
-
-- Paths and globs are relative to the workspace. `{projectRoot}` and
-  `{workspaceRoot}` and `{projectName}` are available; use `/` separators on every platform.
-- Prefix a pattern with `!` to exclude matches. Exclusions always win. Literal
-  directories include their descendants. Hidden files are included.
-- `.gitignore` and `.isoxignore` govern discovery, **not task input matching**.
-  Ignored files can affect a build, so include or exclude them explicitly here.
-- `.git`, `.isox`, `node_modules`, and the current target's output directories
-  are excluded from file inputs. Declare other generated directories as exclusions.
-- Files outside the project can be included as workspace-relative paths. Paths
-  outside the workspace, traversal through `..`, and selected symlinks are rejected.
-  Installed executor packages are handled separately.
-- File paths, contents and permission bits participate. Timestamps and inode
-  identities do not. Missing literals or empty matches are valid: creating a
-  matching file changes the key. Empty input directories alone do not affect it.
-- Only declared environment variables participate. An unset variable differs
-  from an empty value. Declare every variable that affects the task's result.
-
-The SHA-256 key also includes effective options after configuration and CLI
-overrides, the selected configuration name, project definitions, and inputs of
-transitive project dependencies. Unless dependency inputs are selected with `^`,
-Isox uses each dependency's same-named target inputs, or its `default` named input
-if those are unspecified. Its target
-configuration and applicable named/default options participate too. For cacheable
-dependency targets, their actual declared output files also participate, so a
-newly rebuilt dependency invalidates consumers even if its sources are unchanged.
-Hashing itself does not schedule tasks. Declare
-[`dependsOn`](/docs/configuration#task-prerequisites) to run prerequisite tasks
-before the consumer's cache lookup, or prepare those outputs explicitly. Explicitly include any other generated artifacts
-the task reads (for example, build outputs used by a `test` target) in `inputs`.
-
-Root `package.json`, `isox.json`, `tsconfig.json`, `tsconfig.base.json`, ignore
-files, and supported npm/pnpm/Yarn/Bun lockfiles participate automatically.
-Executor package contents (including local compiled implementations), the running
-core package's files, installed
-package manifests/versions, Node and its component versions, OS release,
-architecture, endianness, and the absolute workspace path also participate.
-Installed dependency contents are assumed to match their manifests and lockfile;
-record patched dependencies in the lockfile. External tools and configuration not
-represented by these inputs need explicit file/environment declarations.
-Keys conservatively differ across checkout paths and runtime/platform changes.
+See [Inputs and the key](/docs/cache-inputs#inputs-and-the-key).
 
 ## Named inputs
 
-Define reusable input sets in `isox.json` and reference them from target `inputs`,
-including targets configured through `targetDefaults`:
-
-```json
-{
-  "namedInputs": {
-    "sharedGlobals": ["{workspaceRoot}/tools/config.json", { "env": "NODE_ENV" }],
-    "default": ["{projectRoot}/**/*", "sharedGlobals"],
-    "production": ["default", "!{projectRoot}/**/*.test.ts"]
-  },
-  "targetDefaults": {
-    "build": {
-      "cache": true,
-      "inputs": ["production", "^production"]
-    }
-  }
-}
-```
-
-`production` reads the current project's set. `^production` reads that set from
-every direct and transitive dependency, even projects without a `build` target.
-It replaces the automatic dependency source selection for this task. Dependency
-configuration, manifests, and declared build artifacts still participate in the
-cache key. `^{projectRoot}/src/**/*.ts` selects dependency files directly.
-
-A project's `project.json` can also define `namedInputs`. A project definition
-replaces the workspace set with the same name; other workspace sets remain
-available. References and path tokens are resolved in each owning project, so
-each dependency can supply its own `production` set. Sets may contain other set
-names, file patterns, exclusions, and environment declarations. `[]` defines an
-empty set. Circular references and unknown dependency set names fail with an error.
-
-Set names start with a letter or underscore and contain letters, digits,
-underscores, or hyphens. A string matching a defined set expands that set;
-other ordinary strings retain their meaning as workspace-relative file patterns.
-Use `{workspaceRoot}/name` to select a path whose name matches a set.
-`sharedGlobals` is a conventional name with no automatic behavior: reference it
-from `default` or another set to include it.
+See [Named inputs](/docs/cache-inputs#named-inputs).
 
 ## Output ownership and recovery
 
-`outputs` is optional, including when `cache` is `true`. When omitted after target
-defaults are merged, only the successful result and terminal logs are cached.
-When provided, it is an array of concrete,
-exclusively owned **directories**, with the same path tokens. Globs, individual
-files, workspace/project roots, reserved directories, and overlapping declarations
-are rejected. Use `outputs: []` to override inherited output directories and cache
-only logs. Executors that produce reusable files must declare those directories
-to restore them on a cache hit.
-
-Declaring an output makes it disposable. Before a finite execution, including
-`--skip-cache`, Isox moves existing output directories into temporary backups.
-A successful execution discards those backups. A handled failure or cancellation
-removes partial outputs and restores the previous directories. Watch mode clears
-outputs before its initial build and keeps its latest results when stopped.
-On a cache hit, Isox replaces outputs with the recorded tree, removing stale files.
-
-In Git workspaces, output directories containing tracked files are rejected before
-replacement or execution. A failure to inspect the Git index stops the operation.
-This check also applies to staged files and workspaces nested inside a repository.
-Keep untracked source files and manually maintained assets outside output
-directories too; Isox cannot identify those automatically.
-Missing output directories are recorded as
-missing; empty directories and file permissions are preserved. Symlink artifacts
-and symlink output paths are rejected.
-
-This replacement contract also lets a restored TypeScript package rebuild after
-its `.isox/tsc` ownership state has been lost. Uncached targets keep their existing
-executor-specific cleanup behavior.
-
-Successful finite tasks publish artifacts, terminal logs and metadata atomically
-under `.isox/tasks/<hash>`. A changed input during execution prevents publication.
-Failed, cancelled, empty-result and continuous runs cannot publish successful
-entries. Terminal capture covers Node stdout/stderr writes and children launched
-through core's `runProcess`; custom plugins should use these APIs rather than
-writing directly to file descriptors or inheriting unmanaged child output. Logs
-over 16 MiB or 65,536 nonempty writes still print live but prevent caching that
-execution. The write-count limit bounds the overhead of many tiny chunks. Cache metadata is
-limited to 64 MiB; oversized entries are ignored and oversized new entries are not
-stored. Metadata reads are bounded before parsing.
-
-Cache hits verify the cached artifacts even when workspace outputs already match.
-Matching outputs stay in place, preserving their files and timestamps. When outputs
-differ, restoration verifies every artifact in staging before replacing outputs and
-rolls back a partial restore on error. Incomplete or corrupt entries cause a miss.
-Concurrent cache publishers cannot expose partial entries. Overlapping output
-owners fail with a diagnostic instead of writing simultaneously.
-
-A forced kill or machine failure can interrupt cleanup and leave a lock and
-backups. Stop active tasks before recovery. For interrupted executions,
-`.isox/tasks/<id>.run/outputs.json` maps numbered backup directories to their
-workspace destinations. Restore any needed backups before `isox reset`, which
-also deletes them. Failed cache restores may leave numbered `.previous`
-directories and an `outputs.json` map in a `.restore` folder. These are recovery copies, not automatically
-resumed transactions; a rebuild may be necessary after an abrupt termination.
-
-`isox reset` removes **all** `.isox` data: result entries, workspace definitions,
-dependency analysis, compiler state and locks. It leaves compiled output in place.
-There is no automatic eviction yet; reset is also the disk-space cleanup control.
+See [Output ownership and recovery](/docs/cache-outputs#output-ownership-and-recovery).
 
 ## Cost and limits
 
-Targets without `cache: true` incur no task hashing, log capture or artifact-copy
-work. Cacheable invocations request their dependency closure and read declared
-file contents, installed tool manifests and executor files before lookup. A miss
-checks inputs again after execution before publishing; it also copies outputs.
-A hit also rechecks inputs before reuse. Existing outputs are compared by content,
-permissions and directory structure, then checked again after input validation.
-Tool hashing starts from the executor, core, workspace root, and the selected
-project's dependency closure. Workspace and project `devDependencies` are included
-because tasks can invoke those tools. Within installed packages, only runtime,
-peer and optional dependencies are followed; their own development dependencies
-are excluded. A plugin must declare the packages it needs to execute as runtime
-or peer dependencies. Lockfiles and full manifest contents still participate in
-the key, so changing dependency declarations still invalidates results.
-
-Manifest reads run in bounded parallel batches. `.isox/tools.json` indexes package
-lookup directories, including missing directories, to avoid repeated filesystem
-searches. Each hash validates directory identities and change times before reusing
-listings. Package manifest contents and resolved real paths are still read on each
-hash, so edits, new installations, removals and changed symlinks remain detectable.
-The index is written atomically, rebuilt when invalid, and removed by `isox reset`.
-
-Small, fast
-tasks can still take longer to validate than to execute; use `--skip-cache` when
-measuring that tradeoff.
-Preserving previous outputs uses directory renames on the same filesystem and
-temporarily retains both old and new output trees. Git output checks inspect the
-index for declared directories; tasks with no outputs skip that check.
-A hit stages and validates cached outputs, rechecks inputs before replacement,
-and replays logs. Cost grows with selected
-input bytes, installed tool metadata, and output bytes, rather than only changed
-file counts. Narrow `inputs` carefully for large projects, without omitting real
-inputs.
-
-Cache entries are trusted local data. Checksums detect accidental corruption;
-they do not authenticate whoever wrote an entry. Share caches only across trusted
-jobs, and avoid storing secrets in terminal output. Executors are not sandboxed:
-undeclared file reads, environment variables, external services and side effects
-remain the target author's responsibility. Do not run `isox reset` during active
-tasks, or let other tools modify their output directories concurrently.
-Project definitions retain the manual workspace-reset behavior; after editing
-`project.json` or `isox.json.targetDefaults`, reset or explicitly rediscover the
-workspace before execution.
+See [Cost and limits](/docs/cache-limits#cost-and-limits).
 
 ## Cache poisoning and trust boundaries
 
-[CVE-2025-36852 (CREEP)](https://nx.dev/blog/cve-2025-36852-critical-cache-poisoning-vulnerability-creep)
-describes an untrusted build publishing poisoned results before a trusted build
-requests the same task hash. The artifact can have valid checksums because it was
-already malicious when packaged. Extra hashing, encryption and immutable cache
-entries do not establish who is allowed to produce trusted results.
-
-**This is not limited to open-source projects.** Private repositories also need
-isolation when PR authors or feature-branch jobs are less trusted than release
-jobs. The relevant boundary is publisher authority, not repository visibility.
-
-Isox has no native cloud-storage adapter yet. Its local cache assumes trusted
-writers: anyone able to modify `.isox` can fabricate a successful result. Never
-share a writable `.isox` directory between untrusted builds and trusted jobs,
-including on persistent self-hosted runners. `--skip-cache` bypasses task-result
-reuse; it does not sanitize restored discovery/compiler state. Use a clean
-workspace for a release rather than importing untrusted state.
-
-The GitHub cache action delegates access control to GitHub. Normal `pull_request`
-caches are scoped to the PR merge ref and cannot be restored by the base branch.
-Matching Isox prefixes do not bypass that isolation. Jobs executing untrusted code
-in a privileged context, such as unsafe `pull_request_target` or `workflow_run`
-flows, require separate review; do not grant them shared cache write access or
-copy their results into a release cache. See
-[GitHub's cache restrictions](https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching#restrictions-for-accessing-a-cache).
-
-Future cloud caching must enforce producer identity, isolated write scopes and
-trusted-consumer rules on the server. Merely putting a branch name into a key is
-not sufficient. See the [remote-cache security checklist](https://github.com/isox-sh/isox/blob/main/ROADMAP.md#required-cloud-cache-security-boundary).
+See [Cache poisoning and trust boundaries](/docs/cache-limits#cache-poisoning-and-trust-boundaries).

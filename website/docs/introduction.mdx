@@ -77,13 +77,20 @@ with [opt-in local caching](/docs/task-caching).
 
 <Note>
   Isox orders selected projects by dependency when a multi-project stage includes
-  cached outputs. Declare [`dependsOn`](/docs/configuration#task-prerequisites)
+  cached outputs. Declare [`dependsOn`](/docs/task-prerequisites#task-prerequisites)
   to add required tasks, including tasks outside the selected project list.
   Separate CI jobs expand their own prerequisites; see
-  [execution ordering](/docs/affected-and-ci#execution-ordering).
+  [execution ordering](/docs/github-actions#execution-ordering).
   [Local task caching](/docs/task-caching) is available; remote caching remains
   on the [roadmap](https://github.com/isox-sh/isox/blob/main/ROADMAP.md).
 </Note>
+
+## Build your own plugin
+
+<Card title="Create your first plugin" icon="puzzle-piece" href="/docs/plugin-quickstart">
+  Write an executor, install it locally, and run it. Open the Plugins tab for
+  generators, migrations, packaging, and testing.
+</Card>
 
 ## Extend your tooling
 

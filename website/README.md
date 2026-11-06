@@ -3,6 +3,9 @@
 Install `@isox-sh/cli` to get the `isox` command. Start with the
 [getting started guide](docs/getting-started.md), then choose a topic below.
 
+The site has three top tabs: **Guides** for everyday workflows, **Plugins** for
+extending Isox, and **Reference** for CLI/configuration details and contributing.
+
 ## Learn the basics
 
 - [Introduction](docs/introduction.mdx) — what Isox does and where it fits.
@@ -20,9 +23,10 @@ Install `@isox-sh/cli` to get the `isox` command. Start with the
 - [Affected projects and CI](docs/affected-and-ci.md) — select changes and distribute work.
 - [Releases](docs/semver.md) — version packages, write changelogs, and publish.
 
-## Extend Isox
+## Plugins
 
-- [Custom plugins](docs/custom-plugins.md) — choose the features your plugin provides.
+- [Build Isox plugins](docs/custom-plugins.md) — choose the features your plugin provides.
+- [Your first plugin](docs/plugin-quickstart.md) — create, install, and run a working executor.
 - [Layout and packaging](docs/plugin-packaging.md) — organize and publish plugin files.
 - [Executors](docs/custom-executors.md) — run targets with cancellation and caching.
 - [Generators](docs/plugin-generators.md) — create projects and add plugin configuration.
@@ -83,7 +87,10 @@ Keep guides in `website/docs/`. The contributing guide uses `.mdx` because
 Mintlify excludes `contributing.md`. New
 pages can use MDX for Mintlify components such as cards and callouts. Give each
 page a frontmatter title and description, and list its extensionless path in
-`docs.json`, for example `docs/getting-started`. Within site content, use links
+the appropriate tab and group in `docs.json`, for example `docs/getting-started`.
+Keep each guide focused on one task: lead with a working example, put option
+details in tables, and link to separate pages for advanced behavior. Preserve
+existing URLs and heading links when moving material. Within site content, use links
 such as `/docs/cli#named-configurations`. Link to source files outside `website/`
 using their full GitHub URL. Redirects preserve the previous guide URLs.
 

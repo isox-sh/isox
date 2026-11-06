@@ -1,4 +1,12 @@
 /* Homepage styles stay scoped so documentation uses Mintlify's own layout. */
+/* Hide the entire tab row, including its reserved space, on the homepage. */
+:root:has(.isox-home) {
+  --topbar-tabs-height: 0px !important;
+}
+body:has(.isox-home) #navbar div:has(> .nav-tabs) {
+  display: none;
+}
+
 .isox-home {
   --home-bg: #fff;
   --home-surface: #f6f8fc;

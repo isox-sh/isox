@@ -141,7 +141,7 @@ source of truth if migrating against a different Isox version.
   are aliases). An explicit name takes precedence over `--prod`, then the command's
   default is used. Missing configurations fail. Selecting a configuration does
   not change the cached target definition.
-- Configure task prerequisites using [the supported `dependsOn` syntax](/docs/configuration#task-prerequisites).
+- Configure task prerequisites using [the supported `dependsOn` syntax](/docs/task-prerequisites#task-prerequisites).
   Verify target names, configurations, and forwarded options. Continuous prerequisites
   are unsupported. Nx-schema migration removes `cache`, `inputs`, and `namedInputs` in memory; it retains output metadata for
   the adapter. Do not copy Nx input expressions into native cache declarations.
@@ -406,7 +406,7 @@ cache skips compilation or replaces build-specific package dependency generation
 
 TypeScript resolution can record ancestor `node_modules` existence checks outside
 the workspace. These are lookup probes, not recursive project discovery. See
-[cache behavior](/docs/configuration#discovery-cache) for scope and invalidation.
+[cache behavior](/docs/discovery-cache#discovery-cache) for scope and invalidation.
 `isox reset` removes the entire `.isox` directory when an explicit cleanup is
 needed. Never edit the cache to substitute for a project-file migration. Check
 `.gitignore` and `.isoxignore` if migrated projects are not discovered.
