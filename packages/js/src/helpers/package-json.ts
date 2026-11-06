@@ -180,7 +180,7 @@ export async function generatePackageJson(
     await walk(JSON.parse(data.toString()) as Json)
   }
 
-  for (const field of ['executors', 'generators']) {
+  for (const field of ['executors', 'generators', 'migrations']) {
     const manifestPath = manifest[field]
 
     if (manifestPath === undefined) {

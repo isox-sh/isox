@@ -6,6 +6,7 @@ import { registerAddAction } from './actions/add'
 import { registerAffectedAction } from './actions/affected'
 import { registerCommandAction } from './actions/command'
 import { registerInitAction } from './actions/init'
+import { registerMigrateAction } from './actions/migrate'
 import { registerPlanAction } from './actions/plan'
 import { registerResetAction } from './actions/reset'
 import { registerRunAction } from './actions/run'
@@ -19,6 +20,7 @@ cli.option('--verbose', 'Show debug logs and error stack traces')
 registerCommandAction(cli)
 registerInitAction(cli)
 registerAddAction(cli)
+registerMigrateAction(cli)
 registerRunAction(cli)
 registerResetAction(cli)
 registerAffectedAction(cli)

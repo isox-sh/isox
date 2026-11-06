@@ -49,6 +49,10 @@ export function preserveOptionValues(cli: CAC): void {
       ? token.value.slice(1)
       : token.value
 
+    if (value === undefined && !definition.required) {
+      continue
+    }
+
     if (value === undefined || value === '') {
       throw new Error(`option \`${definition.rawName}\` value is missing`)
     }

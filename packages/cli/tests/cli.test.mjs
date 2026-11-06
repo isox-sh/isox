@@ -326,3 +326,75 @@ for (const executor of ['core:run-command', '@isox-sh/core:run-commands']) {
     }
   })
 }
+
+test('migrate accepts bare and explicit plan options from nested directories', async t => {
+  const { root, write } = await fixture(t)
+  await write('isox.json', {})
+  await write('migrations.json', { migrations: [] })
+  await write('plans/custom.json', { migrations: [] })
+  for (const args of [
+    ['--run-migrations'],
+    ['--run-migrations=plans/custom.json'],
+    ['--run-migrations', 'plans/custom.json'],
+    ['--run-migrations=missing.json', '--if-exists'],
+  ]) {
+    const result = spawnSync(process.execPath, [cliPath, 'migrate', ...args], {
+      cwd: join(root, 'plans'),
+      encoding: 'utf8'
+    })
+    assert.equal(result.status, 0, result.stderr)
+  }
+
+  for (const args of [[], ['latest', '--run-migrations'], ['latest', '--if-exists'], ['--unknown']]) {
+    const result = spawnSync(process.execPath, [cliPath, 'migrate', ...args], {
+      cwd: root,
+      encoding: 'utf8'
+    })
+    assert.equal(result.status, 1)
+  }
+})
+
+test.skipIf(process.platform === 'win32')('migrate resolves registry metadata and collects published migration definitions', async t => {
+  const { root, write } = await fixture(t)
+  await write('isox.json', {})
+  await write('package.json', { devDependencies: { '@isox-sh/core': '~1.0.0' } })
+  await write('node_modules/@isox-sh/core/package.json', { version: '1.0.0' })
+  await write('bin/npm', `#!${process.execPath}
+const fs = require('node:fs')
+const path = require('node:path')
+const assert = require('node:assert/strict')
+const args = process.argv.slice(2)
+if (args[0] === 'view') {
+  assert.deepEqual(args, ['view', '@isox-sh/core@latest', '--json'])
+  console.log(JSON.stringify({ version: '2.0.0', migrations: './migrations.json' }))
+} else {
+  assert.ok(args.includes('--ignore-scripts'))
+  assert.equal(args.at(-1), '@isox-sh/core@2.0.0')
+  const temporary = args[args.indexOf('--prefix') + 1]
+  fs.writeFileSync('temporary-path', temporary)
+  const root = path.join(temporary, 'node_modules/@isox-sh/core')
+  fs.mkdirSync(root, { recursive: true })
+  fs.writeFileSync(path.join(root, 'package.json'), JSON.stringify({ version: '2.0.0', migrations: './migrations.json' }))
+  fs.writeFileSync(path.join(root, 'migrations.json'), JSON.stringify({ migrations: { update: { version: '2.0.0', implementation: './update.js' } } }))
+}
+`)
+  await require('node:fs/promises').chmod(join(root, 'bin/npm'), 0o755)
+  const result = spawnSync(process.execPath, [cliPath, 'migrate', 'latest'], {
+    cwd: root,
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      PATH: `${join(root, 'bin')}${require('node:path').delimiter}${process.env.PATH}`
+    },
+  })
+  assert.equal(result.status, 0, result.stderr)
+  const plan = JSON.parse(await readFile(join(root, 'migrations.json'), 'utf8'))
+  assert.deepEqual(plan.migrations, [{
+    package: '@isox-sh/core',
+    name: 'update',
+    version: '2.0.0'
+  }])
+  assert.equal(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).devDependencies['@isox-sh/core'], '~2.0.0')
+  const temporary = await readFile(join(root, 'temporary-path'), 'utf8')
+  await assert.rejects(require('node:fs/promises').stat(temporary), { code: 'ENOENT' })
+})
