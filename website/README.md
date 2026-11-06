@@ -20,11 +20,19 @@ Install `@isox-sh/cli` to get the `isox` command. Start with the
 - [Affected projects and CI](docs/affected-and-ci.md) — select changes and distribute work.
 - [Releases](docs/semver.md) — version packages, write changelogs, and publish.
 
-## Extend and migrate
+## Extend Isox
 
-- [Core API](docs/core-api.md) — programmatic execution, types, and helpers.
-- [Custom executors and initializers](docs/custom-executors.md) — build a plugin.
+- [Custom plugins](docs/custom-plugins.md) — choose the features your plugin provides.
+- [Layout and packaging](docs/plugin-packaging.md) — organize and publish plugin files.
+- [Executors](docs/custom-executors.md) — run targets with cancellation and caching.
+- [Generators](docs/plugin-generators.md) — create projects and add plugin configuration.
+- [Migrations](docs/plugin-migrations.md) — publish versioned configuration updates.
 - [Plugin testing](docs/plugin-testing.md) — test plugins in temporary workspaces.
+- [Core API](docs/core-api.md) — programmatic execution, types, and helpers.
+
+## Update and migrate
+
+- [Updating Isox](docs/migrations.md) — plan upgrades and run migration scripts.
 - [Nx migration](docs/nx-migration.md) and [AI migration prompt](docs/prompts/migrate-nx-to-isox.md).
 
 ## Get help and contribute
