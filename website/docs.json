@@ -50,14 +50,19 @@
       {
         "group": "Extend Isox",
         "pages": [
-          "docs/core-api",
+          "docs/custom-plugins",
+          "docs/plugin-packaging",
           "docs/custom-executors",
-          "docs/plugin-testing"
+          "docs/plugin-generators",
+          "docs/plugin-migrations",
+          "docs/plugin-testing",
+          "docs/core-api"
         ]
       },
       {
         "group": "Migration",
         "pages": [
+          "docs/migrations",
           "docs/nx-migration",
           "docs/prompts/migrate-nx-to-isox"
         ]

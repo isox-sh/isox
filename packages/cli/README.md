@@ -32,12 +32,16 @@ isox migrate --run-migrations
 ```
 
 Review the dependency updates and generated `migrations.json` before installing.
-You can pass an exact version instead of `latest`. See the CLI reference for
-migration plans and publishing package migrations.
+You can pass an exact version instead of `latest`. See the
+[updating guide](https://github.com/isox-sh/isox/blob/main/website/docs/migrations.md)
+for migration plans. Plugin authors can follow the
+[plugin migration guide](https://github.com/isox-sh/isox/blob/main/website/docs/plugin-migrations.md#publish-migration-scripts)
+to publish migration scripts.
 
 ## Documentation
 
 - [Getting started](https://github.com/isox-sh/isox/blob/main/website/docs/getting-started.md)
+- [Updating Isox](https://github.com/isox-sh/isox/blob/main/website/docs/migrations.md)
 - [CLI reference](https://github.com/isox-sh/isox/blob/main/website/docs/cli.md)
 - [Workspace configuration](https://github.com/isox-sh/isox/blob/main/website/docs/configuration.md)
 - [All documentation](https://github.com/isox-sh/isox/blob/main/website/README.md)

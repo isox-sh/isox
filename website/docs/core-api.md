@@ -68,7 +68,7 @@ It does not analyze imports or cache task results. See
 
 ## Custom executors
 
-See [custom executors and initializers](/docs/custom-executors) for the native
+See [custom executors](/docs/custom-executors) for the native
 contract, plugin manifests, continuous results, and cancellation.
 `runExecutor` accepts an optional `AbortSignal` as its seventh argument.
 When that signal is aborted, an executor may stop by throwing its abort reason

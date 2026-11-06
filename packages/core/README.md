@@ -18,7 +18,7 @@ for fingerprints, invalidation and reset semantics.
 ## Documentation
 
 - [Core API and shell commands](https://github.com/isox-sh/isox/blob/main/website/docs/core-api.md)
-- [Custom executors and initializers](https://github.com/isox-sh/isox/blob/main/website/docs/custom-executors.md)
+- [Custom plugins](https://github.com/isox-sh/isox/blob/main/website/docs/custom-plugins.md)
 - [All documentation](https://github.com/isox-sh/isox/blob/main/website/README.md)
 
 [Website](https://isox.sh) · [Source](https://github.com/isox-sh/isox) ·

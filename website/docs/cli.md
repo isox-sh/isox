@@ -190,82 +190,10 @@ Local task caching is opt-in; remote caching and isolation remain on the
 
 ## Upgrade Isox
 
-Use the same review/install/run workflow as `nx migrate`:
-
-```sh
-isox migrate latest       # or an exact version, such as 1.2.0
-pnpm install             # npm install or yarn install also works
-isox migrate --run-migrations
-```
-
-Planning updates the root `package.json` entries for `@isox-sh/*` in
-`dependencies`, `devDependencies`, and `optionalDependencies`. It preserves `^`
-and `~` prefixes, skips `workspace:`, `file:`, and `link:` dependencies, and
-resolves `latest` once so the packages stay on the same release. Dependencies
-must already be installed: their actual versions determine which migrations apply.
-Downgrades and unsupported dependency specifiers are rejected.
-
-The command writes an editable `migrations.json` containing scripts newer than
-the installed version and no newer than the target version. Review both files
-before installing. Planning uses npm and its registry configuration to read
-published metadata; packages declaring migrations are installed into a temporary
-directory with lifecycle scripts disabled, then removed. Your workspace lockfile
-is updated by your own install command.
-
-An existing plan is never overwritten. After a successful upgrade, remove it or
-keep it for teammates to rerun, then remove it before planning the next upgrade.
-Even upgrades without scripts create an empty plan. The runner executes entries
-in file order, stops on the first failure, and leaves the plan intact. Fix a
-failure and rerun, or remove already completed entries from the plan. Migrations
-should be idempotent. A failed script can leave partial changes; review your diff.
-
-```sh
-isox migrate --run-migrations=plans/upgrade.json
-isox migrate --run-migrations --if-exists
-```
-
-Plan paths are relative to the workspace root, including when called from a
-nested directory. `--if-exists` skips a missing plan; it does not ignore invalid
-plans or failed scripts. This upgrades Isox packages; conversion from Nx is
-covered in the [Nx migration guide](/docs/nx-migration).
+See [Updating Isox and running migrations](/docs/migrations) for the
+plan, review, install, and run workflow, including custom plans and retries.
 
 ### Publish migration scripts
 
-Declare a registry in the package's `package.json`:
-
-```json
-{ "migrations": "./migrations.json" }
-```
-
-The registry maps stable migration names to the release that introduced them:
-
-```json
-{
-  "migrations": {
-    "rename-build-option": {
-      "version": "1.2.0",
-      "description": "Rename the legacy build option",
-      "implementation": "./migrations/rename-build-option.js"
-    }
-  }
-}
-```
-
-Implementation paths resolve relative to the registry. Export a function, or a
-default function, accepting `MigrationContext` from `@isox-sh/core`:
-
-```ts
-import type { MigrationContext } from '@isox-sh/core'
-
-export default async function migrate({ workspaceRoot, logger }: MigrationContext) {
-  // Read and update configuration under workspaceRoot; tolerate already updated files.
-  logger.info(`Migrating ${workspaceRoot}`)
-}
-```
-
-Include the registry and compiled implementations in the published package.
-The `js:tsc` executor copies the `migrations` registry and rewrites its
-implementation paths when `generatePackageJson` is enabled. Keep older definitions so users can skip
-releases. The runner resolves scripts from installed package registries and
-checks their recorded versions before executing them. Isox migrations use this
-context API; Nx Tree-based migration implementations are not interchangeable.
+See [publishing migration scripts](/docs/plugin-migrations#publish-migration-scripts)
+for the package registry format, migration API, and build configuration.
