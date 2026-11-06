@@ -23,7 +23,8 @@ packages/<plugin>/
 │   │       ├── lint.executor.ts
 │   │       └── lint.schema.json
 │   ├── generators/
-│   │   └── init.ts
+│   │   ├── init.ts
+│   │   └── init.schema.json
 │   ├── migrations/
 │   │   └── rename-build-option.ts
 │   └── helpers/
@@ -60,7 +61,7 @@ paths under `dist`:
         "assets": [
           {
             "input": "packages/my-plugin/src",
-            "glob": "executors/**/*.schema.json"
+            "glob": "**/*.schema.json"
           }
         ]
       }
@@ -71,8 +72,10 @@ paths under `dist`:
 
 With `rootDir: "./src"` and `outDir: "./dist"` in the package's tsconfig, this
 produces `dist/executors/lint/lint.executor.js` and
-`dist/executors/lint/lint.schema.json`. Copy any supporting JSON files referenced
-by a schema as assets too, preserving their relative paths.
+`dist/executors/lint/lint.schema.json`, along with `dist/generators/init.js` and
+the optional `dist/generators/init.schema.json`. The asset pattern includes both
+executor and generator schemas. Copy any supporting JSON files referenced by a
+schema as assets too, preserving their relative paths.
 
 Point both manifest fields at the built files:
 
@@ -106,5 +109,5 @@ options schemas.
 The layout above describes a plugin with a local `dist` directory. This
 repository builds standalone packages into `<repository>/dist/<package>`; see
 [repository build outputs](/docs/contributing#build-outputs) for workspace links,
-package generation, and bootstrap behavior. In both layouts, executor schemas
-are copied through the configured assets.
+package generation, and bootstrap behavior. In both layouts, executor and
+generator schemas are copied through the configured assets.
