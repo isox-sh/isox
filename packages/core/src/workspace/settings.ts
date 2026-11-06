@@ -6,7 +6,7 @@ import { Ajv } from 'ajv'
 
 import { workspaceSchemaPath } from './schema'
 
-import type { TargetDefaults } from './configuration'
+import type { TargetDefaults, TaskInput } from './configuration'
 
 interface AffectedSettings {
   defaultBase?: string
@@ -19,6 +19,7 @@ interface NxSettings {
 }
 
 export interface WorkspaceSettings {
+  namedInputs?: Record<string, TaskInput[]>
   targetDefaults?: Record<string, TargetDefaults>
   affected?: AffectedSettings
   nx?: NxSettings

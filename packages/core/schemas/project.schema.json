@@ -58,6 +58,9 @@
         "minLength": 1
       },
       "description": "Labels for organizing projects."
+    },
+    "namedInputs": {
+      "$ref": "#/definitions/namedInputs"
     }
   },
   "definitions": {
@@ -97,29 +100,7 @@
           "description": "Reuse successful native task results. Outputs are exclusively owned, disposable directories."
         },
         "inputs": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "object",
-                "required": [
-                  "env"
-                ],
-                "properties": {
-                  "env": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-                  }
-                },
-                "additionalProperties": false
-              }
-            ]
-          },
-          "description": "Workspace-relative globs or environment inputs. Supports {projectRoot}, {workspaceRoot} and ! exclusions. Defaults to all project files."
+          "$ref": "#/definitions/taskInputs"
         },
         "outputs": {
           "type": "array",
@@ -164,29 +145,7 @@
           "description": "Reuse successful native task results. Outputs are exclusively owned, disposable directories."
         },
         "inputs": {
-          "type": "array",
-          "items": {
-            "oneOf": [
-              {
-                "type": "string",
-                "minLength": 1
-              },
-              {
-                "type": "object",
-                "required": [
-                  "env"
-                ],
-                "properties": {
-                  "env": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
-                  }
-                },
-                "additionalProperties": false
-              }
-            ]
-          },
-          "description": "Workspace-relative globs or environment inputs. Supports {projectRoot}, {workspaceRoot} and ! exclusions. Defaults to all project files."
+          "$ref": "#/definitions/taskInputs"
         },
         "outputs": {
           "type": "array",
@@ -265,6 +224,40 @@
         ]
       },
       "description": "Tasks that must succeed first. Use target for this project or ^target for dependency projects."
+    },
+    "taskInputs": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "string",
+            "minLength": 1
+          },
+          {
+            "type": "object",
+            "required": [
+              "env"
+            ],
+            "properties": {
+              "env": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+              }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "description": "File patterns, named input references, dependency references prefixed with ^, or environment inputs."
+    },
+    "namedInputs": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[A-Za-z_][A-Za-z0-9_-]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/definitions/taskInputs"
+      }
     }
   }
 }

@@ -5,7 +5,9 @@ import { minimatch } from 'minimatch'
 
 import { resolveCommandOptions } from '../executor/configuration'
 import { resolveWorkspaceDependencies } from '../workspace/dependencies'
+import { readWorkspaceSettings } from '../workspace/settings'
 import { comparisonPath, digest, inside, noSymlinks, slash, snapshot, stableJson, statIfExists } from './files'
+import { resolveTaskInputs } from './named-inputs'
 import { executorFiles, installedVersions } from './tools'
 
 import type { ExecutorContext } from '../executor/types'
@@ -138,6 +140,8 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
     logger: context.logger
   })
   const pending = new Set([context.projectName])
+  const settings = await readWorkspaceSettings(root)
+  const resolvedInputs = resolveTaskInputs(workspace, settings, context.projectName, context.command.inputs)
   const outputs = outputPaths(context.command, context.project.root, context.projectName)
   const tasks = []
 
@@ -152,7 +156,8 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
     const configuration = command && name !== context.projectName
       ? resolveCommandOptions(command, name, context.commandName, context.configurationName && Object.hasOwn(command.configurations ?? {}, context.configurationName) ? context.configurationName : undefined)
       : undefined
-    const inputs = command?.inputs ?? ['{projectRoot}/**/*']
+    const inputs = resolvedInputs.projects.get(name)
+      ?? (resolvedInputs.explicitDependencies ? [] : resolveTaskInputs(workspace, settings, name, command?.inputs).projects.get(name)!)
     const dependencyOutputs = name !== context.projectName && command?.cache === true
       ? outputPaths(command, project.root, project.name)
       : []
@@ -183,7 +188,7 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
   const shared = await fileInputs(root, '.', ['package.json', 'isox.json', 'tsconfig.json', 'tsconfig.base.json', '.gitignore', '.isoxignore', ...lockfiles], outputs)
 
   return digest(stableJson({
-    version: 2,
+    version: 3,
     // Absolute paths can affect sourcemaps and arbitrary native plugins. Prefer
     // a conservative miss when moving a checkout to another location.
     root,

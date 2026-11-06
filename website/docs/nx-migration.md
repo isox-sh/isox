@@ -115,7 +115,7 @@ explicitly; Nx caching/input expressions need their own migration.
 Targets without an `executor` are skipped in memory and in the workspace cache.
 Commands execute through the resulting `targets` field. Extra metadata
 does not enable `dependsOn` scheduling or native result caching. Migration removes
-Nx `cache` and `inputs` declarations in memory so they cannot accidentally opt a
+Nx `cache`, `inputs`, and `namedInputs` declarations in memory so they cannot accidentally opt a
 command into Isox caching. Output metadata is retained for the adapter. After
 switching to a native executor, configure [Isox inputs and outputs](/docs/task-caching)
 explicitly. The resolved `name` and file-derived `root`

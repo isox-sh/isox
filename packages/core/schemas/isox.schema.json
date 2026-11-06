@@ -55,6 +55,9 @@
       "additionalProperties": {
         "$ref": "project.schema.json#/definitions/targetDefaults"
       }
+    },
+    "namedInputs": {
+      "$ref": "project.schema.json#/definitions/namedInputs"
     }
   }
 }

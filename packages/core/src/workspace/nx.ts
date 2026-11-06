@@ -35,6 +35,10 @@ export function migrateNxProject(
     $schema: isoxSchema
   }
 
+  // Cache expressions may include input types that native caching does not support.
+  // They are removed together with target inputs and cache opt-ins below.
+  delete migrated.namedInputs
+
   if (Object.hasOwn(project, 'implicitDependencies')) {
     if (Object.hasOwn(project, 'dependencies')) {
       throw new Error(`Invalid project configuration in ${file}: Nx schema defines both implicitDependencies and dependencies. Keep one field before migrating.`)

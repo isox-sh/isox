@@ -110,9 +110,9 @@ After changing defaults, run `isox reset` before a single-project command, or us
 a command that refreshes discovery (`affected`, `plan`, or `run-many`). Project
 definitions and defaults follow the same refresh rules.
 
-Each defaults entry must be an object. Nx's filtered arrays, `namedInputs`, and
-`^production` input expressions are not part of
-this feature. Custom metadata is allowed, but does not enable those behaviors.
+Each defaults entry must be an object. Define `namedInputs` at the workspace or
+project level, and reference those sets from a target's `inputs`. Custom metadata
+is allowed, but does not create additional matching or merging rules.
 
 ## Project definitions
 
