@@ -1,0 +1,57 @@
+packages/core/src/index.ts
+  s_8a7fbe3184e953::t_610614c3aefcd8 31
+packages/js/src/helpers/package-json.ts
+  s_8a7fbe3184e953::t_da80f02179297d 183
+packages/cli/tests/cli.test.mjs
+  s_8a7fbe3184e953::t_d604f2a336aff7 329-355
+  s_8a7fbe3184e953::t_da80f02179297d 369,377
+  s_8a7fbe3184e953::t_adf33b2b1af47f 356-368,370-376,378-400
+website/docs/cli.md
+  s_8a7fbe3184e953::t_617414fd8532a8 24-25,49,190-236,238-265,269-271
+  s_8a7fbe3184e953::t_da80f02179297d 237,267
+  s_8a7fbe3184e953::t_1a0a8f40a6af64 266,268
+packages/core/src/migration/index.ts
+  s_8a7fbe3184e953::t_adf33b2b1af47f 2,6,84-99,102-103,120
+  s_8a7fbe3184e953::t_617414fd8532a8 33-37,248,289-310
+  s_8a7fbe3184e953::t_da80f02179297d 51,113,127,133,264-265,268,275
+  s_8a7fbe3184e953::t_d604f2a336aff7 136-139,150,200-205,283-286
+  s_8a7fbe3184e953::t_610614c3aefcd8 1,3-5,7-32,38-50,52-83,100-101,104-112,114-119,121-126,128-132,134-135,140-149,151-199,206-247,249-263,266-267,269-274,276-282,287-288,311-314
+packages/cli/README.md
+  s_8a7fbe3184e953::t_617414fd8532a8 26-37
+packages/cli/src/shared/parse-options.ts
+  s_8a7fbe3184e953::t_610614c3aefcd8 52-55
+packages/cli/src/actions/migrate/index.ts
+  s_8a7fbe3184e953::t_610614c3aefcd8 1-31
+packages/cli/src/index.ts
+  s_8a7fbe3184e953::t_610614c3aefcd8 9,23
+packages/core/tests/migration.test.mjs
+  s_8a7fbe3184e953::t_da80f02179297d 99,153
+  s_8a7fbe3184e953::t_adf33b2b1af47f 148-152,154-182
+  s_8a7fbe3184e953::t_d604f2a336aff7 1-98,100-147
+packages/js/tests/package-json.test.mjs
+  s_8a7fbe3184e953::t_bff60732f6b8a9 501-517,519-521,523-530
+  s_8a7fbe3184e953::t_da80f02179297d 518,522
+scripts/bootstrap.cjs
+  s_8a7fbe3184e953::t_087961ad02b7b8 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "093a746d59f638a5d12c227c2b5ea1c8a561fa5c",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_8a7fbe3184e953": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b00c-2576-7171-9b63-6c2144b9793e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
