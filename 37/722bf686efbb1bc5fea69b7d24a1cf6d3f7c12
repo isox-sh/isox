@@ -1,0 +1,24 @@
+website/docs/affected-and-ci.md
+  s_8737f5c9e6cd71::t_69afbf9076ae82 97-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "37722bf686efbb1bc5fea69b7d24a1cf6d3f7c12",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_8737f5c9e6cd71": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b265-7b8e-79b0-8de4-44e0f6fdab72",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
