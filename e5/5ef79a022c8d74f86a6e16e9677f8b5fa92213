@@ -1,0 +1,26 @@
+e2e/tests/js-init.test.mjs
+  s_8a7fbe3184e953::t_206810512fd196 22-25
+packages/e2e/tests/workspace.test.mjs
+  s_8a7fbe3184e953::t_206810512fd196 59-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e55ef79a022c8d74f86a6e16e9677f8b5fa92213",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_8a7fbe3184e953": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b00c-2576-7171-9b63-6c2144b9793e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
