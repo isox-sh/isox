@@ -1,0 +1,63 @@
+website/docs/introduction.mdx
+  s_8a7fbe3184e953::t_9a83a757ef6af1 93
+website/docs/cli.md
+  s_8a7fbe3184e953::t_92f794b652e8f2 193-194,199
+  s_8a7fbe3184e953::t_9a83a757ef6af1 198
+packages/core/README.md
+  s_8a7fbe3184e953::t_9a83a757ef6af1 21
+website/docs/troubleshooting.mdx
+  s_8a7fbe3184e953::t_9a83a757ef6af1 102
+website/docs/migrations.md
+  s_8a7fbe3184e953::t_7076025fd1fbdd 14-16
+  s_8a7fbe3184e953::t_9a83a757ef6af1 56
+  s_8a7fbe3184e953::t_92f794b652e8f2 1-2,4-13,17-55
+  s_8a7fbe3184e953::t_13c1bbf4f59911 3
+website/docs/plugin-migrations.md
+  s_8a7fbe3184e953::t_9a83a757ef6af1 1-56
+website/docs/plugin-packaging.md
+  s_8a7fbe3184e953::t_9a83a757ef6af1 1-110
+website/docs/custom-executors.md
+  s_8a7fbe3184e953::t_9a83a757ef6af1 2-5,110-112
+website/docs/custom-plugins.md
+  s_8a7fbe3184e953::t_9a83a757ef6af1 1-28
+website/docs.json
+  s_8a7fbe3184e953::t_9a83a757ef6af1 53-54,56-59
+  s_8a7fbe3184e953::t_92f794b652e8f2 65
+website/docs/plugin-generators.md
+  s_8a7fbe3184e953::t_9a83a757ef6af1 1-79
+website/docs/contributing.mdx
+  s_8a7fbe3184e953::t_9a83a757ef6af1 188
+website/README.md
+  s_8a7fbe3184e953::t_93e35e2defec8e 34
+  s_8a7fbe3184e953::t_9a83a757ef6af1 23,25-29,31-33
+  s_8a7fbe3184e953::t_e71152d46b5953 35
+packages/cli/README.md
+  s_8a7fbe3184e953::t_9a83a757ef6af1 38
+  s_8a7fbe3184e953::t_92f794b652e8f2 35-36,44
+  s_8a7fbe3184e953::t_936a8e887aa0fa 37,39
+website/docs/core-api.md
+  s_8a7fbe3184e953::t_9a83a757ef6af1 71
+website/index.mdx
+  s_8a7fbe3184e953::t_9a83a757ef6af1 115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2ad2b59e6b98c7b19c5c87a7e77df2eea13a593d",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_8a7fbe3184e953": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b00c-2576-7171-9b63-6c2144b9793e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
