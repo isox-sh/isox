@@ -19,7 +19,8 @@ too. `isox.json` and `project.json` use JSON; TypeScript configs may use JSONC.
 
 All workspace fields are optional; `{}` is a valid workspace marker. The table
 lists every built-in field, including nested options. Defaults describe behavior
-when a field is omitted; they are not written into the file automatically.
+when a field is omitted. `isox init` writes the CLI version and the default
+named input (`{projectRoot}/**/*`) into new workspaces.
 
 | Field | Type | Default and behavior |
 | --- | --- | --- |

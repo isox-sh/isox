@@ -1,7 +1,7 @@
 import { readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-import { addDepsToPackageJson, logger } from '@isox-sh/core'
+import { addDepsToPackageJson, defaultNamedInputs, logger } from '@isox-sh/core'
 
 import { initializeProject } from './project'
 
@@ -46,6 +46,7 @@ export function registerInitAction(cli: CAC): void {
 
       const settings = {
         version,
+        namedInputs: defaultNamedInputs(),
         ...(hasNx ? { nx: { executors: ['@nx'] } } : {})
       }
 

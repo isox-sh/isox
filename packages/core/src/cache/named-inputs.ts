@@ -1,3 +1,5 @@
+import { defaultNamedInputs } from '../workspace/defaults'
+
 import type { TaskInput } from '../workspace/configuration'
 import type { WorkspaceGraph } from '../workspace/parser'
 import type { WorkspaceSettings } from '../workspace/settings'
@@ -25,7 +27,7 @@ export function resolveTaskInputs(
     }
 
     const definitions: Record<string, TaskInput[]> = {
-      default: ['{projectRoot}/**/*'],
+      ...defaultNamedInputs(),
       ...settings.namedInputs,
       ...project.namedInputs
     }

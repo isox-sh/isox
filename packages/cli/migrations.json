@@ -1,0 +1,9 @@
+{
+  "migrations": {
+    "add-named-inputs": {
+      "version": "1.0.0-alpha.5",
+      "description": "Add the default named input to isox.json while preserving existing input sets.",
+      "implementation": "../../dist/cli/migrations/add-named-inputs.js"
+    }
+  }
+}
