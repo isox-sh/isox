@@ -1,0 +1,26 @@
+website/index.mdx
+  s_8737f5c9e6cd71::t_c384e94c296cf1 2,10-12,15,24-25,50-51,58,61-64,67-70,80,82,96,115,122,127-128,130,137,139-140,147
+website/custom.css
+  s_8737f5c9e6cd71::t_10da561e4e7543 47,55,74-75,77,80,109,113,115,118,120,123,141,144,149,151-152,170-171,196-197,209,221,226,241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d5ce335f8312b9d35efcd0a9d9507b4769ceef03",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_8737f5c9e6cd71": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b265-7b8e-79b0-8de4-44e0f6fdab72",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
