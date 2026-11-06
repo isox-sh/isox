@@ -81,18 +81,23 @@ export function createInputMatcher(projectRoot: string, inputs: TaskInput[], out
   const patterns = inputs.filter((input): input is string => typeof input === 'string')
   const positive = patterns.filter(pattern => !pattern.startsWith('!')).map(pattern => expandPath(pattern, projectRoot, projectName))
   const negative = patterns.filter(pattern => pattern.startsWith('!')).map(pattern => expandPath(pattern.slice(1), projectRoot, projectName))
+  // Only literal paths and explicit subtree globs can safely prune a directory.
+  const subtrees = negative.filter(pattern => !/[*?[\]{}()!]/.test(pattern) || pattern.endsWith('/**'))
   const matches = (path: string, pattern: string) => minimatch(path, pattern, {
     dot: true,
     nonegate: true,
     nocomment: true
   }) || pattern === '.' || path === pattern || path.startsWith(`${pattern}/`)
-  const excluded = (path: string): boolean => path.split('/').some(part => reserved.has(part.toLowerCase()))
+  const excludedTree = (path: string): boolean => path.split('/').some(part => reserved.has(part.toLowerCase()))
     || outputs.some(output => path === output || path.startsWith(`${output}/`))
-    || path.split('/').some((_part, index, parts) => negative.some(pattern => matches(parts.slice(0, index + 1).join('/'), pattern)))
+    || subtrees.some(pattern => matches(path, pattern))
+  const excluded = (path: string): boolean => excludedTree(path)
+    || negative.some(pattern => matches(path, pattern))
 
   return {
     positive,
     excluded,
+    excludedTree,
     selected: (path: string) => positive.some(pattern => matches(path, pattern)),
     matches: (path: string) => positive.some(pattern => matches(path, pattern))
       && !excluded(path),
@@ -101,7 +106,7 @@ export function createInputMatcher(projectRoot: string, inputs: TaskInput[], out
 
 async function fileInputs(root: string, projectRoot: string, inputs: TaskInput[], outputs: string[], projectName = ''): Promise<unknown> {
   const patterns = inputs.filter((input): input is string => typeof input === 'string')
-  const { positive, excluded: excludes, selected: selects } = createInputMatcher(projectRoot, inputs, outputs, projectName)
+  const { positive, excludedTree: excludes, matches: selects } = createInputMatcher(projectRoot, inputs, outputs, projectName)
   const excluded = (path: string) => excludes(slash(relative(root, path)))
   const selected = (path: string) => selects(slash(relative(root, path)))
   const files = new Map()

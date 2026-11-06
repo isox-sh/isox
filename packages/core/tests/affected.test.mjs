@@ -584,6 +584,19 @@ test('input matching handles deleted files, both rename paths, dotfiles and excl
   assert.deepEqual(await getAffectedTargetProjects(root, graph, ['packages/lib/src/hidden/deleted.ts'], { target: 'build' }), [])
 })
 
+test('file exclusions do not exclude source files under matching directory names', async () => {
+  const graph = workspace({
+    lib: {},
+    app: { dependencies: ['lib'] }
+  })
+  const selected = files => getAffectedTargetProjects('.', graph, files, { target: 'build' }, productionSettings)
+  assert.deepEqual(await selected(['packages/lib/docs.md/source.ts']), ['app', 'lib'])
+  assert.deepEqual(await selected(['packages/lib/docs.md/nested/README.md']), [])
+  graph.projects.lib.targets.build.inputs = ['{projectRoot}/**/*', '!{projectRoot}/docs.md']
+  graph.projects.app.targets.build.inputs = []
+  assert.deepEqual(await getAffectedTargetProjects('.', graph, ['packages/lib/docs.md/source.ts'], { target: 'build' }), [])
+})
+
 test('named input cycles fail instead of silently dropping tasks', async () => {
   const graph = workspace({
     lib: {
