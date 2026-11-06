@@ -1,0 +1,146 @@
+.plugin-registry {
+  --registry-border: #dce3ed;
+  --registry-muted: #536176;
+  --registry-surface: #f7f9fc;
+  margin: 2rem 0;
+}
+
+.dark .plugin-registry {
+  --registry-border: #303b4c;
+  --registry-muted: #abb8ca;
+  --registry-surface: #141b28;
+}
+
+.plugin-registry .registry-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+}
+
+.plugin-registry label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.plugin-registry .registry-search {
+  flex: 2 1 240px;
+}
+
+.plugin-registry input,
+.plugin-registry select {
+  width: 100%;
+  min-width: 0;
+  height: 2.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--registry-border);
+  border-radius: 0.5rem;
+  background: var(--registry-surface);
+  color: inherit;
+  font: inherit;
+  font-weight: 400;
+}
+
+.plugin-registry :is(input, select, button, a):focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}
+
+.plugin-registry .registry-count {
+  margin: 1.25rem 0;
+  color: var(--registry-muted);
+  font-size: 0.85rem;
+}
+
+.plugin-registry .registry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.plugin-registry .registry-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--registry-border);
+  border-radius: 0.75rem;
+}
+
+.plugin-registry .registry-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  color: var(--registry-muted);
+  font-size: 0.75rem;
+}
+
+.plugin-registry :is(.registry-official, .registry-community) {
+  padding: 0.15rem 0.5rem;
+  border-radius: 1rem;
+  background: var(--registry-surface);
+  font-weight: 600;
+}
+
+.plugin-registry .registry-official {
+  color: #2563eb;
+}
+
+.dark .plugin-registry .registry-official {
+  color: #8ab6ff;
+}
+
+.plugin-registry .registry-card h2 {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.plugin-registry .registry-card p {
+  flex: 1;
+  margin: 0 0 1.25rem;
+  color: var(--registry-muted);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.plugin-registry .registry-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  font-size: 0.8rem;
+}
+
+.plugin-registry .registry-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  border: 1px dashed var(--registry-border);
+  border-radius: 0.75rem;
+}
+
+.plugin-registry .registry-empty h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.plugin-registry button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--registry-border);
+  border-radius: 0.5rem;
+  background: var(--registry-surface);
+  color: inherit;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .plugin-registry .registry-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

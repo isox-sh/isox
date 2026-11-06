@@ -79,7 +79,19 @@
         ]
       },
       {
-        "tab": "Plugins",
+        "tab": "Plugin Registry",
+        "groups": [
+          {
+            "group": "Discover plugins",
+            "pages": [
+              "docs/plugin-registry",
+              "docs/submit-plugin"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Build plugins",
         "groups": [
           {
             "group": "Build a plugin",
