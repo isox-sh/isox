@@ -10,6 +10,18 @@ import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const { createProjectGraph, getAffectedProjects, getGitChanges, createProjectMatrix, matchesTags, parseWorkspace } = require('../../../dist/core')
+const { workspaceFiles } = require('../../../dist/core/affected/projects')
+
+test('built-in global patterns cannot be changed by consumers', () => {
+  assert.ok(Object.isFrozen(workspaceFiles))
+  assert.throws(() => workspaceFiles.push('**/*'), TypeError)
+  const graph = workspace({
+    app: {},
+    lib: {}
+  })
+  assert.deepEqual(getAffectedProjects(graph, ['packages/app/source.ts']), ['app'])
+  assert.deepEqual(getAffectedProjects(graph, ['package.json']), ['app', 'lib'])
+})
 
 function workspace(definitions) {
   return {
