@@ -1,5 +1,5 @@
 ---
-title: "Isox — One clear command for your monorepo"
+title: "Isox — Run your monorepo. Keep your tools."
 description: "Bring your build, test, and lint commands together. Explicit project configuration, affected selection, and weighted CI plans, with the tools you already use."
 mode: "custom"
 ---
@@ -7,12 +7,12 @@ mode: "custom"
 <div className="isox-home">
   <section className="home-hero home-container" aria-labelledby="home-title">
     <div className="home-hero-copy">
-      <p className="home-eyebrow"><span className="home-status" aria-hidden="true" /> The explicit monorepo runner</p>
-      <h1 id="home-title">Your monorepo.<br />One clear<br /><span>command.</span></h1>
-      <p className="home-description">Bring builds, tests, and linting together with the tools you already use. Define your projects, run their commands, and take the same workflow to CI.</p>
+      <p className="home-eyebrow"><span className="home-status" aria-hidden="true" /> A lightweight monorepo task runner</p>
+      <h1 id="home-title">Run your monorepo.<br /><span>Keep your tools.</span></h1>
+      <p className="home-description">Give your build, test, and lint commands a shared home. Run tasks in dependency order, reuse local results, and send only affected work to CI.</p>
       <div className="home-actions">
         <a className="home-button" href="/docs/getting-started">Get started <span aria-hidden="true">→</span></a>
-        <a className="home-secondary-button" href="https://github.com/isox-sh/isox">View on GitHub <span aria-hidden="true">↗</span></a>
+        <a className="home-secondary-button" href="#how-it-works">See how it works <span aria-hidden="true">↓</span></a>
       </div>
       <div className="home-install" aria-label="Install Isox">
         <span aria-hidden="true">$</span><code>npm install -D @isox-sh/cli</code>
@@ -21,8 +21,8 @@ mode: "custom"
     </div>
 
     <div className="home-demo">
-      <div className="home-demo-heading"><span>Configuration you can read.</span><span className="home-index" aria-hidden="true">01 — 02</span></div>
-      <div className="home-code-window">
+      <div className="home-demo-heading"><span>Your existing build, now an Isox target.</span><span className="home-index" aria-hidden="true">PROJECT → COMMAND</span></div>
+      <div className="home-code-window" id="project-example">
         <div className="home-window-bar">
           <span className="home-file-icon" aria-hidden="true">{"{ }"}</span>
           <span>apps/web/project.json</span>
@@ -47,27 +47,27 @@ mode: "custom"
 
   <section className="home-section home-container" id="how-it-works" aria-labelledby="principles-title">
     <div className="home-section-heading">
-      <div><p className="home-eyebrow">A small, explicit foundation</p><h2 id="principles-title">A place for every project.<br />A name for every task.</h2></div>
-      <p>Keep configuration close to your code. Isox connects your projects and gives their commands a consistent entry point.</p>
+      <div><p className="home-eyebrow">Add what your workspace needs</p><h2 id="principles-title">Start with a script.<br />Connect the rest as you go.</h2></div>
+      <p>Adopt Isox one project at a time. Keep the commands that work, then add prerequisites and caching where they help.</p>
     </div>
     <div className="home-feature-grid">
       <div className="home-feature" role="article">
         <div className="home-feature-top"><span className="home-feature-symbol" aria-hidden="true">{"{ }"}</span><span className="home-index">01 / DEFINE</span></div>
         <h3>Start with a project file</h3>
         <p>Name your project and its build, test, or lint targets in <code>project.json</code>. Wrap an existing script or choose a native executor.</p>
-        <a className="home-text-link" href="/docs/configuration">Explore configuration <span aria-hidden="true">→</span></a>
+        <a className="home-text-link" href="/docs/project-configuration">Define a project <span aria-hidden="true">→</span></a>
       </div>
       <div className="home-feature" role="article">
-        <div className="home-feature-top"><span className="home-feature-symbol" aria-hidden="true">↳</span><span className="home-index">02 / CONNECT</span></div>
-        <h3>Let imports connect the dots</h3>
-        <p>Isox discovers dependencies from imports, aliases, and local packages. Add explicit dependencies for relationships your code cannot describe.</p>
-        <a className="home-text-link" href="/docs/concepts#project-dependencies">Understand the graph <span aria-hidden="true">→</span></a>
+        <div className="home-feature-top"><span className="home-feature-symbol" aria-hidden="true">↳</span><span className="home-index">02 / ORDER</span></div>
+        <h3>Build dependencies first</h3>
+        <p>Declare <code>dependsOn: ["^build"]</code> once. Isox runs dependency builds before their consumers and shares prerequisites within each task graph.</p>
+        <a className="home-text-link" href="/docs/task-prerequisites">Set up prerequisites <span aria-hidden="true">→</span></a>
       </div>
       <div className="home-feature" role="article">
-        <div className="home-feature-top"><span className="home-feature-symbol" aria-hidden="true">❯</span><span className="home-index">03 / RUN</span></div>
-        <h3>Use the same commands everywhere</h3>
-        <p>Run a single project locally, select affected projects, or execute an exact list in CI. Your project configuration stays the source of truth.</p>
-        <a className="home-text-link" href="/docs/cli">See the commands <span aria-hidden="true">→</span></a>
+        <div className="home-feature-top"><span className="home-feature-symbol" aria-hidden="true">↺</span><span className="home-index">03 / REUSE</span></div>
+        <h3>Reuse successful work</h3>
+        <p>Enable local caching for deterministic tasks. Matching inputs restore declared outputs and replay logs, so the executor can skip the work.</p>
+        <a className="home-text-link" href="/docs/task-caching">Configure task caching <span aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
@@ -77,9 +77,9 @@ mode: "custom"
       <div className="home-ci-copy">
         <p className="home-eyebrow">From a change to a plan</p>
         <h2 id="ci-title">Know what changed.<br /><span>Run what’s affected.</span></h2>
-        <p>Use Git changes and project dependencies to select the work. Then balance it across GitHub Actions jobs with project weights you control.</p>
+        <p>Select tasks from Git changes, target inputs, and project dependencies. Then distribute that work across GitHub Actions jobs using project weights you control.</p>
         <a className="home-text-link" href="/docs/affected-and-ci">Explore affected projects and CI <span aria-hidden="true">→</span></a>
-        <p className="home-ci-boundary">The graph selects projects. Build prerequisites stay explicit in your scripts and CI workflow.</p>
+        <p className="home-ci-boundary">Declare prerequisites with <a href="/docs/task-prerequisites"><code>dependsOn</code></a>. Each CI worker schedules the prerequisites its tasks need.</p>
       </div>
       <div className="home-ci-demo">
         <div className="home-graph" role="figure" aria-labelledby="graph-caption">
@@ -93,7 +93,7 @@ mode: "custom"
             </div>
             <div className="home-graph-node home-node-idle"><span className="home-node-type">UNCHANGED</span><strong>docs</strong></div>
           </div>
-          <p className="home-graph-caption" id="graph-caption">A change in shared selects shared, web, and api. The unrelated docs project is left out.</p>
+          <p className="home-graph-caption" id="graph-caption">Example: a source change in shared affects its tests and the tests of web and api. The unrelated docs project is left out.</p>
         </div>
         <div className="home-ci-command"><span className="home-terminal-label">Run affected tests</span><pre tabIndex={0}><code>npx isox affected --target=test</code></pre></div>
         <div className="home-ci-command"><span className="home-terminal-label">Distribute across up to three jobs</span><pre tabIndex={0}><code>npx isox plan --target=test --max-jobs=3</code></pre></div>
@@ -112,38 +112,38 @@ mode: "custom"
       <a className="home-plugin" href="/docs/eslint"><span className="home-plugin-icon" aria-hidden="true">✓</span><div><h3>ESLint</h3><p>Lint your projects and apply fixes.</p><code>eslint:lint</code></div><span className="home-plugin-arrow" aria-hidden="true">↗</span></a>
       <a className="home-plugin" href="/docs/vitest"><span className="home-plugin-icon" aria-hidden="true">V</span><div><h3>Vitest</h3><p>Run each project’s test suite.</p><code>vitest:test</code></div><span className="home-plugin-arrow" aria-hidden="true">↗</span></a>
       <a className="home-plugin" href="/docs/semver"><span className="home-plugin-icon" aria-hidden="true">v.</span><div><h3>Releases</h3><p>Version and run publishing hooks.</p><code>semver:version</code></div><span className="home-plugin-arrow" aria-hidden="true">↗</span></a>
-      <a className="home-plugin" href="/docs/custom-plugins"><span className="home-plugin-icon" aria-hidden="true">+</span><div><h3>Your own plugin</h3><p>Make your workflow a first-class target.</p><code>your-package:executor</code></div><span className="home-plugin-arrow" aria-hidden="true">↗</span></a>
+      <a className="home-plugin home-plugin-custom" href="/docs/plugin-quickstart"><span className="home-plugin-icon" aria-hidden="true">+</span><div><h3>Your own plugin</h3><p>Build an executor, then add generators and migrations.</p><span className="home-plugin-action">Create your first plugin →</span></div><span className="home-plugin-arrow" aria-hidden="true">↗</span></a>
     </div>
     <p className="home-migration-note">Coming from Nx? <a href="/docs/nx-migration">Follow the migration guide <span aria-hidden="true">→</span></a></p>
   </section>
 
   <section className="home-quickstart home-container" id="get-started" aria-labelledby="quickstart-title">
     <div className="home-section-heading">
-      <div><p className="home-eyebrow">Start with one project</p><h2 id="quickstart-title">Make your next command<br />an Isox command.</h2></div>
+      <div><p className="home-eyebrow">Start with one project</p><h2 id="quickstart-title">Try it with a command<br />you already run.</h2></div>
       <a className="home-button" href="/docs/getting-started">Follow the setup guide <span aria-hidden="true">→</span></a>
     </div>
     <ol className="home-steps">
       <li><span className="home-step-number" aria-hidden="true">01</span><h3>Install and initialize</h3><p>From your workspace root:</p><pre tabIndex={0} aria-label="Install and initialize Isox"><code>{"npm install -D @isox-sh/cli\nnpx isox init"}</code></pre></li>
-      <li><span className="home-step-number" aria-hidden="true">02</span><h3>Define a target</h3><p>Save the <a href="/docs/shell-commands#wrap-an-existing-script">shell-command example</a> as <code>apps/web/project.json</code>. It wraps the existing build script in that project.</p></li>
-      <li><span className="home-step-number" aria-hidden="true">03</span><h3>Run your project</h3><p>Use its target and project name:</p><pre tabIndex={0} aria-label="Run your first build"><code>npx isox build web</code></pre></li>
+      <li><span className="home-step-number" aria-hidden="true">02</span><h3>Define a target</h3><p>Save the <a href="#project-example">project example above</a> as <code>apps/web/project.json</code>. Use your own project name, script, and directory.</p></li>
+      <li><span className="home-step-number" aria-hidden="true">03</span><h3>Run your project</h3><p>Refresh discovery, then run the target:</p><pre tabIndex={0} aria-label="Run your first build"><code>{"npx isox reset\nnpx isox build web"}</code></pre></li>
     </ol>
-    <p className="home-requirements">Node.js 24+. Use Node.js 24 or 26+ with ESLint, Vitest, and release plugins. Add <code>.isox/</code> to your Git ignores.</p>
+    <p className="home-requirements">Use Node.js 24 or 26+ for the CLI and plugins. Add <code>.isox/</code> to your Git ignores.</p>
   </section>
 
   <section className="home-faq home-container" aria-labelledby="faq-title">
     <div><p className="home-eyebrow">A few useful details</p><h2 id="faq-title">Before you start.</h2><a className="home-text-link" href="/docs/introduction">Read the documentation <span aria-hidden="true">→</span></a></div>
     <div className="home-faq-list">
       <Accordion title="Do I need to change my build tools?"><p>No. The bundled shell executor runs your existing commands. Add native plugins project by project where they fit your workflow.</p></Accordion>
-      <Accordion title="Do all projects need a tsconfig?"><p>No. Project discovery uses <code>project.json</code>. Package manifests and JavaScript imports contribute dependencies too. TypeScript configs provide aliases and compiler output information when available.</p></Accordion>
+      <Accordion title="Can I use Isox without TypeScript?"><p>Yes. Define projects with <code>project.json</code> and run any CLI through the bundled shell executor. TypeScript is optional. <a href="/docs/shell-commands">Wrap an existing script</a> to start.</p></Accordion>
       <Accordion title="Can Isox reuse task results?"><p>Yes. Native targets can opt into <a href="/docs/task-caching">local task caching</a> with <code>cache: true</code>. Matching inputs reuse a successful result, replay logs, and restore declared outputs. Remote caching remains on the roadmap.</p></Accordion>
-      <Accordion title="Does Isox build prerequisites automatically?"><p>Isox orders selected projects by dependency when a multi-project stage includes targets with cached outputs. It does not add missing prerequisite tasks or coordinate dependencies across CI jobs. Prepare unselected prerequisites in your scripts or workflow. See <a href="/docs/affected-and-ci">execution and CI ordering</a>.</p></Accordion>
-      <Accordion title="How do I refresh project discovery?"><p>After editing project definitions or changing which projects ignore rules include, run <code>isox reset</code> before a single-project command. Source and import edits do not require reset. Affected selection, planning, and run-many refresh definitions automatically; dependency requests validate their own cache. Stop active builds before resetting because it also clears TypeScript build state.</p></Accordion>
+      <Accordion title="Does Isox build prerequisites automatically?"><p>Yes, when you declare them with <code>dependsOn</code>. Use <code>["^build"]</code> to build dependencies first, or <code>["build"]</code> to run a build before tests in the same project. Each CI worker expands its own prerequisites. See <a href="/docs/task-prerequisites">task prerequisites</a>.</p></Accordion>
+      <Accordion title="Can I move from Nx gradually?"><p>Yes. Move targets to shell commands or native plugins project by project. An optional adapter can temporarily run supported Nx 23 executors. Start with the <a href="/docs/nx-migration">migration guide</a>.</p></Accordion>
     </div>
   </section>
 
   <div className="home-footer home-container" role="contentinfo">
     <a className="home-brand" href="/" aria-label="Isox home"><img src="/images/favicon.svg" alt="" width="28" height="32" />isox<span>.</span></a>
     <p>Explicit projects. A shared workflow.</p>
-    <div className="home-footer-links" role="navigation" aria-label="Homepage footer"><a href="/docs/introduction">Docs</a><a href="https://github.com/isox-sh/isox">GitHub</a><a href="https://github.com/isox-sh/isox/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/isox-sh/isox/blob/main/LICENSE">MIT License</a></div>
+    <div className="home-footer-links" role="navigation" aria-label="Homepage footer"><a href="/docs/introduction">Docs</a><a href="/docs/plugin-quickstart">Build a plugin</a><a href="https://github.com/isox-sh/isox">GitHub</a><a href="https://github.com/isox-sh/isox/blob/main/ROADMAP.md">Roadmap</a><a href="https://github.com/isox-sh/isox/blob/main/LICENSE">MIT License</a></div>
   </div>
 </div>
