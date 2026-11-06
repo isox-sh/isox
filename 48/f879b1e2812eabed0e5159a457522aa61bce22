@@ -1,0 +1,51 @@
+website/docs/prompts/migrate-nx-to-isox.md
+  s_3e915ccdd0a1b9::t_96e30d236dd140 146
+packages/core/src/cache/named-inputs.ts
+  s_3e915ccdd0a1b9::t_1ef0392e1fbb92 1-4,10-15,17-26,32-50,52-53,58-68,70-78,80-89,94
+  s_3e915ccdd0a1b9::t_0c51544ec0b99e 5-9,16
+  s_3e915ccdd0a1b9::t_e463eee7c5dbf6 27-31,51,54-57,69,79,90-93
+packages/core/tests/task-cache.test.mjs
+  s_3e915ccdd0a1b9::t_a4cdcdf7a92d71 934-1023,1062
+  s_3e915ccdd0a1b9::t_93bfa7d852f84b 11,1024-1061
+  s_3e915ccdd0a1b9::t_cb91ebee398310 148,160
+packages/core/schemas/project.schema.json
+  s_3e915ccdd0a1b9::t_6cb783bc2d5289 61-63,103,148,227-260
+packages/core/src/workspace/configuration.ts
+  s_3e915ccdd0a1b9::t_1ef0392e1fbb92 60
+packages/core/src/workspace/settings.ts
+  s_3e915ccdd0a1b9::t_1ef0392e1fbb92 9,22
+website/docs/task-caching.md
+  s_3e915ccdd0a1b9::t_bee1eddd20b9af 87-89,112-114,134-173
+  s_3e915ccdd0a1b9::t_d69d52ea985901 174
+website/docs/nx-migration.md
+  s_3e915ccdd0a1b9::t_96e30d236dd140 118
+packages/core/src/cache/hash.ts
+  s_3e915ccdd0a1b9::t_1ef0392e1fbb92 8,10,143-144,159-160,191
+packages/core/src/workspace/nx.ts
+  s_3e915ccdd0a1b9::t_cb91ebee398310 38-41
+packages/core/schemas/isox.schema.json
+  s_3e915ccdd0a1b9::t_6cb783bc2d5289 58-60
+website/docs/configuration.md
+  s_3e915ccdd0a1b9::t_839736c883bafc 113-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "48f879b1e2812eabed0e5159a457522aa61bce22",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_3e915ccdd0a1b9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ac3f-d86e-7b12-bbb3-c14891f1fd70",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
