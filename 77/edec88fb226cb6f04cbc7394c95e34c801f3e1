@@ -1,0 +1,33 @@
+packages/cli/tests/cli.test.mjs
+  s_8a7fbe3184e953::t_8e5699c16aa824 333-367,369,375-379,391,396-397,416
+packages/core/src/migration/npm-command.ts
+  s_8a7fbe3184e953::t_8e5699c16aa824 1-23
+packages/core/tests/migration.test.mjs
+  s_8a7fbe3184e953::t_8e5699c16aa824 183-203
+packages/cli/src/shared/parse-options.ts
+  s_8a7fbe3184e953::t_96eb7afec64eaa 22,27,29,49,53-57
+  s_8a7fbe3184e953::t_49e955184a3405 58
+packages/core/src/migration/index.ts
+  s_8a7fbe3184e953::t_8e5699c16aa824 5,14,294-297
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "77edec88fb226cb6f04cbc7394c95e34c801f3e1",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_8a7fbe3184e953": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1b00c-2576-7171-9b63-6c2144b9793e",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
