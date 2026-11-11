@@ -1,0 +1,24 @@
+packages/cli/tests/configurations.test.mjs
+  s_4e32674217922f::t_0414e93adb7e41 221
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a9e6f80b7f71a872d1045a0d12c4b0b70341cf7c",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_4e32674217922f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1cc25-1707-7621-9cd5-42bc3ed619e4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
