@@ -10,7 +10,7 @@
         "assets": [
           {
             "input": "packages/js/src",
-            "glob": "executors/**/*.schema.json"
+            "glob": "{executors,generators}/**/*.schema.json"
           }
         ],
         "generatePackageJson": true

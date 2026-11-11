@@ -220,6 +220,9 @@ importers:
 
   packages/cli:
     dependencies:
+      ajv:
+        specifier: ^8.20.0
+        version: 8.20.0
       cac:
         specifier: ^7.1.0
         version: 7.1.0
@@ -264,6 +267,9 @@ importers:
 
   packages/js:
     dependencies:
+      '@isox-sh/eslint':
+        specifier: workspace:*
+        version: link:../../dist/eslint
       ajv:
         specifier: ^8.20.0
         version: 8.20.0

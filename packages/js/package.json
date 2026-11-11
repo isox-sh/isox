@@ -17,6 +17,14 @@
     "fast-glob": "^3.3.3",
     "ajv": "^8.20.0"
   },
+  "peerDependencies": {
+    "@isox-sh/eslint": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@isox-sh/eslint": {
+      "optional": true
+    }
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/isox-sh/isox.git",

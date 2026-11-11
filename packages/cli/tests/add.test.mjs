@@ -182,3 +182,67 @@ test('add rejects malformed generator registries and missing implementations bef
     await assert.rejects(stat(join(f.projectRoot, 'added.json')), { code: 'ENOENT' })
   }
 })
+
+test('plugin schemas validate flags, apply defaults, and preserve string values', async t => {
+  const f = await fixture(t)
+
+  await f.write('node_modules/plugin/metadata/generators.json', {
+    generators: {
+      add: {
+        implementation: '../add.cjs',
+        schema: './add.schema.json'
+      }
+    }
+  })
+  await f.write('node_modules/plugin/metadata/add.schema.json', {
+    type: 'object',
+    properties: {
+      importName: {
+        type: 'string',
+        minLength: 1
+      },
+      enabled: {
+        type: 'boolean',
+        default: true
+      },
+      count: {
+        type: 'integer',
+        minimum: 1
+      },
+      items: {
+        type: 'array',
+        items: { type: 'string' }
+      },
+    },
+    required: ['importName'],
+    additionalProperties: false,
+  })
+  for (const flags of [
+    [],
+    ['--import-name'],
+    ['--import-name=x', '--unknown'],
+    ['--import-name=x', '--count=bad'],
+    ['--import-name=x', '--enabled=maybe'],
+    ['--import-name=x', '--import-name=y'],
+  ]) {
+    const result = f.run(f.root, 'add', 'plugin', 'named-project', ...flags)
+
+    assert.equal(result.status, 1, result.stderr)
+    assert.match(result.stderr, /Invalid options for plugin:add/)
+    await assert.rejects(readFile(join(f.projectRoot, 'added.json')), { code: 'ENOENT' })
+  }
+
+  const result = f.run(f.root, 'add', 'plugin', 'named-project', '--import-name', '001', '--count=3', '--options', '{"items":["a"]}')
+
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options, {
+    importName: '001',
+    count: 3,
+    enabled: true,
+    items: ['a']
+  })
+  const disabled = f.run(f.root, 'add', 'plugin', 'named-project', '--import-name=x', '--no-enabled')
+
+  assert.equal(disabled.status, 0, disabled.stderr)
+  assert.equal(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options.enabled, false)
+})

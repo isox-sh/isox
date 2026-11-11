@@ -1,8 +1,6 @@
 import type { Logger } from '../logger'
 
-export interface InitializerOptions {
-  importPath?: string
-}
+export type InitializerOptions = Record<string, unknown>
 
 export interface InitializerContext {
   workspaceRoot: string

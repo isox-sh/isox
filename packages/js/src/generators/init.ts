@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { constants } from 'node:fs'
 import { chmod, lstat, mkdir, open, rename, rm, writeFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 
 import { addTargetDefaults, json, publishNewFile, readWorkspaceSettings, resolveTargetDefaults, writeJson } from '@isox-sh/core'
@@ -8,11 +9,44 @@ import { applyEdits, modify, parse } from 'jsonc-parser'
 
 import { isRecord, prepareWorkspaceTsconfig, projectSchema, relativePath } from './workspace-tsconfig'
 
-import type { ExecutorConfiguration, ProjectInitializer } from '@isox-sh/core'
+import type { ExecutorConfiguration, ProjectAdder, ProjectInitializer } from '@isox-sh/core'
 import type { ParseError } from 'jsonc-parser'
+
+interface EslintGeneratorModule {
+  default: ProjectAdder
+}
 
 const init: ProjectInitializer = async (options, context) => {
   const { workspaceRoot, projectRoot, projectName } = context
+  const linter = options.linter ?? 'eslint'
+
+  if (linter !== 'eslint' && linter !== 'none') {
+    throw new Error('--linter must be eslint or none.')
+  }
+
+  if (options.importPath !== undefined && (typeof options.importPath !== 'string' || !/^[^\s:*]+$/.test(options.importPath))) {
+    throw new Error('--importPath must be a non-empty import name without whitespace, colons, or wildcards.')
+  }
+
+  let addEslint: ProjectAdder | undefined
+
+  if (linter === 'eslint') {
+    const require = createRequire(__filename)
+    let implementation: string
+
+    try {
+      implementation = require.resolve('@isox-sh/eslint/generators/add')
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') {
+        throw new Error('ESLint setup requires @isox-sh/eslint. Install it as a dev dependency or use --linter=none.', { cause: error })
+      }
+
+      throw error
+    }
+
+    addEslint = (require(implementation) as EslintGeneratorModule).default
+  }
+
   const settings = await readWorkspaceSettings(workspaceRoot)
   const baseFile = join(workspaceRoot, 'tsconfig.base.json')
   let source: string
@@ -123,6 +157,10 @@ const init: ProjectInitializer = async (options, context) => {
       },
       tags: [],
     }, context, { overwrite: false })
+    if (addEslint) {
+      await addEslint({}, context)
+    }
+
     await writeJson('tsconfig.build.json', {
       extends: relativePath(projectRoot, baseFile),
       compilerOptions: {

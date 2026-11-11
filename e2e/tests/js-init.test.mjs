@@ -10,7 +10,10 @@ for (const pathStyle of ['relative', 'absolute']) {
   test(`initializes a workspace and JS project, builds and runs its output (${pathStyle} path)`, async (t) => {
     const { root, version, runIsox, runNode, cleanup } = await createWorkspace({
       startDirectory: import.meta.dirname,
-      plugins: { '@isox-sh/js': 'dist/js' },
+      plugins: {
+        '@isox-sh/js': 'dist/js',
+        '@isox-sh/eslint': 'dist/eslint'
+      },
     })
 
     t.onTestFinished(cleanup)
@@ -34,6 +37,7 @@ for (const pathStyle of ['relative', 'absolute']) {
 
     assert.equal(project.name, 'test')
     assert.equal(project.targets.build.executor, 'js:tsc')
+    assert.deepEqual(project.targets.lint, { executor: 'eslint:lint' })
     assert.deepEqual((await readJson('tsconfig.base.json', workspaceContext)).compilerOptions.paths, {
       '@org/test': ['./packages/test/src/index.ts'],
     })

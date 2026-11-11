@@ -4,9 +4,11 @@
   "license": "MIT",
   "description": "Native ESLint lint executor for Isox.",
   "executors": "./executors.json",
+  "generators": "./generators.json",
   "files": [
     "dist",
-    "executors.json"
+    "executors.json",
+    "generators.json"
   ],
   "dependencies": {
     "eslint": "^10.13.0"
@@ -21,10 +23,24 @@
     "url": "https://github.com/isox-sh/isox/issues"
   },
   "publishConfig": {
+    "exports": {
+      "./generators/add": {
+        "types": "./generators/add.d.ts",
+        "default": "./generators/add.js"
+      },
+      "./*": "./*"
+    },
     "access": "public",
     "registry": "https://registry.npmjs.org/",
     "directory": "../../dist/eslint",
     "linkDirectory": true
+  },
+  "exports": {
+    "./generators/add": {
+      "types": "./src/generators/add.ts",
+      "default": "./src/generators/add.ts"
+    },
+    "./*": "./*"
   },
   "engines": {
     "node": "^24.0.0 || >=26.0.0"

@@ -12,7 +12,7 @@ Native TypeScript 7 compiler executor for Isox. Requires Node.js 24+.
 Install the plugin in your workspace:
 
 ```sh
-npm install --save-dev @isox-sh/js
+npm install --save-dev @isox-sh/js @isox-sh/eslint
 ```
 
 The plugin includes its compiler. A separate TypeScript installation is only
@@ -27,9 +27,15 @@ isox init @isox-sh/js packages/test --importPath=@org/test
 isox build test
 ```
 
-The initializer creates `project.json` with a build command and a `$schema`
+The initializer creates `project.json` with build and ESLint lint targets and a `$schema`
 reference (local when core is installed directly, otherwise a versioned unpkg URL),
 `tsconfig.build.json` for compilation, and `src/index.ts` in the project.
+The linter defaults to `--linter=eslint`, which adds a `lint` target using
+`eslint:lint` through [the ESLint add generator](/docs/eslint). It creates a root
+flat config when missing and declares the required dev dependencies. Run your
+package manager's install command before linting. ESLint is an optional peer of
+the JS plugin: install `@isox-sh/js` alone and pass `--linter=none` to skip all
+lint setup without needing `@isox-sh/eslint`.
 A single workspace-root `tsconfig.json` provides editor settings for all projects;
 initialization adds each project's sources to its `include` list. It sets
 `noEmit: true`, disables composite mode, and uses the workspace as `rootDir`, so
