@@ -11,12 +11,12 @@ const cliPath = resolve(import.meta.dirname, '../../../dist/cli/index.js')
 const jsPackage = resolve(import.meta.dirname, '../../../dist/js')
 const require = createRequire(import.meta.url)
 
-function typecheck(root, project, packageName, bin) {
+function typecheck(root, packageName, bin) {
   const manifest = require.resolve(`${packageName}/package.json`)
 
   return spawnSync(process.execPath, [
     resolve(dirname(manifest), require(manifest).bin[bin]),
-    '--project', `${project}/tsconfig.json`, '--pretty', 'false',
+    '--project', 'tsconfig.json', '--pretty', 'false',
   ], {
     cwd: root,
     encoding: 'utf8'
@@ -68,15 +68,17 @@ test('init creates a buildable JS project and adds its import alias to a new bas
 
   assert.equal(result.status, 0, result.stderr)
   assert.deepEqual(result.stdout.match(/packages\/test\/(?:project|tsconfig(?:\.build)?)\.json/g), [
-    'packages/test/project.json', 'packages/test/tsconfig.json', 'packages/test/tsconfig.build.json',
+    'packages/test/project.json', 'packages/test/tsconfig.build.json',
   ])
   const project = await readJson(join(root, 'packages/test/project.json'))
 
   assert.equal(project.name, 'test')
+  assert.equal(project.$schema, `https://unpkg.com/@isox-sh/core@${require('../../../dist/core/package.json').version}/schemas/project.schema.json`)
+  await assert.rejects(readFile(join(root, 'packages/test/tsconfig.json')), { code: 'ENOENT' })
   assert.equal(project.targets.build.executor, 'js:tsc')
   assert.equal(project.targets.build.options.tsConfig, './packages/test/tsconfig.build.json')
-  assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).extends, '../../tsconfig.base.json')
-  assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).compilerOptions.noEmit, true)
+  assert.equal((await readJson(join(root, 'tsconfig.json'))).extends, './tsconfig.base.json')
+  assert.equal((await readJson(join(root, 'tsconfig.json'))).compilerOptions.noEmit, true)
   assert.equal((await readJson(join(root, 'packages/test/tsconfig.build.json'))).compilerOptions.outDir, '../../dist/packages/test')
   const base = await readJson(join(root, 'tsconfig.base.json'))
 
@@ -140,16 +142,20 @@ for (const composite of [false, true]) {
     await writeFile(join(root, 'apps/deep/consumer/src/index.ts'), 'import { answer } from "@org/shared"\nexport const result = answer + 1\n')
 
     for (const [packageName, bin] of [['typescript', 'tsc6'], ['@typescript/native', 'tsc']]) {
-      for (const project of ['libraries/shared', 'apps/deep/consumer']) {
-        const result = typecheck(root, project, packageName, bin)
+      const result = typecheck(root, packageName, bin)
 
-        assert.equal(result.status, 0, `${packageName}: ${result.stdout}${result.stderr}`)
+      assert.equal(result.status, 0, `${packageName}: ${result.stdout}${result.stderr}`)
+      for (const project of ['libraries/shared', 'apps/deep/consumer']) {
         assert.deepEqual(await readdir(join(root, project, 'src')), ['index.ts'])
       }
     }
 
     assert.ok(!(await readdir(root)).includes('dist'))
-    assert.equal(await readFile(join(root, 'tsconfig.json'), 'utf8'), editorConfig)
+    const editor = await readJson(join(root, 'tsconfig.json'))
+
+    assert.deepEqual(editor.files, [])
+    assert.deepEqual(editor.references, [])
+    assert.deepEqual(editor.include, ['./libraries/shared/src/**/*.ts', './apps/deep/consumer/src/**/*.ts'])
 
     for (const project of ['shared', 'consumer']) {
       const result = run(root, 'build', project)
@@ -166,7 +172,7 @@ for (const composite of [false, true]) {
     // Editors must keep checking dependency sources even when built declarations exist.
     await writeFile(join(root, 'libraries/shared/src/index.ts'), 'export const answer: number = "invalid"\n')
     for (const [packageName, bin] of [['typescript', 'tsc6'], ['@typescript/native', 'tsc']]) {
-      const result = typecheck(root, 'apps/deep/consumer', packageName, bin)
+      const result = typecheck(root, packageName, bin)
 
       assert.notEqual(result.status, 0)
       assert.match(result.stdout + result.stderr, /TS2322/)

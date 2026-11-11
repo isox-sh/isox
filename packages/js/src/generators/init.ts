@@ -6,18 +6,10 @@ import { dirname, join, relative, resolve, sep } from 'node:path'
 import { addTargetDefaults, json, publishNewFile, readWorkspaceSettings, resolveTargetDefaults, writeJson } from '@isox-sh/core'
 import { applyEdits, modify, parse } from 'jsonc-parser'
 
+import { isRecord, prepareWorkspaceTsconfig, projectSchema, relativePath } from './workspace-tsconfig'
+
 import type { ExecutorConfiguration, ProjectInitializer } from '@isox-sh/core'
 import type { ParseError } from 'jsonc-parser'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-}
-
-function relativePath(from: string, to: string): string {
-  const path = relative(from, to).split(sep).join('/')
-
-  return path.startsWith('.') ? path : `./${path}`
-}
 
 const init: ProjectInitializer = async (options, context) => {
   const { workspaceRoot, projectRoot, projectName } = context
@@ -116,26 +108,20 @@ const init: ProjectInitializer = async (options, context) => {
     buildTarget.outputs = generatedOutputs
   }
 
+  const writeEditorConfig = await prepareWorkspaceTsconfig(workspaceRoot, [projectRoot])
+
   await mkdir(dirname(projectRoot), { recursive: true })
   await mkdir(projectRoot)
 
   try {
     await mkdir(join(projectRoot, 'src'))
     await writeJson('project.json', {
+      $schema: projectSchema(workspaceRoot, projectRoot),
       name: projectName,
       targets: {
         build: buildTarget,
       },
       tags: [],
-    }, context, { overwrite: false })
-    await writeJson('tsconfig.json', {
-      extends: relativePath(projectRoot, baseFile),
-      compilerOptions: {
-        noEmit: true,
-        composite: false,
-        rootDir: relativePath(projectRoot, workspaceRoot),
-      },
-      include: ['src/**/*.ts'],
     }, context, { overwrite: false })
     await writeJson('tsconfig.build.json', {
       extends: relativePath(projectRoot, baseFile),
@@ -171,6 +157,7 @@ const init: ProjectInitializer = async (options, context) => {
       }
     }
 
+    await writeEditorConfig()
   } catch (error) {
     await rm(projectRoot, {
       recursive: true,

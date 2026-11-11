@@ -22,10 +22,12 @@ for (const code of ['ENOTSUP', 'EPERM', 'EXDEV']) {
       projectRoot,
       projectName: 'created'
     })
-    for (const file of ['project.json', 'tsconfig.json', 'tsconfig.build.json']) {
+    for (const file of ['project.json', 'tsconfig.build.json']) {
       assert.ok(JSON.parse(await fs.readFile(join(projectRoot, file), 'utf8')))
     }
 
+    assert.ok(JSON.parse(await fs.readFile(join(root, 'tsconfig.json'), 'utf8')).compilerOptions.noEmit)
+    await assert.rejects(fs.stat(join(projectRoot, 'tsconfig.json')), { code: 'ENOENT' })
     assert.ok(JSON.parse(await fs.readFile(join(root, 'tsconfig.base.json'), 'utf8')).compilerOptions)
   })
 }
@@ -123,4 +125,81 @@ test('a different workspace output layout gets a local override matching the new
 
   assert.deepEqual(project.targets.build.outputs, ['{workspaceRoot}/dist/{projectRoot}'])
   assert.deepEqual(JSON.parse(await fs.readFile(join(root, 'isox.json'), 'utf8')), settings)
+})
+
+test('initialization updates one root editor config while preserving JSONC and custom settings', async t => {
+  const { root, context } = await fixture(t)
+  await fs.writeFile(join(root, 'tsconfig.json'), `{
+    // editor settings
+    "extends": "./custom.json",
+    "compilerOptions": { "jsx": "react-jsx" },
+    "include": ["tools/**/*.ts"],
+    "exclude": ["dist"],
+    "references": [],
+  }`)
+  for (const name of ['first', 'second']) {
+    await init({}, {
+      ...context,
+      projectRoot: join(root, 'libraries', name),
+      projectName: name
+    })
+  }
+
+  const source = await fs.readFile(join(root, 'tsconfig.json'), 'utf8')
+  const { parse } = require('jsonc-parser')
+  const config = parse(source)
+  assert.match(source, /\/\/ editor settings/)
+  assert.equal(config.extends, './custom.json')
+  assert.equal(config.compilerOptions.jsx, 'react-jsx')
+  assert.deepEqual(config.include, ['tools/**/*.ts', './libraries/first/src/**/*.ts', './libraries/second/src/**/*.ts'])
+  assert.deepEqual(config.exclude, ['dist'])
+  assert.deepEqual(config.references, [])
+  const project = JSON.parse(await fs.readFile(join(root, 'libraries/second/project.json'), 'utf8'))
+  assert.equal(project.$schema, `https://unpkg.com/@isox-sh/core@${require('../../../dist/core/package.json').version}/schemas/project.schema.json`)
+})
+
+for (const source of ['{broken', '{"include":null}', '{"compilerOptions":[]}']) {
+  test(`invalid root editor config prevents initialization: ${source}`, async t => {
+    const { root, context } = await fixture(t)
+    await fs.writeFile(join(root, 'tsconfig.json'), source)
+    const projectRoot = join(root, 'packages/new')
+    await assert.rejects(init({}, {
+      ...context,
+      projectRoot,
+      projectName: 'new'
+    }), /Invalid TypeScript configuration/)
+    await assert.rejects(fs.stat(projectRoot), { code: 'ENOENT' })
+    await assert.rejects(fs.stat(join(root, 'tsconfig.base.json')), { code: 'ENOENT' })
+    assert.equal(await fs.readFile(join(root, 'tsconfig.json'), 'utf8'), source)
+  })
+}
+
+test('initialization rejects a symlinked root editor config without modifying its target', async t => {
+  const { root, context } = await fixture(t)
+  const original = '{"compilerOptions":{"strict":false}}'
+  await fs.writeFile(join(root, 'shared.json'), original)
+  await fs.symlink('shared.json', join(root, 'tsconfig.json'))
+  const projectRoot = join(root, 'packages/new')
+  await assert.rejects(init({}, {
+    ...context,
+    projectRoot,
+    projectName: 'new'
+  }), /symlink/)
+  assert.equal(await fs.readFile(join(root, 'shared.json'), 'utf8'), original)
+  await assert.rejects(fs.stat(projectRoot), { code: 'ENOENT' })
+})
+
+test('project schemas use a relative local path when core is installed directly', async t => {
+  const { root, context } = await fixture(t)
+  const schemaRoot = join(root, 'node_modules/@isox-sh/core/schemas')
+  await fs.mkdir(schemaRoot, { recursive: true })
+  await fs.writeFile(join(schemaRoot, 'project.schema.json'), '{}')
+  const projectRoot = join(root, 'apps/deep/new')
+  await init({}, {
+    ...context,
+    projectRoot,
+    projectName: 'new'
+  })
+  const project = JSON.parse(await fs.readFile(join(projectRoot, 'project.json'), 'utf8'))
+  assert.equal(project.$schema, '../../../node_modules/@isox-sh/core/schemas/project.schema.json')
 })

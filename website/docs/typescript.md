@@ -27,14 +27,17 @@ isox init @isox-sh/js packages/test --importPath=@org/test
 isox build test
 ```
 
-The initializer creates
-`project.json` with a build command, `tsconfig.json` for editors,
-`tsconfig.build.json` for compilation, and `src/index.ts`. Both configs extend
-the workspace's `tsconfig.base.json`, which is created if missing.
-The editor config sets `noEmit: true`, disables composite mode, and uses the
-workspace as `rootDir`, so imports of other projects' sources work before a build.
-The build command explicitly selects `tsconfig.build.json`, which enables emit
-and keeps `rootDir: "./src"`. Existing workspace `tsconfig.json` files are preserved.
+The initializer creates `project.json` with a build command and a `$schema`
+reference (local when core is installed directly, otherwise a versioned unpkg URL),
+`tsconfig.build.json` for compilation, and `src/index.ts` in the project.
+A single workspace-root `tsconfig.json` provides editor settings for all projects;
+initialization adds each project's sources to its `include` list. It sets
+`noEmit: true`, disables composite mode, and uses the workspace as `rootDir`, so
+imports of other projects' sources work before a build. Existing comments,
+references, includes, and unrelated settings are preserved.
+The root editor config extends `tsconfig.base.json` unless it already has an
+`extends` setting. Each build config extends `tsconfig.base.json` directly,
+enables emit, and keeps `rootDir: "./src"`. The base config is created if missing.
 The generated `outDir` mirrors the project's workspace-relative path under the
 workspace's `dist/` directory. For example, `packages/test` builds into
 `<workspace>/dist/packages/test`, with JavaScript and declarations there.
@@ -64,10 +67,14 @@ the new entry point, preserving existing settings, aliases, and JSONC comments.
 An existing `baseUrl` is respected when computing the mapping.
 
 If TypeScript is installed and `tsc` is available on your `PATH`, run
-`tsc --project packages/test/tsconfig.json` to typecheck without emitting files.
+`tsc --project tsconfig.json` to typecheck without emitting files.
 The executor's private compiler does not provide a shell-level `tsc` command.
 Use `isox build test` to compile it; build any dependencies first so the executor
 can use their declarations.
+
+The `workspace-tsconfig` migration moves unchanged editor configs from older
+initializations to the root and adds missing project `$schema` references.
+Customized local configs and existing schema references are retained.
 
 The workspace must already contain `isox.json` (created by plain `isox init`).
 Relative project paths resolve from the current directory; absolute paths must

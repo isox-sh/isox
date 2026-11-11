@@ -1,0 +1,9 @@
+{
+  "migrations": {
+    "workspace-tsconfig": {
+      "version": "1.0.0-alpha.5",
+      "description": "Use a workspace editor tsconfig, remove unchanged generated project editor configs, and add missing project schema references.",
+      "implementation": "../../dist/js/migrations/workspace-tsconfig.js"
+    }
+  }
+}
