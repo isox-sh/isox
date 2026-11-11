@@ -1,0 +1,96 @@
+packages/js/generators.json
+  s_4e32674217922f::t_6be0c7b820e063 4
+packages/cli/tests/init.test.mjs
+  s_4e32674217922f::t_46879a58a2c29a 173
+packages/eslint/src/generators/add.ts
+  s_4e32674217922f::t_b9c79305c842d0 3-4,20-21
+  s_4e32674217922f::t_e1384426a5784b 1-2,5-19,22-38
+packages/cli/src/shared/parse-options.ts
+  s_4e32674217922f::t_6be0c7b820e063 44-60
+packages/js/src/generators/init.ts
+  s_4e32674217922f::t_44bc6d873824ed 4,12,31-40,45-46,48
+  s_4e32674217922f::t_dd07611b6312b1 41-44,49,160
+  s_4e32674217922f::t_eb090108d33518 15-18,47
+  s_4e32674217922f::t_adbe5b5a62a116 21-26
+  s_4e32674217922f::t_e1384426a5784b 161-163
+  s_4e32674217922f::t_70982923ba47f3 27-30
+packages/eslint/package.json
+  s_4e32674217922f::t_e1384426a5784b 7,10-11,26-32,38-43
+  s_4e32674217922f::t_031072ec925a67 44
+packages/js/src/generators/init.schema.json
+  s_4e32674217922f::t_70982923ba47f3 1-19
+packages/eslint/src/generators/workspace.ts
+  s_4e32674217922f::t_b9c79305c842d0 1-40,45-105
+  s_4e32674217922f::t_722cfea1ced68a 41-44
+packages/eslint/tests/add.test.mjs
+  s_4e32674217922f::t_a41c34972fb917 131-152,157-179,188-190,192-195
+  s_4e32674217922f::t_169fa276a476ed 63-64,67,69-75,77,211
+  s_4e32674217922f::t_e314adc1b3f205 180-183,191
+  s_4e32674217922f::t_6ed10c7250bbc5 1-62,65-66,68,76,78-130,196-210,212-218
+  s_4e32674217922f::t_722cfea1ced68a 153-156,184-187
+packages/cli/tests/add.test.mjs
+  s_4e32674217922f::t_722cfea1ced68a 190-195,200-215,239-242
+  s_4e32674217922f::t_5eb3ed0dc3d388 185-189,196-199,216-238,243-248
+packages/cli/tests/init-project.test.mjs
+  s_4e32674217922f::t_f2d2cd375e77ef 79,100-108,114-115,141,303,308-310
+  s_4e32674217922f::t_46879a58a2c29a 3,109-113,116-140
+  s_4e32674217922f::t_46bd0ec776b2a5 71
+packages/cli/src/shared/generators.ts
+  s_4e32674217922f::t_722cfea1ced68a 52-55,58-61
+  h_b13471b77746e9 57,62
+  s_4e32674217922f::t_70982923ba47f3 5,48-50,63-85
+  s_4e32674217922f::t_169fa276a476ed 47,51,56
+website/docs/plugin-generators.md
+  s_4e32674217922f::t_304ea35ff20884 23,64,78-108
+packages/cli/src/actions/init/index.ts
+  s_4e32674217922f::t_70982923ba47f3 6,18-22,33-34
+packages/core/src/initializer/types.ts
+  s_4e32674217922f::t_70982923ba47f3 3
+packages/cli/src/actions/init/project.ts
+  s_4e32674217922f::t_70982923ba47f3 67
+packages/js/package.json
+  s_4e32674217922f::t_513050b8ef5ac3 21
+  s_4e32674217922f::t_dd07611b6312b1 20,22-27
+website/docs/typescript.md
+  s_4e32674217922f::t_304ea35ff20884 15,34-38
+  s_4e32674217922f::t_adbe5b5a62a116 33
+  s_4e32674217922f::t_87c04f22fd7fde 30
+packages/js/project.json
+  s_4e32674217922f::t_70982923ba47f3 13
+packages/cli/src/actions/add/index.ts
+  s_4e32674217922f::t_70982923ba47f3 6,11,43,57-58,60
+website/docs/eslint.md
+  s_4e32674217922f::t_304ea35ff20884 32-43
+  s_4e32674217922f::t_f2d2cd375e77ef 24-31,44
+scripts/bootstrap.cjs
+  s_4e32674217922f::t_70982923ba47f3 55
+packages/cli/package.json
+  s_4e32674217922f::t_70982923ba47f3 16
+e2e/tests/js-init.test.mjs
+  s_4e32674217922f::t_01472a8c75e1db 13-16,40
+packages/eslint/generators.json
+  s_4e32674217922f::t_e1384426a5784b 1-8
+pnpm-lock.yaml
+  s_4e32674217922f::t_3c29d32053262d 223-225,270-272
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "109a3e305fd9d54fc989ac2ba177f726f0ec8156",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_4e32674217922f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1cc25-1707-7621-9cd5-42bc3ed619e4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
