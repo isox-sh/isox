@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { constants, existsSync } from 'node:fs'
-import { chmod, lstat, open, rename, rm, writeFile } from 'node:fs/promises'
+import { chmod, lstat, open, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { join, relative, sep } from 'node:path'
 
@@ -36,8 +36,13 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
+interface WorkspaceTsconfigUpdate {
+  (): Promise<void>
+  rollback(): Promise<void>
+}
+
 /** Validate and prepare before creating a project or removing its old editor config. */
-export async function prepareWorkspaceTsconfig(workspaceRoot: string, projectRoots: string[]): Promise<() => Promise<void>> {
+export async function prepareWorkspaceTsconfig(workspaceRoot: string, projectRoots: string[]): Promise<WorkspaceTsconfigUpdate> {
   const file = join(workspaceRoot, 'tsconfig.json')
   let original: string | undefined
   let mode: number | undefined
@@ -99,7 +104,8 @@ export async function prepareWorkspaceTsconfig(workspaceRoot: string, projectRoo
 
   set(['include'], [...new Set([...include, ...additions])])
 
-  return async () => {
+  let applied = false
+  const write = async () => {
     if (source === original) {
       return
     }
@@ -121,8 +127,53 @@ export async function prepareWorkspaceTsconfig(workspaceRoot: string, projectRoo
       } else {
         await rename(temporary, file)
       }
+
+      applied = true
     } finally {
       await rm(temporary, { force: true })
     }
   }
+
+  const rollback = async () => {
+    if (!applied) {
+      return
+    }
+
+    // Do not replace a config changed by another writer after our update.
+    try {
+      if ((await lstat(file)).isSymbolicLink() || await readFile(file, 'utf8') !== source) {
+        return
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return
+      }
+
+      throw error
+    }
+
+    if (original === undefined) {
+      await rm(file)
+
+      return
+    }
+
+    const temporary = `${file}.${randomUUID()}.tmp`
+
+    try {
+      await writeFile(temporary, original, {
+        flag: 'wx',
+        mode
+      })
+      if (mode !== undefined) {
+        await chmod(temporary, mode)
+      }
+
+      await rename(temporary, file)
+    } finally {
+      await rm(temporary, { force: true })
+    }
+  }
+
+  return Object.assign(write, { rollback })
 }

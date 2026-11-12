@@ -157,10 +157,6 @@ const init: ProjectInitializer = async (options, context) => {
       },
       tags: [],
     }, context, { overwrite: false })
-    if (addEslint) {
-      await addEslint({}, context)
-    }
-
     await writeJson('tsconfig.build.json', {
       extends: relativePath(projectRoot, baseFile),
       compilerOptions: {
@@ -171,6 +167,8 @@ const init: ProjectInitializer = async (options, context) => {
       include: ['src/**/*.ts'],
     }, context, { overwrite: false })
     await writeFile(join(projectRoot, 'src/index.ts'), 'export {}\n', { flag: 'wx' })
+
+    await writeEditorConfig()
 
     if (createBase || options.importPath !== undefined) {
       const temporary = `${baseFile}.${randomUUID()}.tmp`
@@ -194,13 +192,18 @@ const init: ProjectInitializer = async (options, context) => {
         await rm(temporary, { force: true })
       }
     }
-
-    await writeEditorConfig()
   } catch (error) {
     await rm(projectRoot, {
       recursive: true,
       force: true
     })
+
+    try {
+      await writeEditorConfig.rollback()
+    } catch (rollbackError) {
+      throw new AggregateError([error, rollbackError], 'Initialization failed and the editor config could not be restored.', { cause: rollbackError })
+    }
+
     throw error
   }
 
@@ -208,6 +211,11 @@ const init: ProjectInitializer = async (options, context) => {
     cache: true,
     outputs: generatedOutputs
   }, context)
+
+  // Workspace lint setup is deferred until every scaffold write has succeeded.
+  if (addEslint) {
+    await addEslint({}, context)
+  }
 }
 
 export default init

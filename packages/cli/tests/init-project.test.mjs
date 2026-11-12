@@ -68,7 +68,7 @@ test('init creates a buildable JS project and adds its import alias to a new bas
 
   assert.equal(result.status, 0, result.stderr)
   assert.deepEqual(result.stdout.match(/packages\/test\/(?:project|tsconfig(?:\.build)?)\.json/g), [
-    'packages/test/project.json', 'packages/test/project.json', 'packages/test/tsconfig.build.json',
+    'packages/test/project.json', 'packages/test/tsconfig.build.json', 'packages/test/project.json',
   ])
   const project = await readJson(join(root, 'packages/test/project.json'))
 

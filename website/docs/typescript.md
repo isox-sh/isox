@@ -27,7 +27,8 @@ isox init @isox-sh/js packages/test --importPath=@org/test
 isox build test
 ```
 
-The initializer creates `project.json` with build and ESLint lint targets and a `$schema`
+The initializer creates `project.json` with a build target, an ESLint lint target
+by default, and a `$schema`
 reference (local when core is installed directly, otherwise a versioned unpkg URL),
 `tsconfig.build.json` for compilation, and `src/index.ts` in the project.
 The linter defaults to `--linter=eslint`, which adds a `lint` target using
@@ -41,6 +42,9 @@ initialization adds each project's sources to its `include` list. It sets
 `noEmit: true`, disables composite mode, and uses the workspace as `rootDir`, so
 imports of other projects' sources work before a build. Existing comments,
 references, includes, and unrelated settings are preserved.
+The editor settings `noEmit: true`, `composite: false`, and `rootDir: "."` are
+enforced even when the root config already sets different values. Use
+`tsconfig.build.json` for emit, composite builds, or a different source root.
 The root editor config extends `tsconfig.base.json` unless it already has an
 `extends` setting. Each build config extends `tsconfig.base.json` directly,
 enables emit, and keeps `rootDir: "./src"`. The base config is created if missing.

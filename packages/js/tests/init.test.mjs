@@ -203,3 +203,70 @@ test('project schemas use a relative local path when core is installed directly'
   const project = JSON.parse(await fs.readFile(join(projectRoot, 'project.json'), 'utf8'))
   assert.equal(project.$schema, '../../../node_modules/@isox-sh/core/schemas/project.schema.json')
 })
+
+for (const stage of ['source', 'editor']) {
+  test(`a ${stage} write failure leaves the base config and ESLint workspace setup untouched`, async t => {
+    const { root, context } = await fixture(t)
+    const projectRoot = join(root, 'packages/created')
+    const base = '{"compilerOptions":{"strict":true}}'
+    await fs.writeFile(join(root, 'tsconfig.base.json'), base)
+    const method = stage === 'source' ? 'writeFile' : 'link'
+    const original = fs[method]
+    const spy = vi.spyOn(fs, method).mockImplementation(async (...args) => {
+      const destination = stage === 'source' ? args[0] : args[1]
+      if (destination === join(stage === 'source' ? projectRoot : root, stage === 'source' ? 'src/index.ts' : 'tsconfig.json')) {
+        throw Object.assign(new Error('injected scaffold failure'), { code: 'EACCES' })
+      }
+
+      return original(...args)
+    })
+    t.onTestFinished(() => spy.mockRestore())
+
+    await assert.rejects(init({ importPath: '@org/created' }, {
+      ...context,
+      projectRoot,
+      projectName: 'created'
+    }), /injected scaffold failure/)
+    assert.equal(await fs.readFile(join(root, 'tsconfig.base.json'), 'utf8'), base)
+    for (const file of ['package.json', 'eslint.config.mjs', 'tsconfig.json', 'packages/created']) {
+      await assert.rejects(fs.stat(join(root, file)), { code: 'ENOENT' })
+    }
+  })
+}
+
+for (const existingEditor of [false, true]) {
+  test(`a base publish failure restores the editor config (existing: ${existingEditor})`, async t => {
+    const { root, context } = await fixture(t)
+    const projectRoot = join(root, 'packages/created')
+    const editor = '{\n // keep editor settings\n "compilerOptions": { "jsx": "react-jsx" }\n}\n'
+    if (existingEditor) {
+      await fs.writeFile(join(root, 'tsconfig.json'), editor, { mode: 0o640 })
+    }
+
+    const original = fs.link
+    const spy = vi.spyOn(fs, 'link').mockImplementation(async (source, destination) => {
+      if (destination === join(root, 'tsconfig.base.json')) {
+        throw Object.assign(new Error('injected base failure'), { code: 'EACCES' })
+      }
+
+      return original(source, destination)
+    })
+    t.onTestFinished(() => spy.mockRestore())
+
+    await assert.rejects(init({}, {
+      ...context,
+      projectRoot,
+      projectName: 'created'
+    }), /injected base failure/)
+    if (existingEditor) {
+      assert.equal(await fs.readFile(join(root, 'tsconfig.json'), 'utf8'), editor)
+      assert.equal((await fs.stat(join(root, 'tsconfig.json'))).mode & 0o777, 0o640)
+    } else {
+      await assert.rejects(fs.stat(join(root, 'tsconfig.json')), { code: 'ENOENT' })
+    }
+
+    for (const file of ['tsconfig.base.json', 'package.json', 'eslint.config.mjs', 'packages/created']) {
+      await assert.rejects(fs.stat(join(root, file)), { code: 'ENOENT' })
+    }
+  })
+}
