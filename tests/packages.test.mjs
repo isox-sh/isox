@@ -27,3 +27,14 @@ test('published packages retain internal dependencies removed from source manife
 
   assert.equal(core.dependencies['@isox-sh/nx'], undefined, 'The optional Nx adapter must remain a workspace-selected plugin')
 })
+
+test('the published JS package translates the optional ESLint workspace peer to its release version', () => {
+  const source = require('../packages/js/package.json')
+  const generated = require('../dist/js/package.json')
+  const eslint = require('../dist/eslint/package.json')
+
+  assert.equal(source.peerDependencies['@isox-sh/eslint'], 'workspace:*')
+  assert.equal(generated.peerDependencies['@isox-sh/eslint'], eslint.version)
+  assert.equal(generated.peerDependenciesMeta['@isox-sh/eslint'].optional, true)
+  assert.equal(generated.dependencies['@isox-sh/eslint'], undefined)
+})

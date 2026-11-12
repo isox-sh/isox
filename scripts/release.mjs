@@ -96,16 +96,21 @@ async function releasePackages(root, version) {
 
     visiting.add(name)
     const pkg = packages.get(name)
+
+    for (const field of ['dependencies', 'optionalDependencies', 'peerDependencies']) {
+      for (const [dependency, range] of Object.entries(pkg.manifest[field] ?? {})) {
+        if (/^(workspace|file|link):/.test(range)) {
+          throw new Error(`${name} contains an unpublished dependency: ${dependency}@${range}.`)
+        }
+      }
+    }
+
     const dependencies = {
       ...pkg.manifest.dependencies,
       ...pkg.manifest.optionalDependencies
     }
 
-    for (const [dependency, range] of Object.entries(dependencies)) {
-      if (/^(workspace|file|link):/.test(range)) {
-        throw new Error(`${name} contains an unpublished dependency: ${dependency}@${range}.`)
-      }
-
+    for (const dependency of Object.keys(dependencies)) {
       if (packages.has(dependency)) {
         visit(dependency)
       }
