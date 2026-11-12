@@ -213,6 +213,8 @@ test('plugin schemas validate flags, apply defaults, and preserve string values'
         type: 'array',
         items: { type: 'string' }
       },
+      v2Api: { type: 'string' },
+      version2: { type: 'string' },
     },
     required: ['importName'],
     additionalProperties: false,
@@ -228,7 +230,7 @@ test('plugin schemas validate flags, apply defaults, and preserve string values'
     const result = f.run(f.root, 'add', 'plugin', 'named-project', ...flags)
 
     assert.equal(result.status, 1, result.stderr)
-    assert.match(result.stderr, /Invalid options for plugin:add/)
+    assert.match(result.stderr, /Invalid options for plugin:add|value is missing/)
     await assert.rejects(readFile(join(f.projectRoot, 'added.json')), { code: 'ENOENT' })
   }
 
@@ -245,4 +247,27 @@ test('plugin schemas validate flags, apply defaults, and preserve string values'
 
   assert.equal(disabled.status, 0, disabled.stderr)
   assert.equal(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options.enabled, false)
+
+  for (const [args, enabled] of [
+    [['add', '--enabled', 'plugin', 'named-project'], true],
+    [['add', 'plugin', '--enabled', 'named-project'], true],
+    [['add', 'plugin', 'named-project', '--enabled=true', '--no-enabled'], false],
+    [['add', 'plugin', 'named-project', '--no-enabled', '--enabled'], true],
+    [['add', 'plugin', 'named-project', '--enabled=false', '--enabled'], true],
+    [['add', 'plugin', 'named-project', '--enabled', '--enabled=false'], false],
+  ]) {
+    const result = f.run(f.root, ...args, '--import-name=001', '--v2-api=002', '--version-2=003')
+
+    assert.equal(result.status, 0, `${args.join(' ')}: ${result.stderr}`)
+    assert.deepEqual(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options, {
+      importName: '001',
+      enabled,
+      v2Api: '002',
+      version2: '003'
+    })
+  }
+
+  const beforePackage = f.run(f.root, 'add', '--import-name', '001', 'plugin', 'named-project')
+  assert.equal(beforePackage.status, 0, beforePackage.stderr)
+  assert.equal(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options.importName, '001')
 })

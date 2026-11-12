@@ -41,20 +41,12 @@ export function preserveOptionValues(cli: CAC): void {
 
     const definition = aliases.get(token.name)
 
-    if (!definition && ['init', 'add'].includes(cli.matchedCommand.name)) {
-      // Plugin options are declared in the generator schema, not in CAC.
-      const name = token.name.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())
-      const next = args[token.index + 1]
-      const value = token.value ?? (!token.name.startsWith('no-') && next && !next.startsWith('-') ? next : undefined)
+    const booleanDefinition = definition ?? (token.name.startsWith('no-') ? aliases.get(token.name.slice(3)) : undefined)
 
-      if (value !== undefined) {
-        const entries = values.get(name) ?? []
-
-        entries.push(value)
-        values.set(name, entries)
-        cli.options[name] = entries.length === 1 ? entries[0] : entries
-      }
-
+    if (booleanDefinition?.isBoolean && ['init', 'add'].includes(cli.matchedCommand.name)
+      && !cli.globalCommand.options.includes(booleanDefinition)) {
+      // Boolean flags follow command-line order, including explicit values and negations.
+      cli.options[booleanDefinition.name] = token.name.startsWith('no-') ? false : token.value ?? true
       continue
     }
 

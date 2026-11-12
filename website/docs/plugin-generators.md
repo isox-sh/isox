@@ -75,7 +75,8 @@ repeat calls, and reject conflicting targets. The release plugin supplies an
 example: `isox add @isox-sh/semver my-package` adds its `version` target.
 The TypeScript package builder copies `generators.json` and rewrites all
 implementation and optional schema paths into the published output. Generator
-schemas are validated by the CLI before invoking the generator, including defaults.
+options are validated against the schema before invoking the generator, and schema
+defaults are applied.
 
 ## Generator options
 

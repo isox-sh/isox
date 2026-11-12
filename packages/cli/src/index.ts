@@ -11,6 +11,7 @@ import { registerPlanAction } from './actions/plan'
 import { registerResetAction } from './actions/reset'
 import { registerRunAction } from './actions/run'
 import { registerRunManyAction } from './actions/run-many'
+import { registerGeneratorOptions } from './shared/generator-options'
 import { preserveOptionValues } from './shared/parse-options'
 
 const cli = cac('isox')
@@ -30,7 +31,10 @@ registerRunManyAction(cli)
 cli.help()
 
 async function main(): Promise<void> {
-  cli.parse(process.argv, { run: false })
+  const argv = [...process.argv]
+  await registerGeneratorOptions(cli, argv)
+
+  cli.parse(argv, { run: false })
   preserveOptionValues(cli)
   // CAC keeps tokens after -- separately; our commands use them as literal positional names.
   cli.args = [...cli.args, ...cli.options['--']]
