@@ -64,7 +64,7 @@ export async function setupWorkspace(context: InitializerContext): Promise<void>
     return {}
   })
 
-  if (!hasConfig && Object.hasOwn(manifest, 'eslintConfig')) {
+  if (!hasConfig && Object.hasOwn(manifest ?? {}, 'eslintConfig')) {
     hasConfig = true
     context.logger.warn('Preserving package.json eslintConfig. ESLint 10 requires a flat config; migrate it before linting.')
   }

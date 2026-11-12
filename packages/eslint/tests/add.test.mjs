@@ -216,3 +216,14 @@ test('the CLI loads the packaged generator by project name and invalidates stale
     executor: 'eslint:lint'
   })
 })
+
+test('a null workspace manifest reports a validation error without creating lint setup', async t => {
+  const f = await fixture(t)
+  const project = await readFile(join(f.projectRoot, 'project.json'), 'utf8')
+
+  await f.write('package.json', null)
+  await assert.rejects(add({}, f.context), /Invalid package.json: expected an object/)
+  assert.equal(await readFile(join(f.projectRoot, 'project.json'), 'utf8'), project)
+  assert.equal(await readFile(join(f.root, 'package.json'), 'utf8'), 'null')
+  await assert.rejects(readFile(join(f.root, 'eslint.config.mjs')), { code: 'ENOENT' })
+})
