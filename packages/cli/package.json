@@ -13,6 +13,7 @@
     "migrations.json"
   ],
   "dependencies": {
+    "ajv": "^8.20.0",
     "cac": "^7.1.0"
   },
   "description": "A lightweight monorepo command runner with explicit project configuration.",

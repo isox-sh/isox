@@ -41,6 +41,15 @@ export function preserveOptionValues(cli: CAC): void {
 
     const definition = aliases.get(token.name)
 
+    const booleanDefinition = definition ?? (token.name.startsWith('no-') ? aliases.get(token.name.slice(3)) : undefined)
+
+    if (booleanDefinition?.isBoolean && ['init', 'add'].includes(cli.matchedCommand.name)
+      && !cli.globalCommand.options.includes(booleanDefinition)) {
+      // Boolean flags follow command-line order, including explicit values and negations.
+      cli.options[booleanDefinition.name] = token.name.startsWith('no-') ? false : token.value ?? true
+      continue
+    }
+
     if (!definition || definition.isBoolean) {
       continue
     }

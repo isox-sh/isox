@@ -295,7 +295,7 @@ export async function resolveWorkspaceDependencies(
           const base = options.baseUrl ?? options.pathsBasePath
           const resolved = ts.resolveModuleName(specifier, file, options, system).resolvedModule
           const targets = options.paths![pattern].map(target =>
-            resolve(typeof base === 'string' ? base : workspaceRoot, target.replace('*', wildcard)),
+            resolve(typeof base === 'string' ? base : workspaceRoot, target.replace(/\*/g, wildcard)),
           )
 
           // TypeScript selects the first resolving fallback. If outputs do not exist

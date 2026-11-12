@@ -5,15 +5,25 @@
   "description": "Native TypeScript compiler executor for Isox.",
   "executors": "./executors.json",
   "generators": "./generators.json",
+  "migrations": "./migrations.json",
   "files": [
     "dist",
     "executors.json",
-    "generators.json"
+    "generators.json",
+    "migrations.json"
   ],
   "dependencies": {
     "jsonc-parser": "^3.3.1",
     "fast-glob": "^3.3.3",
     "ajv": "^8.20.0"
+  },
+  "peerDependencies": {
+    "@isox-sh/eslint": "workspace:*"
+  },
+  "peerDependenciesMeta": {
+    "@isox-sh/eslint": {
+      "optional": true
+    }
   },
   "repository": {
     "type": "git",

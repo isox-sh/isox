@@ -206,3 +206,23 @@ test('a failed package preflight prevents publishing all packages', async t => {
   }, oidc), /Invalid tarball/)
   assert.ok(calls.every(call => call.args[0] !== 'publish'))
 })
+
+for (const protocol of ['workspace:*', 'file:../eslint', 'link:../eslint']) {
+  test(`release rejects an unpublished optional peer dependency (${protocol}) before packing`, async t => {
+    const { root, calls, run, write } = await fixture(t)
+
+    await write('dist/cli', {
+      name: 'cli',
+      version: '1.0.0-alpha.0',
+      dependencies: { core: '1.0.0-alpha.0' },
+      peerDependencies: { eslint: protocol },
+      peerDependenciesMeta: { eslint: { optional: true } },
+    })
+    await assert.rejects(release({
+      root,
+      tag: 'alpha',
+      dryRun: true
+    }, run), /unpublished dependency: eslint/)
+    assert.deepEqual(calls.map(call => call.args[0]), ['bootstrap'])
+  })
+}

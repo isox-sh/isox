@@ -218,7 +218,7 @@ test('invalid configuration selections fail without invoking the executor', asyn
     [['build', 'demo', '--config', 'production', '--config', 'staging'], /exactly one configuration/],
     [['build', 'demo', '-c', 'production', '--configuration', 'staging'], /exactly one configuration/],
     [['build', 'demo', '--config=production,staging'], /Invalid configuration name/],
-    [['init', '--prod'], /Unknown option/],
+    [['init', '--prod'], /Generator options require a package and a project path/],
     [['reset', '--config=production'], /Unknown option/],
   ]) {
     const result = run(root, args)

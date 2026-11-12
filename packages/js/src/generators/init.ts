@@ -1,26 +1,52 @@
 import { randomUUID } from 'node:crypto'
 import { constants } from 'node:fs'
 import { chmod, lstat, mkdir, open, rename, rm, writeFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { dirname, join, relative, resolve, sep } from 'node:path'
 
 import { addTargetDefaults, json, publishNewFile, readWorkspaceSettings, resolveTargetDefaults, writeJson } from '@isox-sh/core'
 import { applyEdits, modify, parse } from 'jsonc-parser'
 
-import type { ExecutorConfiguration, ProjectInitializer } from '@isox-sh/core'
+import { isRecord, prepareWorkspaceTsconfig, projectSchema, relativePath } from './workspace-tsconfig'
+
+import type { ExecutorConfiguration, ProjectAdder, ProjectInitializer } from '@isox-sh/core'
 import type { ParseError } from 'jsonc-parser'
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-}
-
-function relativePath(from: string, to: string): string {
-  const path = relative(from, to).split(sep).join('/')
-
-  return path.startsWith('.') ? path : `./${path}`
+interface EslintGeneratorModule {
+  default: ProjectAdder
 }
 
 const init: ProjectInitializer = async (options, context) => {
   const { workspaceRoot, projectRoot, projectName } = context
+  const linter = options.linter ?? 'eslint'
+
+  if (linter !== 'eslint' && linter !== 'none') {
+    throw new Error('--linter must be eslint or none.')
+  }
+
+  if (options.importPath !== undefined && (typeof options.importPath !== 'string' || !/^[^\s:*]+$/.test(options.importPath))) {
+    throw new Error('--importPath must be a non-empty import name without whitespace, colons, or wildcards.')
+  }
+
+  let addEslint: ProjectAdder | undefined
+
+  if (linter === 'eslint') {
+    const require = createRequire(__filename)
+    let implementation: string
+
+    try {
+      implementation = require.resolve('@isox-sh/eslint/generators/add')
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'MODULE_NOT_FOUND') {
+        throw new Error('ESLint setup requires @isox-sh/eslint. Install it as a dev dependency or use --linter=none.', { cause: error })
+      }
+
+      throw error
+    }
+
+    addEslint = (require(implementation) as EslintGeneratorModule).default
+  }
+
   const settings = await readWorkspaceSettings(workspaceRoot)
   const baseFile = join(workspaceRoot, 'tsconfig.base.json')
   let source: string
@@ -116,26 +142,20 @@ const init: ProjectInitializer = async (options, context) => {
     buildTarget.outputs = generatedOutputs
   }
 
+  const writeEditorConfig = await prepareWorkspaceTsconfig(workspaceRoot, [projectRoot])
+
   await mkdir(dirname(projectRoot), { recursive: true })
   await mkdir(projectRoot)
 
   try {
     await mkdir(join(projectRoot, 'src'))
     await writeJson('project.json', {
+      $schema: projectSchema(workspaceRoot, projectRoot),
       name: projectName,
       targets: {
         build: buildTarget,
       },
       tags: [],
-    }, context, { overwrite: false })
-    await writeJson('tsconfig.json', {
-      extends: relativePath(projectRoot, baseFile),
-      compilerOptions: {
-        noEmit: true,
-        composite: false,
-        rootDir: relativePath(projectRoot, workspaceRoot),
-      },
-      include: ['src/**/*.ts'],
     }, context, { overwrite: false })
     await writeJson('tsconfig.build.json', {
       extends: relativePath(projectRoot, baseFile),
@@ -147,6 +167,8 @@ const init: ProjectInitializer = async (options, context) => {
       include: ['src/**/*.ts'],
     }, context, { overwrite: false })
     await writeFile(join(projectRoot, 'src/index.ts'), 'export {}\n', { flag: 'wx' })
+
+    await writeEditorConfig()
 
     if (createBase || options.importPath !== undefined) {
       const temporary = `${baseFile}.${randomUUID()}.tmp`
@@ -170,12 +192,18 @@ const init: ProjectInitializer = async (options, context) => {
         await rm(temporary, { force: true })
       }
     }
-
   } catch (error) {
     await rm(projectRoot, {
       recursive: true,
       force: true
     })
+
+    try {
+      await writeEditorConfig.rollback()
+    } catch (rollbackError) {
+      throw new AggregateError([error, rollbackError], 'Initialization failed and the editor config could not be restored.', { cause: rollbackError })
+    }
+
     throw error
   }
 
@@ -183,6 +211,11 @@ const init: ProjectInitializer = async (options, context) => {
     cache: true,
     outputs: generatedOutputs
   }, context)
+
+  // Workspace lint setup is deferred until every scaffold write has succeeded.
+  if (addEslint) {
+    await addEslint({}, context)
+  }
 }
 
 export default init

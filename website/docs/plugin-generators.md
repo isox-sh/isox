@@ -20,6 +20,7 @@ implementations:
   "generators": {
     "init": {
       "implementation": "./dist/generators/init.js",
+      "schema": "./dist/generators/init.schema.json",
       "description": "Create a project."
     },
     "add": {
@@ -60,7 +61,7 @@ const add: ProjectAdder = async (_options, context) => {
 export default add
 ```
 
-It receives an empty options object and the same context fields as an initializer:
+It receives the supplied generator options and the same context fields as an initializer:
 `workspaceRoot`, `projectRoot`, `projectName`, and `logger`. The CLI looks up
 the project by name in fresh workspace discovery and resolves its directory.
 Root projects use their project name as well. The command works from any directory
@@ -74,6 +75,37 @@ repeat calls, and reject conflicting targets. The release plugin supplies an
 example: `isox add @isox-sh/semver my-package` adds its `version` target.
 The TypeScript package builder copies `generators.json` and rewrites all
 implementation and optional schema paths into the published output. Generator
-schemas are metadata; the CLI does not apply schema validation or defaults.
+options are validated against the schema before invoking the generator, and schema
+defaults are applied.
+
+## Generator options
+
+Define options in a JSON Schema file referenced by the generator's `schema` field.
+Both `init` and `add` support plugin-defined flags without CLI changes:
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "linter": {
+      "type": "string",
+      "enum": ["eslint", "none"],
+      "default": "eslint"
+    }
+  },
+  "additionalProperties": false
+}
+```
+
+Use `--linter=none` or `--linter none`. Kebab-case flags map to camelCase
+properties, such as `--import-path` to `importPath`. String values retain leading
+zeros. Boolean and numeric values are parsed according to the property's type;
+`--no-enabled` sets `enabled` to `false`. Use `--options '{"items":["a"]}'`
+for arrays and objects. Explicit flags override values from `--options`.
+The CLI removes its own flags, such as `--verbose`, before validation.
+Generators without a schema accept an empty options object only.
+Schema validation applies to CLI invocations; generators called directly from
+code should validate any inputs they require themselves.
 
 Test generators in temporary workspaces with the [plugin testing helper](/docs/plugin-testing).

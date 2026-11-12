@@ -1,0 +1,8 @@
+{
+  "generators": {
+    "add": {
+      "implementation": "../../dist/eslint/generators/add.js",
+      "description": "Add an ESLint lint target to an existing project."
+    }
+  }
+}

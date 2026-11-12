@@ -52,7 +52,7 @@ function seed(name) {
     }
   }
 
-  for (const [directory, pattern] of [['src', 'executors/**/*.schema.json'], ['.', 'schemas/**/*.json']]) {
+  for (const [directory, pattern] of [['src', '{executors,generators}/**/*.schema.json'], ['.', 'schemas/**/*.json']]) {
     for (const file of globSync(pattern, { cwd: resolve(source, directory) })) {
       const destination = resolve(output, file)
 

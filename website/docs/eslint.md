@@ -21,6 +21,27 @@ so that import resolves with package managers that isolate dependencies.
 
 ## Define a lint command
 
+Add a lint target to an existing project:
+
+```sh
+isox add @isox-sh/eslint my-app
+```
+
+The generator preserves existing ESLint targets and rejects conflicting lint
+targets. It is also called by `isox init @isox-sh/js` unless `--linter=none` is set.
+If there is no root ESLint config, it creates `eslint.config.mjs` with recommended
+JavaScript and TypeScript rules, Node.js globals, and ignores for build output,
+coverage, and Isox state. The root `package.json` gets dev dependencies for
+`@isox-sh/eslint`, `eslint`, `@eslint/js`, `typescript-eslint`, `typescript`, and
+`globals`. Run your package manager's install command before linting.
+
+Existing configs are preserved, including JavaScript, TypeScript, and legacy
+formats; existing dependency versions and dependency classifications are retained.
+When a config already exists, only the executor plugin and ESLint dependencies
+are ensured. Legacy configs produce a migration warning because ESLint 10 uses
+flat config. Running `add` again also repairs missing workspace setup when a
+lint target already exists.
+
 ```json
 {
   "name": "my-app",

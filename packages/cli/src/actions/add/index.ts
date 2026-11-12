@@ -3,11 +3,12 @@ import { isAbsolute, join, relative, resolve, sep } from 'node:path'
 
 import { findWorkspaceRoot, logger, parseWorkspace, readJson } from '@isox-sh/core'
 
+import { getExecutorOverrides } from '../../shared/executor-options'
 import { loadGenerator } from '../../shared/generators'
 
 import type { CAC } from 'cac'
 
-async function addToProject(packageName: string, projectName: string): Promise<void> {
+async function addToProject(packageName: string, projectName: string, options: Record<string, unknown>): Promise<void> {
   const workspaceRoot = await realpath(await findWorkspaceRoot())
   const cacheDirectory = join(workspaceRoot, '.isox')
   const cacheEntry = await lstat(cacheDirectory).catch((error: NodeJS.ErrnoException) => {
@@ -39,7 +40,7 @@ async function addToProject(packageName: string, projectName: string): Promise<v
   const add = loadGenerator(packageName, 'add', workspaceRoot)
 
   try {
-    await add({}, {
+    await add(options, {
       workspaceRoot,
       projectRoot,
       projectName,
@@ -53,6 +54,8 @@ async function addToProject(packageName: string, projectName: string): Promise<v
 
 export function registerAddAction(cli: CAC): void {
   cli.command('add <package> <project>', 'Add an installed plugin to an existing project')
+    .allowUnknownOptions()
+    .option('--options <json>', 'Generator options as a JSON object')
     .example('isox add @isox-sh/semver my-package')
-    .action(addToProject)
+    .action((packageName: string, projectName: string) => addToProject(packageName, projectName, getExecutorOverrides(cli)))
 }

@@ -2,6 +2,7 @@ import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 
 import { resolvePackageJson } from '@isox-sh/core'
+import { Ajv } from 'ajv'
 
 import type { ProjectAdder, ProjectInitializer } from '@isox-sh/core'
 
@@ -14,7 +15,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
-export function loadGenerator<Name extends keyof Generators>(packageName: string, name: Name, workspaceRoot: string): Generators[Name] {
+function generatorMetadata(packageName: string, name: keyof Generators, workspaceRoot: string) {
   const packageFile = resolvePackageJson(packageName, workspaceRoot)
   const require = createRequire(packageFile)
   const manifest = require(packageFile)
@@ -36,12 +37,65 @@ export function loadGenerator<Name extends keyof Generators>(packageName: string
     throw new Error(`Generator ${packageName}:${name} must define an implementation in ${manifest.generators}.`)
   }
 
-  const implementation = require(resolve(dirname(registryFile), definition.implementation))
+  return {
+    require,
+    registryFile,
+    definition
+  }
+}
+
+export function generatorSchema(packageName: string, name: keyof Generators, workspaceRoot: string) {
+  const { require, registryFile, definition } = generatorMetadata(packageName, name, workspaceRoot)
+
+  if (definition.schema !== undefined && (typeof definition.schema !== 'string' || !definition.schema.trim())) {
+    throw new Error(`Generator ${packageName}:${name} must define a schema file path.`)
+  }
+
+  return definition.schema === undefined
+    ? {
+      type: 'object',
+      additionalProperties: false
+    }
+    : require(resolve(dirname(registryFile), definition.schema as string))
+}
+
+export function loadGenerator<Name extends keyof Generators>(packageName: string, name: Name, workspaceRoot: string): Generators[Name] {
+  const { require, registryFile, definition } = generatorMetadata(packageName, name, workspaceRoot)
+  const implementation = require(resolve(dirname(registryFile), definition.implementation as string))
   const generator = implementation?.default ?? implementation
 
   if (typeof generator !== 'function') {
     throw new Error(`Generator ${packageName}:${name} does not export a function.`)
   }
 
-  return generator
+  const schema = generatorSchema(packageName, name, workspaceRoot)
+
+  const ajv = new Ajv({
+    allErrors: true,
+    useDefaults: true
+  })
+
+  const validate = ajv.compile(schema)
+
+  return (async (options, context) => {
+    const normalized = structuredClone(options)
+
+    for (const [key, value] of Object.entries(normalized)) {
+      const type = schema.properties?.[key]?.type
+
+      if (typeof value === 'string' && ['boolean', 'number', 'integer'].includes(type)) {
+        try {
+          normalized[key] = JSON.parse(value)
+        } catch {
+          // Leave invalid values intact so schema validation reports the option.
+        }
+      }
+    }
+
+    if (!validate(normalized)) {
+      throw new Error(`Invalid options for ${packageName}:${name}: ${ajv.errorsText(validate.errors, { dataVar: 'options' })}`)
+    }
+
+    await generator(normalized, context)
+  }) as Generators[Name]
 }

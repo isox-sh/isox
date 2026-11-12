@@ -3,9 +3,9 @@ import { join } from 'node:path'
 
 import { addDepsToPackageJson, defaultNamedInputs, logger } from '@isox-sh/core'
 
+import { getExecutorOverrides } from '../../shared/executor-options'
 import { initializeProject } from './project'
 
-import type { InitializerOptions } from '@isox-sh/core'
 import type { CAC } from 'cac'
 
 interface CliPackageManifest {
@@ -15,8 +15,11 @@ interface CliPackageManifest {
 export function registerInitAction(cli: CAC): void {
   cli
     .command('init [package] [path]', 'Create a workspace, or initialize a project in an existing workspace')
-    .option('--importPath <name>', 'Add a project import alias to tsconfig.base.json')
-    .action(async (packageName: string | undefined, projectPath: string | undefined, options: InitializerOptions) => {
+    .allowUnknownOptions()
+    .option('--options <json>', 'Generator options as a JSON object')
+    .action(async (packageName: string | undefined, projectPath: string | undefined) => {
+      const options = getExecutorOverrides(cli)
+
       if (packageName !== undefined || projectPath !== undefined) {
         if (!packageName || !projectPath) {
           throw new Error('Project initialization requires both a package and a path. Use isox init <package> <path>.')
@@ -27,8 +30,8 @@ export function registerInitAction(cli: CAC): void {
         return
       }
 
-      if (options.importPath !== undefined) {
-        throw new Error('--importPath requires a package and a project path.')
+      if (Object.keys(options).length > 0) {
+        throw new Error('Generator options require a package and a project path.')
       }
 
       const { version } = JSON.parse(await readFile(join(__dirname, '../../package.json'), 'utf8')) as CliPackageManifest

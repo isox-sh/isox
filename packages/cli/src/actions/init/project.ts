@@ -52,10 +52,6 @@ export async function initializeProject(packageName: string, projectPath: string
     throw new Error(`Invalid project name: ${projectName}.`)
   }
 
-  if (options.importPath !== undefined && (typeof options.importPath !== 'string' || !/^[^\s:*]+$/.test(options.importPath))) {
-    throw new Error('--importPath must be a non-empty import name without whitespace, colons, or wildcards.')
-  }
-
   const initializer = loadGenerator(packageName, 'init', workspaceRoot)
 
   // Refresh discovery before checking names; projects may have been added by hand.
@@ -68,7 +64,7 @@ export async function initializeProject(packageName: string, projectPath: string
 
   try {
     await initializer(
-      { importPath: options.importPath },
+      options,
       {
         workspaceRoot,
         projectRoot,

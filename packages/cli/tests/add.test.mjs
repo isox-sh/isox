@@ -182,3 +182,92 @@ test('add rejects malformed generator registries and missing implementations bef
     await assert.rejects(stat(join(f.projectRoot, 'added.json')), { code: 'ENOENT' })
   }
 })
+
+test('plugin schemas validate flags, apply defaults, and preserve string values', async t => {
+  const f = await fixture(t)
+
+  await f.write('node_modules/plugin/metadata/generators.json', {
+    generators: {
+      add: {
+        implementation: '../add.cjs',
+        schema: './add.schema.json'
+      }
+    }
+  })
+  await f.write('node_modules/plugin/metadata/add.schema.json', {
+    type: 'object',
+    properties: {
+      importName: {
+        type: 'string',
+        minLength: 1
+      },
+      enabled: {
+        type: 'boolean',
+        default: true
+      },
+      count: {
+        type: 'integer',
+        minimum: 1
+      },
+      items: {
+        type: 'array',
+        items: { type: 'string' }
+      },
+      v2Api: { type: 'string' },
+      version2: { type: 'string' },
+    },
+    required: ['importName'],
+    additionalProperties: false,
+  })
+  for (const flags of [
+    [],
+    ['--import-name'],
+    ['--import-name=x', '--unknown'],
+    ['--import-name=x', '--count=bad'],
+    ['--import-name=x', '--enabled=maybe'],
+    ['--import-name=x', '--import-name=y'],
+  ]) {
+    const result = f.run(f.root, 'add', 'plugin', 'named-project', ...flags)
+
+    assert.equal(result.status, 1, result.stderr)
+    assert.match(result.stderr, /Invalid options for plugin:add|value is missing/)
+    await assert.rejects(readFile(join(f.projectRoot, 'added.json')), { code: 'ENOENT' })
+  }
+
+  const result = f.run(f.root, 'add', 'plugin', 'named-project', '--import-name', '001', '--count=3', '--options', '{"items":["a"]}')
+
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options, {
+    importName: '001',
+    count: 3,
+    enabled: true,
+    items: ['a']
+  })
+  const disabled = f.run(f.root, 'add', 'plugin', 'named-project', '--import-name=x', '--no-enabled')
+
+  assert.equal(disabled.status, 0, disabled.stderr)
+  assert.equal(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options.enabled, false)
+
+  for (const [args, enabled] of [
+    [['add', '--enabled', 'plugin', 'named-project'], true],
+    [['add', 'plugin', '--enabled', 'named-project'], true],
+    [['add', 'plugin', 'named-project', '--enabled=true', '--no-enabled'], false],
+    [['add', 'plugin', 'named-project', '--no-enabled', '--enabled'], true],
+    [['add', 'plugin', 'named-project', '--enabled=false', '--enabled'], true],
+    [['add', 'plugin', 'named-project', '--enabled', '--enabled=false'], false],
+  ]) {
+    const result = f.run(f.root, ...args, '--import-name=001', '--v2-api=002', '--version-2=003')
+
+    assert.equal(result.status, 0, `${args.join(' ')}: ${result.stderr}`)
+    assert.deepEqual(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options, {
+      importName: '001',
+      enabled,
+      v2Api: '002',
+      version2: '003'
+    })
+  }
+
+  const beforePackage = f.run(f.root, 'add', '--import-name', '001', 'plugin', 'named-project')
+  assert.equal(beforePackage.status, 0, beforePackage.stderr)
+  assert.equal(JSON.parse(await readFile(join(f.projectRoot, 'added.json'), 'utf8')).options.importName, '001')
+})

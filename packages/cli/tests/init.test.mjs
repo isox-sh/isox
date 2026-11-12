@@ -170,7 +170,7 @@ test('init help and invalid arguments do not create a workspace', async (t) => {
     const result = run(root, ...args)
 
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /requires both a package and a path|Unknown option/)
+    assert.match(result.stderr, /requires both a package and a path|Generator options require a package|Unknown option/)
   }
 
   assert.deepEqual(await readdir(root), [])

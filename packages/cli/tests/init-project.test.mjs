@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -11,12 +11,12 @@ const cliPath = resolve(import.meta.dirname, '../../../dist/cli/index.js')
 const jsPackage = resolve(import.meta.dirname, '../../../dist/js')
 const require = createRequire(import.meta.url)
 
-function typecheck(root, project, packageName, bin) {
+function typecheck(root, packageName, bin) {
   const manifest = require.resolve(`${packageName}/package.json`)
 
   return spawnSync(process.execPath, [
     resolve(dirname(manifest), require(manifest).bin[bin]),
-    '--project', `${project}/tsconfig.json`, '--pretty', 'false',
+    '--project', 'tsconfig.json', '--pretty', 'false',
   ], {
     cwd: root,
     encoding: 'utf8'
@@ -68,15 +68,18 @@ test('init creates a buildable JS project and adds its import alias to a new bas
 
   assert.equal(result.status, 0, result.stderr)
   assert.deepEqual(result.stdout.match(/packages\/test\/(?:project|tsconfig(?:\.build)?)\.json/g), [
-    'packages/test/project.json', 'packages/test/tsconfig.json', 'packages/test/tsconfig.build.json',
+    'packages/test/project.json', 'packages/test/tsconfig.build.json', 'packages/test/project.json',
   ])
   const project = await readJson(join(root, 'packages/test/project.json'))
 
   assert.equal(project.name, 'test')
+  assert.equal(project.$schema, `https://unpkg.com/@isox-sh/core@${require('../../../dist/core/package.json').version}/schemas/project.schema.json`)
+  await assert.rejects(readFile(join(root, 'packages/test/tsconfig.json')), { code: 'ENOENT' })
   assert.equal(project.targets.build.executor, 'js:tsc')
+  assert.deepEqual(project.targets.lint, { executor: 'eslint:lint' })
   assert.equal(project.targets.build.options.tsConfig, './packages/test/tsconfig.build.json')
-  assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).extends, '../../tsconfig.base.json')
-  assert.equal((await readJson(join(root, 'packages/test/tsconfig.json'))).compilerOptions.noEmit, true)
+  assert.equal((await readJson(join(root, 'tsconfig.json'))).extends, './tsconfig.base.json')
+  assert.equal((await readJson(join(root, 'tsconfig.json'))).compilerOptions.noEmit, true)
   assert.equal((await readJson(join(root, 'packages/test/tsconfig.build.json'))).compilerOptions.outDir, '../../dist/packages/test')
   const base = await readJson(join(root, 'tsconfig.base.json'))
 
@@ -92,6 +95,48 @@ test('init creates a buildable JS project and adds its import alias to a new bas
 
   assert.equal(build.status, 0, build.stderr)
   assert.ok((await readdir(join(root, 'dist/packages/test'))).includes('index.js'))
+})
+
+for (const linter of ['eslint', 'none']) {
+  test(`init forwards --linter=${linter} to the JS initializer`, async t => {
+    const root = await fixture(t)
+    const result = run(root, 'init', '@isox-sh/js', 'packages/test', `--linter=${linter}`)
+
+    assert.equal(result.status, 0, result.stderr)
+    const project = await readJson(join(root, 'packages/test/project.json'))
+
+    assert.deepEqual(project.targets.lint, linter === 'eslint' ? { executor: 'eslint:lint' } : undefined)
+
+    if (linter === 'none') {
+      await assert.rejects(readFile(join(root, 'eslint.config.mjs')), { code: 'ENOENT' })
+      await assert.rejects(readFile(join(root, 'package.json')), { code: 'ENOENT' })
+    }
+  })
+}
+
+test('JS init works without the optional ESLint peer when linting is disabled', async t => {
+  const root = await fixture(t)
+  const js = join(root, 'node_modules/@isox-sh/js')
+
+  await rm(js)
+  await cp(jsPackage, js, { recursive: true })
+  await symlink(resolve(import.meta.dirname, '../../../dist/core'), join(root, 'node_modules/@isox-sh/core'), 'junction')
+  const fromJs = createRequire(join(jsPackage, 'package.json'))
+  await symlink(dirname(fromJs.resolve('jsonc-parser/package.json')), join(root, 'node_modules/jsonc-parser'), 'junction')
+  const missing = run(root, 'init', '@isox-sh/js', 'packages/needs-eslint')
+
+  assert.equal(missing.status, 1, missing.stdout + missing.stderr)
+  assert.match(missing.stderr, /Install it as a dev dependency or use --linter=none/)
+  await assert.rejects(readFile(join(root, 'packages/needs-eslint/project.json')), { code: 'ENOENT' })
+  const disabled = run(root, 'init', '@isox-sh/js', 'packages/plain', '--linter=none')
+
+  assert.equal(disabled.status, 0, disabled.stdout + disabled.stderr)
+  assert.equal((await readJson(join(root, 'packages/plain/project.json'))).targets.lint, undefined)
+  await assert.rejects(readFile(join(root, 'package.json')), { code: 'ENOENT' })
+  const manifest = await readJson(join(js, 'package.json'))
+
+  assert.equal(manifest.peerDependenciesMeta['@isox-sh/eslint'].optional, true)
+  assert.equal(manifest.dependencies['@isox-sh/eslint'], undefined)
 })
 
 test('init resolves relative paths from a nested cwd and preserves an existing base config without an alias', async (t) => {
@@ -140,16 +185,20 @@ for (const composite of [false, true]) {
     await writeFile(join(root, 'apps/deep/consumer/src/index.ts'), 'import { answer } from "@org/shared"\nexport const result = answer + 1\n')
 
     for (const [packageName, bin] of [['typescript', 'tsc6'], ['@typescript/native', 'tsc']]) {
-      for (const project of ['libraries/shared', 'apps/deep/consumer']) {
-        const result = typecheck(root, project, packageName, bin)
+      const result = typecheck(root, packageName, bin)
 
-        assert.equal(result.status, 0, `${packageName}: ${result.stdout}${result.stderr}`)
+      assert.equal(result.status, 0, `${packageName}: ${result.stdout}${result.stderr}`)
+      for (const project of ['libraries/shared', 'apps/deep/consumer']) {
         assert.deepEqual(await readdir(join(root, project, 'src')), ['index.ts'])
       }
     }
 
     assert.ok(!(await readdir(root)).includes('dist'))
-    assert.equal(await readFile(join(root, 'tsconfig.json'), 'utf8'), editorConfig)
+    const editor = await readJson(join(root, 'tsconfig.json'))
+
+    assert.deepEqual(editor.files, [])
+    assert.deepEqual(editor.references, [])
+    assert.deepEqual(editor.include, ['./libraries/shared/src/**/*.ts', './apps/deep/consumer/src/**/*.ts'])
 
     for (const project of ['shared', 'consumer']) {
       const result = run(root, 'build', project)
@@ -166,7 +215,7 @@ for (const composite of [false, true]) {
     // Editors must keep checking dependency sources even when built declarations exist.
     await writeFile(join(root, 'libraries/shared/src/index.ts'), 'export const answer: number = "invalid"\n')
     for (const [packageName, bin] of [['typescript', 'tsc6'], ['@typescript/native', 'tsc']]) {
-      const result = typecheck(root, 'apps/deep/consumer', packageName, bin)
+      const result = typecheck(root, packageName, bin)
 
       assert.notEqual(result.status, 0)
       assert.match(result.stdout + result.stderr, /TS2322/)
@@ -251,10 +300,14 @@ test('init rejects missing arguments, invalid import names, and unavailable init
   await writeFile(join(root, 'node_modules/no-init/package.json'), '{}')
   for (const args of [
     ['--importPath=@org/test'],
+    ['--linter=none'],
     ['@isox-sh/js'],
     ['@isox-sh/js', 'test', '--importPath='],
     ['@isox-sh/js', 'test', '--importPath=@org/*'],
     ['@isox-sh/js', 'test', '--importPath'],
+    ['@isox-sh/js', 'test', '--linter=other'],
+    ['@isox-sh/js', 'test', '--linter'],
+    ['@isox-sh/js', 'test', '--linter=eslint', '--linter=none'],
     ['@isox-sh/js', 'test', '--importPath=a', '--importPath=b'],
     ['@isox-sh/js', 'test', 'extra'],
     ['missing-package', 'test'],
