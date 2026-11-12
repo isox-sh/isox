@@ -1,0 +1,21 @@
+packages/eslint/tests/add.test.mjs
+  s_4e32674217922f::t_d792b6a28891c2 219-229
+packages/eslint/src/generators/workspace.ts
+  s_4e32674217922f::t_93b664f118ccba 67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4117c03219294ba2266081af471ba84bfd77c499",
+  "prompts": {},
+  "sessions": {
+    "s_4e32674217922f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1cc25-1707-7621-9cd5-42bc3ed619e4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
