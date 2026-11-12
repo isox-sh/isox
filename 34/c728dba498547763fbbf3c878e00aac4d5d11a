@@ -1,0 +1,44 @@
+packages/cli/src/shared/generators.ts
+  s_4e32674217922f::t_1866a954d97b0c 18,45-48,54,60-71
+  s_4e32674217922f::t_164df30c9377d2 40-43
+packages/cli/src/shared/parse-options.ts
+  s_4e32674217922f::t_e2ac90c1189855 44,46-49
+website/docs/plugin-generators.md
+  s_4e32674217922f::t_93b664f118ccba 78-79
+packages/cli/src/shared/executor-options.ts
+  s_4e32674217922f::t_e2ac90c1189855 17
+  s_4e32674217922f::t_544412cbf63439 18-21
+packages/cli/tests/add.test.mjs
+  s_4e32674217922f::t_a6764ce8700649 216-217,233,250-262,267-272
+  s_4e32674217922f::t_164df30c9377d2 263-266
+packages/cli/src/index.ts
+  s_4e32674217922f::t_e2ac90c1189855 14
+  s_4e32674217922f::t_a8c03f4cd72569 34-35,37
+  h_b13471b77746e9 36
+packages/cli/src/shared/generator-options.ts
+  s_4e32674217922f::t_a8c03f4cd72569 12,21,66-72,74-77,82-83
+  s_4e32674217922f::t_181c97d4f45b0e 1-11,13,19-20,22-65,73,84-88
+  s_4e32674217922f::t_164df30c9377d2 14-18,81
+  s_4e32674217922f::t_fc942a21cf1c24 78-80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "34c728dba498547763fbbf3c878e00aac4d5d11a",
+  "prompts": {},
+  "humans": {
+    "h_b13471b77746e9": {
+      "author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  },
+  "sessions": {
+    "s_4e32674217922f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1cc25-1707-7621-9cd5-42bc3ed619e4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
