@@ -12,7 +12,7 @@
     "test": {
       "executor": "core:run-command",
       "options": {
-        "command": "node --test scripts/generate-plugin-registry.test.mjs && node scripts/generate-plugin-registry.mjs --check && pnpm dlx mint@4.2.1125 validate && pnpm dlx mint@4.2.1125 broken-links --check-anchors",
+        "command": "node --test scripts/*.test.mjs && node scripts/generate-plugin-registry.mjs --check && pnpm dlx mint@4.2.1125 validate && pnpm dlx mint@4.2.1125 broken-links --check-anchors",
         "cwd": "website"
       }
     }
