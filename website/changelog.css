@@ -1,0 +1,34 @@
+.isox-changelog-notes {
+  overflow-wrap: anywhere;
+}
+
+.isox-changelog-notes > :is(h1, h2, h3, h4, h5, h6):first-child {
+  margin-top: 0;
+}
+
+.isox-changelog-notes pre {
+  overflow-x: auto;
+}
+
+.isox-changelog-button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgb(128 128 128 / 35%);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font: inherit;
+}
+
+.isox-changelog-button:hover:not([aria-disabled='true']) {
+  background: rgb(59 130 246 / 10%);
+}
+
+.isox-changelog-button[aria-disabled='true'] {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.isox-changelog-button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 3px;
+}

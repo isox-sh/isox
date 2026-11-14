@@ -3,9 +3,9 @@
 Install `@isox-sh/cli` to get the `isox` command. Start with the
 [getting started guide](docs/getting-started.md), then choose a topic below.
 
-The site has four top tabs: **Guides** for everyday workflows, **Plugin Registry**
-for discovering packages, **Build plugins** for extending Isox, and **Reference**
-for CLI/configuration details and contributing.
+The site has five top tabs: **Guides** for everyday workflows, **Plugin Registry**
+for discovering packages, **Build plugins** for extending Isox, **Reference**
+for CLI/configuration details and contributing, and **Changelog** for release notes.
 
 ## Learn the basics
 
@@ -39,6 +39,7 @@ for CLI/configuration details and contributing.
 
 ## Update and migrate
 
+- [Changelog](changelog.mdx) — live release notes, including prereleases.
 - [Updating Isox](docs/migrations.md) — plan upgrades and run migration scripts.
 - [Nx migration](docs/nx-migration.md) and [AI migration prompt](docs/prompts/migrate-nx-to-isox.md).
 
@@ -126,6 +127,20 @@ pages, and stale generated data.
 scoped to `.plugin-registry` in `plugin-registry.css`. Categories come from the
 data. See [Submit a plugin](docs/submit-plugin.md) for the entry format and review
 process. Mark only Isox-maintained packages as official.
+
+### Maintaining the changelog
+
+`changelog.mdx` serves `/changelog`. The component in
+`snippets/github-releases.jsx` loads public releases from `isox-sh/isox` on GitHub,
+ten at a time, including prereleases. GitHub renders and sanitizes the release
+Markdown; the site displays that HTML with Mintlify's `Update` timeline component.
+Publishing a GitHub release updates the changelog without editing the website.
+No token or additional release workflow is needed. If GitHub is unavailable or
+rate-limited, readers can retry or follow the link to GitHub releases.
+
+Styles are scoped to `.isox-changelog` in `changelog.css`. The adapted component
+includes the original project's MIT license notice. The website test target
+checks release fetching and note formatting alongside the existing site checks.
 
 ### Hosting
 
