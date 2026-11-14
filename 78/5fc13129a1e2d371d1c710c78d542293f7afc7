@@ -1,0 +1,20 @@
+website/README.md
+  s_57de798d98d61d::t_01217d54bce759 142-144
+  s_57de798d98d61d::t_f156b3c16c11fc 141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "785fc13129a1e2d371d1c710c78d542293f7afc7",
+  "prompts": {},
+  "sessions": {
+    "s_57de798d98d61d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1db1e-dacc-7c40-9ac2-4936216d53d7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
