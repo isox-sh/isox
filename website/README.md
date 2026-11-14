@@ -138,9 +138,10 @@ Publishing a GitHub release updates the changelog without editing the website.
 No token or additional release workflow is needed. If GitHub is unavailable or
 rate-limited, readers can retry or follow the link to GitHub releases.
 
-Styles are scoped to `.isox-changelog` in `changelog.css`. The adapted component
-includes the original project's MIT license notice. The website test target
-checks release fetching and note formatting alongside the existing site checks.
+Styles use `.isox-changelog-notes` and `.isox-changelog-button` in `changelog.css`.
+The adapted component includes the original project's MIT license notice. The
+website test target checks release fetching and note formatting alongside the
+existing site checks.
 
 ### Hosting
 
