@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const { createLogger, runExecutor, resetWorkspace, parseWorkspace } = require('../../../dist/core')
@@ -509,6 +509,40 @@ test('installed manifest batches preserve branches, cycles, missing packages and
   expected.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
   assert.deepEqual(await installedVersions([files[0]]), expected)
   assert.deepEqual(await installedVersions(files.toReversed()), expected)
+})
+
+test('a linked package disappearing during hashing bypasses the cache for that run', async t => {
+  const f = await fixture(t)
+  const manifest = 'dist/sibling/package.json'
+  const contents = {
+    name: 'sibling',
+    version: '1.0.0'
+  }
+  await f.write('package.json', { devDependencies: { sibling: '*' } })
+  await f.write(manifest, contents)
+  await symlink(join(f.root, 'dist/sibling'), join(f.root, 'node_modules/sibling'), 'junction')
+  const actual = await realpath(join(f.root, manifest))
+  const spy = vi.spyOn(require('node:fs/promises'), 'readFile').mockImplementation(async (path, ...args) => {
+    if (path === actual) {
+      await rm(actual)
+    }
+
+    return readFile(path, ...args)
+  })
+
+  try {
+    await f.run()
+  } finally {
+    spy.mockRestore()
+  }
+
+  assert.ok(f.logs.some(line => line.includes('Skipping task cache')))
+  assert.equal(await f.runs(), 1)
+  await f.write(manifest, contents)
+  await f.run()
+  await f.run()
+  assert.equal(await f.runs(), 2)
+  assert.equal((await f.entries()).length, 1)
 })
 
 test('installed tool version and runtime changes invalidate keys independently of the lockfile', async t => {

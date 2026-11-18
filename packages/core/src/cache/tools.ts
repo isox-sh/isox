@@ -23,7 +23,7 @@ async function existingManifest(file: string): Promise<string | undefined> {
 }
 
 /** Record installed versions as well as the lockfile: a stale installation must miss. */
-export async function installedVersions(manifests: string[], options: InstalledVersionsOptions = {}): Promise<unknown> {
+export async function installedVersions(manifests: string[], options: InstalledVersionsOptions = {}) {
   const index = await createToolIndex(options.root)
   const pending = [...new Set((await Promise.all(manifests.map(existingManifest))).filter(file => file !== undefined))]
   const development = new Set(await Promise.all((options.developmentManifests ?? manifests).map(existingManifest)))
@@ -72,7 +72,17 @@ export async function installedVersions(manifests: string[], options: InstalledV
     const batch = pending.slice(offset, offset + 16)
 
     offset += batch.length
-    await Promise.all(batch.map(inspect))
+
+    try {
+      await Promise.all(batch.map(inspect))
+    } catch (error) {
+      // A parallel build can replace a linked package after its manifest was resolved.
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return undefined
+      }
+
+      throw error
+    }
   }
 
   await index.save()

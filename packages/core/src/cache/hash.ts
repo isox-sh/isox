@@ -163,7 +163,7 @@ async function fileInputs(root: string, projectRoot: string, inputs: TaskInput[]
 }
 
 /** Hash actual contents, not discovery fingerprints or task-success metadata. */
-export async function taskHash(context: ExecutorContext, options: Record<string, unknown>, executorPackage: string): Promise<string> {
+export async function taskHash(context: ExecutorContext, options: Record<string, unknown>, executorPackage: string): Promise<string | undefined> {
   const root = context.workspaceRoot
   const workspace = await resolveWorkspaceDependencies(root, context.workspace, {
     projects: [context.projectName],
@@ -214,6 +214,12 @@ export async function taskHash(context: ExecutorContext, options: Record<string,
     root,
     developmentManifests: manifests
   })
+  if (!tools) {
+    context.logger.debug('Skipping task cache because an installed package changed during hashing.')
+
+    return undefined
+  }
+
   const shared = await fileInputs(root, '.', ['package.json', 'isox.json', 'tsconfig.json', 'tsconfig.base.json', '.gitignore', '.isoxignore', ...lockfiles], outputs)
 
   return digest(stableJson({
