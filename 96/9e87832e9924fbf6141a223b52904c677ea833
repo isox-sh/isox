@@ -1,0 +1,59 @@
+packages/core/src/executor/runner.ts
+  s_3c95bc85ba24bd::t_347863bbd96d9a 1,8,89,268
+packages/core/src/affected/types.ts
+  s_3c95bc85ba24bd::t_347863bbd96d9a 12
+packages/core/src/index.ts
+  s_3c95bc85ba24bd::t_347863bbd96d9a 23
+packages/core/src/executor/registry.ts
+  s_3c95bc85ba24bd::t_21a921e30d6c08 62-75
+  s_3c95bc85ba24bd::t_347863bbd96d9a 1-61,77-124
+  s_3c95bc85ba24bd::t_e70fd22ee3e220 76
+packages/js/src/helpers/package-json.ts
+  s_3c95bc85ba24bd::t_347863bbd96d9a 214-216,219-233
+packages/core/src/executor/types.ts
+  s_3c95bc85ba24bd::t_772feb85fc3904 43-47
+  s_3c95bc85ba24bd::t_347863bbd96d9a 31-42
+packages/core/src/affected/executor-plan.ts
+  s_3c95bc85ba24bd::t_347863bbd96d9a 1-7,10-13,15,17,19-21,30,55,60-63,65-75,80-98,103-110
+  s_3c95bc85ba24bd::t_772feb85fc3904 8-9,16,18,22-29,31-54,56-59,64,76-79,99-102
+  s_3c95bc85ba24bd::t_9a1a236ef2ad48 14
+packages/cli/src/shared/options.ts
+  s_3c95bc85ba24bd::t_772feb85fc3904 117
+website/docs/custom-executors.md
+  s_3c95bc85ba24bd::t_9a1a236ef2ad48 137-143
+  s_3c95bc85ba24bd::t_21a921e30d6c08 113-136
+actions/run-many/index.mjs
+  s_3c95bc85ba24bd::t_347863bbd96d9a 15-22
+packages/cli/src/actions/plan/index.ts
+  s_3c95bc85ba24bd::t_9a1a236ef2ad48 15
+  s_3c95bc85ba24bd::t_347863bbd96d9a 1,29,31
+website/docs/ci-planning.md
+  s_3c95bc85ba24bd::t_9a1a236ef2ad48 35-36,61-63
+  s_3c95bc85ba24bd::t_21a921e30d6c08 59-60,64-67
+packages/cli/tests/affected.test.mjs
+  s_3c95bc85ba24bd::t_7a99a4b3c5e2ed 637-672
+packages/core/schemas/project.schema.json
+  s_3c95bc85ba24bd::t_1c8d64e1179052 82-85,131-134
+packages/core/src/workspace/configuration.ts
+  s_3c95bc85ba24bd::t_b197364e8d6213 45
+packages/core/src/workspace/target-defaults.ts
+  s_3c95bc85ba24bd::t_4dc88b00e3ef69 46-52
+website/docs/project-configuration.md
+  s_3c95bc85ba24bd::t_9d55b36b7d778e 76
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "969e87832e9924fbf6141a223b52904c677ea833",
+  "prompts": {},
+  "sessions": {
+    "s_3c95bc85ba24bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ef0c-e455-74e0-84c7-0f425dd51c06",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
