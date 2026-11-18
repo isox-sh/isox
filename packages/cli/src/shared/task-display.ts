@@ -201,8 +201,11 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
         const notice = task.truncated ? '[Earlier output omitted; showing recent output]\n' : ''
 
         // Tool output may itself contain group/workflow commands, especially cached nested runs.
-        const token = randomUUID()
-        const body = output ? `::stop-commands::${token}\n${notice}${output}\n::${token}::\n` : ''
+        let body = output ? `${notice}${output}\n` : ''
+        if (output.includes('::') || output.includes('##[')) {
+          const token = randomUUID()
+          body = `::stop-commands::${token}\n${body}::${token}::\n`
+        }
 
         stdout.write(`::group::${title}\n${body}::endgroup::\n`)
         task.output = ''
@@ -241,7 +244,7 @@ export function createTaskDisplay(options: TaskDisplayOptions = {}) {
       const summary = succeeded === total()
         ? `Successfully ran ${options.target ? `target ${options.target}` : 'tasks'} for ${total()} project${total() === 1 ? '' : 's'} (${elapsed(started)})`
         : `Ran ${options.target ? `target ${options.target}` : 'tasks'}: ${succeeded} succeeded, ${failed} failed, ${cancelled} cancelled, ${incomplete} not run (${elapsed(started)})`
-      const destination = failed || cancelled || incomplete ? stderr : stdout
+      const destination = !grouped && (failed || cancelled || incomplete) ? stderr : stdout
 
       destination.write(`\n${paint(`   ${summary}`, failed ? '1;31' : cancelled || incomplete ? '1;33' : '1;32')}\n`)
       if (failed) {

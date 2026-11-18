@@ -298,8 +298,8 @@ test('GitHub Actions groups every completed task with its own output and final s
 
   assert.equal(display.interactive, false)
   assert.equal(groups.length, 3)
-  assert.match(groups[0], /^::group::❌ > isox run lib:build .*\n::stop-commands::[a-f0-9-]+\nlib error\n::[a-f0-9-]+::\n::endgroup::\n$/)
-  assert.match(groups[1], /^::group::✅ > isox run app:build .*\n::stop-commands::[a-f0-9-]+\napp stdout\napp stderr\n::[a-f0-9-]+::\n::endgroup::\n$/)
+  assert.match(groups[0], /^::group::❌ > isox run lib:build .*\nlib error\n::endgroup::\n$/)
+  assert.match(groups[1], /^::group::✅ > isox run app:build .*\napp stdout\napp stderr\n::endgroup::\n$/)
   assert.match(groups[2], /^::group::✅ > isox run cached:build \[local cache\]\n::endgroup::\n$/)
   assert.match(output(), /2 succeeded, 1 failed/)
   assert.match(output(), /1\/3 tasks read from cache/)
@@ -318,22 +318,22 @@ test('GitHub Actions groups cancelled tasks and escape group titles', t => {
   const group = writes.find(line => line.startsWith('::group::'))
 
   assert.match(group, /^::group::⚠️ > isox run app:build%25%0D%0A::endgroup:: \(cancelled after /)
-  assert.match(group, /\ncancelled output\n::[a-f0-9-]+::\n::endgroup::\n$/)
+  assert.match(group, /\ncancelled output\n::endgroup::\n$/)
 })
 
-test('nested group commands in tool logs cannot close the enclosing task group', t => {
+test.for(['::endgroup::\n::group::nested task', '##[endgroup]'])('nested workflow command %s stays inside the task group', (command, t) => {
   const { display, writes } = terminal(t, { total: 1 }, {
     GITHUB_ACTIONS: 'true',
     CI: 'true'
   })
 
   display.start('app', 'app:build')
-  display.output('app', Buffer.from('::endgroup::\n::group::nested task\n'), 'stdout')
+  display.output('app', Buffer.from(command), 'stdout')
   display.finish('app', true, false)
   const group = writes.find(line => line.startsWith('::group::'))
   const token = group.match(/::stop-commands::([a-f0-9-]+)/)[1]
 
-  assert.ok(group.includes(`::stop-commands::${token}\n::endgroup::\n::group::nested task\n::${token}::\n::endgroup::`))
+  assert.ok(group.includes(`::stop-commands::${token}\n${command}\n::${token}::\n::endgroup::`))
 })
 
 test('run-many publishes expandable GitHub Actions groups with successful tool output', async t => {
