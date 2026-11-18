@@ -1139,3 +1139,17 @@ for (const [exclusion, excluded] of [
     assert.deepEqual(await getAffectedTargetProjects(f.root, f.workspace, ['apps/demo/hidden/file.txt'], { target: 'build' }), excluded ? [] : ['demo'])
   })
 }
+
+test('declared environment inputs hash the workspace dotenv value seen by the executor', async t => {
+  const f = await fixture(t, `module.exports = (_, ctx) => {
+    require('node:fs').appendFileSync(require('node:path').join(ctx.workspaceRoot, 'runs'), process.env.ISOX_TEST_CACHE_VALUE + '\\n')
+    return { success: true }
+  }`)
+  await f.write('.env', 'ISOX_TEST_CACHE_VALUE=first')
+  await f.run()
+  await f.run()
+  await f.write('.env', 'ISOX_TEST_CACHE_VALUE=second')
+  await f.run()
+  assert.equal(await readFile(join(f.root, 'runs'), 'utf8'), 'first\nsecond\n')
+  assert.equal(process.env.ISOX_TEST_CACHE_VALUE, undefined)
+})

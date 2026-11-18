@@ -5,6 +5,7 @@ import { runCachedTask } from '../cache/task'
 import { logger, LogLevels, pauseProgress } from '../logger'
 import { readWorkspaceSettings } from '../workspace/settings'
 import { mergeExecutorOptions, resolveCommandOptions } from './configuration'
+import { withTaskEnvironment } from './environment'
 import { nativeEntry, resolveExecutor } from './registry'
 import { createTaskGraph } from './task-graph'
 import { compactTaskOutput, reportTaskResult } from './task-logging'
@@ -87,10 +88,6 @@ export async function runExecutorTask(
   }
 
   const { pkg, pkgJsonPath, isNxExecutor } = resolveExecutor(executorName, root, settings)
-  const executorFn = isNxExecutor
-    ? loadNxExecutor(root, pkgJsonPath)
-    : loadNativeExecutor(pkg, pkgJsonPath, executorName, taskLogger)
-
   const context: ExecutorContext = {
     workspaceRoot: root,
     projectRoot: resolve(root, project.root),
@@ -107,13 +104,19 @@ export async function runExecutorTask(
 
   const effectiveOptions = mergeExecutorOptions(command.executor, options, optionOverrides)
 
-  await runCachedTask(context, effectiveOptions, pkgJsonPath, isNxExecutor, cacheOptions, async () => {
-    const completed = await executeExecutor(executorFn, context, effectiveOptions, isNxExecutor)
-    if (requireCompletion && !completed && !signal?.aborted) {
-      throw new Error(`Prerequisite ${projectName}:${commandName} did not finish successfully. Continuous prerequisites are not supported.`)
-    }
+  await withTaskEnvironment(context, async () => {
+    const executorFn = isNxExecutor
+      ? loadNxExecutor(root, pkgJsonPath)
+      : loadNativeExecutor(pkg, pkgJsonPath, executorName, taskLogger)
 
-    return completed
+    await runCachedTask(context, effectiveOptions, pkgJsonPath, isNxExecutor, cacheOptions, async () => {
+      const completed = await executeExecutor(executorFn, context, effectiveOptions, isNxExecutor)
+      if (requireCompletion && !completed && !signal?.aborted) {
+        throw new Error(`Prerequisite ${projectName}:${commandName} did not finish successfully. Continuous prerequisites are not supported.`)
+      }
+
+      return completed
+    })
   })
 }
 

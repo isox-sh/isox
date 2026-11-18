@@ -76,6 +76,13 @@ The full contract and migration limits are documented in the
 
 ## Programmatic execution
 
+Executors and their child processes read task variables from `process.env`.
+Read those values inside the executor function. Node caches imported modules
+across programmatic calls, so a module-level constant keeps its first value.
+Sibling `runExecutor` calls in one Node process run one at a time because they
+share that environment. For parallel execution, `isox run-many --parallel`
+uses separate worker processes.
+
 For programmatic execution, call
 `runExecutor(workspace, projectName, commandName, workspaceRoot, logger?, configurationName?, signal?, optionOverrides?, cacheOptions?)`.
 The runner selects and merges options from the workspace configuration. Omit the

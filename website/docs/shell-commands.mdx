@@ -112,8 +112,9 @@ If this definition is stored under `targets.check`, run
 `isox check web --config=strict`. The example assumes your workspace provides
 `scripts/check.mjs` and that it accepts `--strict`.
 
-The executor passes command strings to the shell without expanding workspace
-tokens or loading `.env` files. The invoked tools handle their own configuration.
+The shell inherits the target’s `process.env`, including values from project
+and workspace [environment files](/docs/configuration#target-environment-files).
+The executor passes workspace tokens through to the shell unchanged.
 Use target-level
 [`dependsOn`](/docs/task-prerequisites#task-prerequisites) for required build ordering.
 
