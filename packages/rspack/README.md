@@ -18,7 +18,8 @@ npx isox serve web --port=4200
 ```
 
 The initializer adds Rspack dependencies to the workspace root's `package.json`.
-The generated `build` target caches the app's `dist` directory. The `rspack:build`
+The initializer registers cache defaults in `isox.json` so `rspack:build` can
+restore the app's `dist` directory. The `rspack:build`
 and `rspack:serve` executors use the app's `rspack.config.mjs`, which reads
 workspace library aliases from `tsconfig.base.json` when present.
 

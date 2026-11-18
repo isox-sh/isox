@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 
-import { addDepsToPackageJson, writeJson } from '@isox-sh/core'
+import { addDepsToPackageJson, addTargetDefaults, writeJson } from '@isox-sh/core'
 
 import type { ProjectInitializer } from '@isox-sh/core'
 
@@ -41,12 +41,7 @@ const init: ProjectInitializer = async (_options, context) => {
     await writeJson('project.json', {
       name: projectName,
       targets: {
-        build: {
-          executor: 'next:build',
-          cache: true,
-          inputs: ['{projectRoot}/**/*', '!{projectRoot}/.next-dev'],
-          outputs: ['{projectRoot}/.next']
-        },
+        build: { executor: 'next:build' },
         serve: {
           executor: 'next:serve',
           configurations: {
@@ -74,6 +69,12 @@ const init: ProjectInitializer = async (_options, context) => {
     })
     throw error
   }
+
+  await addTargetDefaults('next:build', {
+    cache: true,
+    inputs: ['default', '!{projectRoot}/.next-dev', { envPrefix: 'NEXT_PUBLIC_' }],
+    outputs: ['{projectRoot}/.next']
+  }, context)
 }
 
 export default init

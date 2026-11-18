@@ -4,11 +4,11 @@ import { mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from 'node
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const dist = resolve(import.meta.dirname, '../../../dist')
 
-async function fixture(t) {
+async function fixture(t, settings = {}) {
   const root = await mkdtemp(join(tmpdir(), 'isox next '))
   const project = join(root, 'apps/web')
 
@@ -18,7 +18,7 @@ async function fixture(t) {
   }))
   await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
   await symlink(join(dist, 'next'), join(root, 'node_modules/@isox-sh/next'), 'junction')
-  await writeFile(join(root, 'isox.json'), '{}')
+  await writeFile(join(root, 'isox.json'), JSON.stringify(settings))
 
   const run = (...args) => spawnSync(process.execPath, [join(dist, 'cli/index.js'), ...args], {
     cwd: root,
@@ -74,12 +74,24 @@ test('scaffolds an App Router project and declares shared framework dependencies
   const config = JSON.parse(await readFile(join(project, 'project.json'), 'utf8'))
 
   assert.equal(config.name, 'web')
+  assert.deepEqual(config.targets.build, { executor: 'next:build' })
   assert.deepEqual(config.targets.serve, {
     executor: 'next:serve',
     configurations: { production: { mode: 'production' } }
   })
   assert.match(await readFile(join(project, 'app/layout.jsx'), 'utf8'), /<body>{children}<\/body>/)
   assert.match(await readFile(join(project, 'app/page.jsx'), 'utf8'), /"web"/)
+
+  const settingsPath = join(root, 'isox.json')
+  const settings = await readFile(settingsPath, 'utf8')
+
+  assert.deepEqual(JSON.parse(settings).targetDefaults, {
+    'next:build': {
+      cache: true,
+      inputs: ['default', '!{projectRoot}/.next-dev', { envPrefix: 'NEXT_PUBLIC_' }],
+      outputs: ['{projectRoot}/.next']
+    }
+  })
 
   const manifestPath = join(root, 'package.json')
   const before = await readFile(manifestPath, 'utf8')
@@ -92,6 +104,27 @@ test('scaffolds an App Router project and declares shared framework dependencies
 
   assert.equal(second.status, 0, second.stderr)
   assert.equal(await readFile(manifestPath, 'utf8'), before)
+  assert.equal(await readFile(settingsPath, 'utf8'), settings)
+})
+
+test('preserves configured workspace cache overrides for the scoped executor', async t => {
+  const { root } = await fixture(t, {
+    targetDefaults: {
+      '@isox-sh/next:build': {
+        cache: false,
+        outputs: []
+      }
+    }
+  })
+  const settings = JSON.parse(await readFile(join(root, 'isox.json'), 'utf8'))
+
+  assert.deepEqual(settings.targetDefaults, {
+    '@isox-sh/next:build': {
+      cache: false,
+      inputs: ['default', '!{projectRoot}/.next-dev', { envPrefix: 'NEXT_PUBLIC_' }],
+      outputs: []
+    }
+  })
 })
 
 test('runs the workspace Next.js build and restores its production output from cache', async t => {
@@ -111,6 +144,27 @@ test('runs the workspace Next.js build and restores its production output from c
   assert.equal(restored.status, 0, restored.stderr)
   assert.match(restored.stdout, /Cache hit for web:build/)
   assert.equal(await readFile(join(project, '.next/BUILD_ID'), 'utf8'), 'built')
+})
+
+test('invalidates build caches when public environment variables change', async t => {
+  const { root, run } = await fixture(t)
+
+  t.onTestFinished(() => vi.unstubAllEnvs())
+  await installFakeNext(root)
+
+  for (const [value, cached] of [[undefined, false], ['', false], ['one', false], ['two', false], [undefined, true]]) {
+    vi.stubEnv('NEXT_PUBLIC_ISOX_CACHE_TEST', value)
+    const build = run('build', 'web')
+
+    assert.equal(build.status, 0, build.stderr)
+    assert.equal(build.stdout.includes('Cache hit for web:build'), cached)
+  }
+
+  vi.stubEnv('ISOX_PRIVATE_CACHE_TEST', 'changed')
+  const build = run('build', 'web')
+
+  assert.equal(build.status, 0, build.stderr)
+  assert.match(build.stdout, /Cache hit for web:build/)
 })
 
 test('serves in both modes using the project installation and forwards server options', async t => {

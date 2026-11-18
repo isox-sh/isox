@@ -18,11 +18,7 @@ directory for the project.
 
 ```json
 {
-  "build": {
-    "executor": "rspack:build",
-    "cache": true,
-    "outputs": ["{projectRoot}/dist"]
-  },
+  "build": { "executor": "rspack:build" },
   "serve": { "executor": "rspack:serve" }
 }
 ```
@@ -61,7 +57,9 @@ For example, `isox build web --config-file=configs/web.mjs` runs a build using
 a shared config. The package includes the Rspack CLI and development server.
 The fully scoped executor names are `@isox-sh/rspack:build` and `@isox-sh/rspack:serve`.
 
-The generated build target caches the project’s `dist` directory. If you change
-Rspack’s `output.path`, update the target’s `outputs` to match. Include any
-shared configuration or other external build inputs in the target's `inputs`.
+The initializer registers `cache: true` and `outputs: ["{projectRoot}/dist"]`
+under `targetDefaults["rspack:build"]` in `isox.json`. Targets using
+`rspack:build` inherit these settings. If you change Rspack’s `output.path`,
+set the build target’s `outputs` to match. Include any shared configuration or
+other external build inputs in the target's `inputs`.
 See [task caching](/docs/task-caching).

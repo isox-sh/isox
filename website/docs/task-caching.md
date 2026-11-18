@@ -7,16 +7,18 @@ icon: "database"
 Task caching skips a native executor when a successful result exists for the same
 inputs. It is separate from [workspace discovery and dependency analysis](/docs/discovery-cache#discovery-cache).
 Targets opt in with `cache: true`, locally or through
-[workspace target defaults](/docs/configuration#target-defaults). The JS initializer
-and Vitest add generator register cache defaults when missing.
+[workspace target defaults](/docs/configuration#target-defaults). The JS,
+Next.js, and Rspack initializers and the Vitest add generator register cache
+defaults when missing.
 
-All three native build, lint, and test plugins support terminal log caching through
-core. `cache`, `inputs`, and `outputs` belong on the target or its workspace defaults,
-not inside executor `options`.
+Native executors support terminal log caching through core. Set `cache`,
+`inputs`, and `outputs` on the target or in its workspace defaults.
 
 | Executor | Default reusable result | Output declaration |
 | --- | --- | --- |
 | `js:tsc` | Compiled files, copied assets, generated package metadata, and terminal logs | The compiler's output directory |
+| `next:build` | Next.js production build and terminal logs | `.next` by default |
+| `rspack:build` | Bundled files and terminal logs | `dist` by default |
 | `eslint:lint` | Successful lint result and terminal logs | Omit `outputs` |
 | `vitest:test` | Successful test result and terminal logs | Omit `outputs` |
 
