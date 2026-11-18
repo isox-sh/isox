@@ -1,0 +1,8 @@
+{
+  "generators": {
+    "init": {
+      "implementation": "../../dist/next/generators/init.js",
+      "description": "Create a Next.js App Router application."
+    }
+  }
+}

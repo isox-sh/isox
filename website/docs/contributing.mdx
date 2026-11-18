@@ -31,7 +31,7 @@ pnpm isox run-many --target=lint # Runs every project's lint target
 pnpm isox run-many --target=lint --fix # Automatically fixes supported lint issues
 pnpm isox run-many --target=test # Runs every project's test target
 pnpm isox test e2e # Tests the plugin workspace helper
-pnpm isox run-many --target=test --projects=js-e2e,rspack-e2e,playwright-e2e
+pnpm isox run-many --target=test --projects=js-e2e,rspack-e2e,next-e2e,playwright-e2e
 ```
 
 ## Tests
@@ -51,12 +51,13 @@ after bootstrap.
 | --- | --- |
 | `js-e2e` | Initialize JS projects with relative and absolute paths, build TypeScript, execute the output, and rebuild after a source edit. |
 | `rspack-e2e` | Bundle an aliased workspace library, restore the build from cache, and serve the app over HTTP. |
+| `next-e2e` | Scaffold a Next.js app, serve it over HTTP in development, and serve a production build restored from cache. |
 | `playwright-e2e` | Plan fixed and automatic shards and compare the tests executed by the CI workers with a direct run. |
 
 Each suite uses the public [`@isox-sh/e2e`](/docs/plugin-testing) helper to link
 local builds into temporary workspaces under `tmp/` and run the CLI in child
-processes. Fixtures are removed after each test. The Rspack server uses an
-ephemeral loopback port. The Playwright specs run without a browser download.
+processes. Fixtures are removed after each test. The Rspack and Next.js servers
+use ephemeral loopback ports. The Playwright specs run without a browser download.
 
 ## Continuous integration
 
