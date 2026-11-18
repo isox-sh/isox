@@ -159,18 +159,17 @@ migration; verify it and record the work needed to replace it.
 ### Native shell commands
 
 Use `@isox-sh/core:run-command` to invoke the repository's underlying tools or
-scripts. Its options are:
-
-- `command`: one nonempty shell command string.
-- `cwd`: optional working directory, relative to the workspace root or absolute.
+scripts. Use `command` for a single command or `commands` for a list. Set
+`parallel` to `false` when the commands must run in order. Use `cwd` to set their
+working directory. See the [shell command options](/docs/shell-commands#options).
 
 The default directory is the workspace root. Environment variables and standard
 streams are inherited. Nonzero exits and signal termination fail the command.
-There is no automatic `.env` loading, Nx token interpolation, command array,
-or parallel execution. Unknown CLI flags override executor options; they are not
-appended to the shell command. Configuration selection flags are handled by Isox
-itself. Preserve required environment and
-tool flags explicitly. Do not translate `nx:run-commands` by copying its entire
+Isox loads project and workspace [environment files](/docs/configuration#target-environment-files)
+before execution. Resolve Nx tokens when translating shell commands.
+Unknown CLI flags override executor options. Put flags for the underlying tool
+in the command string. Isox handles configuration selection itself.
+Do not translate `nx:run-commands` by copying its entire
 options object.
 
 Preserve dependency build order using the existing package manager or explicit

@@ -397,3 +397,77 @@ test('uncached task schedules skip runtime manifest reads', async t => {
   schedule.done('app:prepare')
   assert.equal(await schedule.next(), 'app:build')
 })
+
+test('each target gets its own project and workspace dotenv files in Nx order', async t => {
+  const f = await fixture(t, {
+    app: {
+      targets: {
+        check: target({
+          dependsOn: [{
+            projects: ['lib'],
+            target: 'prepare'
+          }],
+          defaultConfiguration: 'ci',
+          configurations: { ci: {} }
+        })
+      }
+    },
+    lib: { targets: { prepare: target({}) } }
+  })
+  await f.write('node_modules/fixture/run.cjs', `const { appendFileSync } = require('node:fs')
+    const { join } = require('node:path')
+    const valueAtImport = process.env.ISOX_TEST_URL
+    module.exports = (_, ctx) => {
+      const values = [
+        valueAtImport, process.env.ISOX_TEST_COLOR, process.env.ISOX_TEST_SCOPE,
+        process.env.ISOX_TEST_EMPTY, process.env.ISOX_TEST_MODE
+      ]
+      appendFileSync(join(ctx.workspaceRoot, 'events'), JSON.stringify(values) + '\\n')
+      return { success: true }
+    }`)
+  await f.write('.env', 'ISOX_TEST_HOST=example.org\nISOX_TEST_EMPTY=file\nISOX_TEST_MODE=root')
+  await f.write('.env.check.ci.local', 'ISOX_TEST_SCOPE=root-specific')
+  await f.write('app/.env', 'ISOX_TEST_SCOPE=app')
+  await f.write('app/.env.check', 'ISOX_TEST_MODE=target')
+  await f.write('app/.ci.env', 'ISOX_TEST_MODE=configuration')
+  await f.write('app/.env.check.ci', 'ISOX_TEST_COLOR=blue')
+  await f.write('app/.env.check.ci.local', 'ISOX_TEST_URL="https://${ISOX_TEST_HOST}/app" # comment\nISOX_TEST_COLOR=red')
+  await f.write('lib/.prepare.env', 'ISOX_TEST_URL=lib')
+  const result = f.run(['run-many', '--target=check', '--projects=app'], { ISOX_TEST_EMPTY: '' })
+  assert.equal(result.status, 0, result.stderr + result.stdout)
+  assert.deepEqual(await f.events(), [
+    ['lib', null, null, '', 'root'],
+    ['https://example.org/app', 'red', 'app', '', 'configuration']
+  ])
+})
+
+test('a programmatic target called by a CLI executor gets its own file variables', async t => {
+  const f = await fixture(t, {
+    app: {
+      targets: {
+        outer: target({}),
+        inner: target({})
+      }
+    }
+  })
+  await f.write('app/.env.outer', 'ISOX_TEST_OUTER=outer\nISOX_TEST_SHARED=outer')
+  await f.write('app/.env.inner', 'ISOX_TEST_SHARED=inner')
+  await f.write('node_modules/fixture/run.cjs', `module.exports = async (_, ctx) => {
+    const assert = require('node:assert/strict')
+    if (ctx.commandName === 'outer') {
+      const { runExecutor } = require(${JSON.stringify(require.resolve('../../../dist/core'))})
+      await runExecutor(ctx.workspace, 'app', 'inner', ctx.workspaceRoot)
+      assert.equal(process.env.ISOX_TEST_SHARED, 'outer')
+      assert.equal(process.env.ISOX_TEST_OUTER, 'outer')
+    } else {
+      assert.equal(process.env.ISOX_TEST_OUTER, undefined)
+      assert.equal(process.env.ISOX_TEST_SHARED, 'inner')
+    }
+    return { success: true }
+  }`)
+  const result = f.run(['run', 'app:outer'], {
+    ISOX_TEST_OUTER: undefined,
+    ISOX_TEST_SHARED: undefined
+  })
+  assert.equal(result.status, 0, result.stderr + result.stdout)
+})

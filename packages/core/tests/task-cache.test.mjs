@@ -5,7 +5,7 @@ import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 
-import { test } from 'vitest'
+import { test, vi } from 'vitest'
 
 const require = createRequire(import.meta.url)
 const { createLogger, runExecutor, resetWorkspace, parseWorkspace } = require('../../../dist/core')
@@ -509,6 +509,62 @@ test('installed manifest batches preserve branches, cycles, missing packages and
   expected.sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
   assert.deepEqual(await installedVersions([files[0]]), expected)
   assert.deepEqual(await installedVersions(files.toReversed()), expected)
+})
+
+test('a linked package disappearing during hashing bypasses the cache for that run', async t => {
+  const f = await fixture(t)
+  const manifest = 'dist/sibling/package.json'
+  const contents = {
+    name: 'sibling',
+    version: '1.0.0'
+  }
+  await f.write('package.json', { devDependencies: { sibling: '*' } })
+  await f.write(manifest, contents)
+  await symlink(join(f.root, 'dist/sibling'), join(f.root, 'node_modules/sibling'), 'junction')
+  const actual = await realpath(join(f.root, manifest))
+  const spy = vi.spyOn(require('node:fs/promises'), 'readFile').mockImplementation(async (path, ...args) => {
+    if (path === actual) {
+      await rm(actual)
+    }
+
+    return readFile(path, ...args)
+  })
+
+  try {
+    await f.run()
+  } finally {
+    spy.mockRestore()
+  }
+
+  assert.ok(f.logs.some(line => line.includes('Skipping task cache')))
+  assert.equal(await f.runs(), 1)
+  await f.write(manifest, contents)
+  await f.run()
+  await f.run()
+  assert.equal(await f.runs(), 2)
+  assert.equal((await f.entries()).length, 1)
+})
+
+test('a missing manifest cannot hide a parse error in the same batch', async t => {
+  const f = await fixture(t)
+  const { installedVersions } = require('../../../dist/core/cache/tools')
+  await f.write('missing/package.json', {})
+  await f.write('invalid/package.json', '{')
+  const missing = await realpath(join(f.root, 'missing/package.json'))
+  const invalid = await realpath(join(f.root, 'invalid/package.json'))
+  const spy = vi.spyOn(require('node:fs/promises'), 'readFile').mockImplementation(async (path, ...args) => {
+    if (path === missing) {
+      throw Object.assign(new Error('manifest disappeared'), { code: 'ENOENT' })
+    }
+
+    return readFile(path, ...args)
+  })
+
+  try {
+    await assert.rejects(installedVersions([missing, invalid]), SyntaxError)
+  } finally {
+    spy.mockRestore()
+  }
 })
 
 test('installed tool version and runtime changes invalidate keys independently of the lockfile', async t => {
@@ -1139,3 +1195,19 @@ for (const [exclusion, excluded] of [
     assert.deepEqual(await getAffectedTargetProjects(f.root, f.workspace, ['apps/demo/hidden/file.txt'], { target: 'build' }), excluded ? [] : ['demo'])
   })
 }
+
+test('declared environment inputs hash the workspace dotenv value seen by the executor', async t => {
+  vi.stubEnv('ISOX_TEST_CACHE_VALUE', undefined)
+  t.onTestFinished(() => vi.unstubAllEnvs())
+  const f = await fixture(t, `module.exports = (_, ctx) => {
+    require('node:fs').appendFileSync(require('node:path').join(ctx.workspaceRoot, 'runs'), process.env.ISOX_TEST_CACHE_VALUE + '\\n')
+    return { success: true }
+  }`)
+  await f.write('.env', 'ISOX_TEST_CACHE_VALUE=first')
+  await f.run()
+  await f.run()
+  await f.write('.env', 'ISOX_TEST_CACHE_VALUE=second')
+  await f.run()
+  assert.equal(await readFile(join(f.root, 'runs'), 'utf8'), 'first\nsecond\n')
+  assert.equal(process.env.ISOX_TEST_CACHE_VALUE, undefined)
+})

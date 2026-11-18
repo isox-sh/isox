@@ -377,3 +377,125 @@ for (const exitCode of [0, 1]) {
     }
   })
 }
+
+test('overlapping core API calls scope process.env to each task and its children', async t => {
+  const { root, workspace, logger } = await fixture(t, `module.exports = async (_, ctx) => {
+      await new Promise(resolve => setImmediate(resolve))
+      const assert = require('node:assert/strict')
+      assert.equal(process.env.ISOX_TEST_PROJECT, ctx.projectName)
+      assert.equal(process.env.ISOX_TEST_HOST_ONLY, 'deployed')
+      assert.equal(process.env.ISOX_TEST_ABSENT, undefined)
+      const { writeFileSync } = require('node:fs')
+      const { join } = require('node:path')
+      const execFile = require('node:util').promisify(require('node:child_process').execFile)
+      const { stdout } = await execFile(process.execPath, ['-p', 'process.env.ISOX_TEST_PROJECT'])
+      writeFileSync(join(ctx.projectRoot, 'result'), [process.env.ISOX_TEST_PROJECT, stdout.trim()].join(','))
+      return { success: ctx.projectName !== 'broken' }
+    }`)
+  vi.stubEnv('ISOX_TEST_HOST_ONLY', 'deployed')
+  vi.stubEnv('ISOX_TEST_PROJECT', undefined)
+  vi.stubEnv('ISOX_TEST_ABSENT', undefined)
+  t.onTestFinished(() => vi.unstubAllEnvs())
+  const names = ['first', 'broken']
+  for (const name of names) {
+    workspace.projects[name] = {
+      ...workspace.projects.demo,
+      name,
+      root: name
+    }
+    await mkdir(join(root, name))
+    await writeFile(join(root, name, '.env'), `ISOX_TEST_PROJECT=${name}`)
+  }
+
+  await Promise.all([
+    runExecutor(workspace, 'first', 'build', root, logger),
+    assert.rejects(runExecutor(workspace, 'broken', 'build', root, logger), /Task failed for broken/)
+  ])
+  for (const name of names) {
+    assert.equal(await readFile(join(root, name, 'result'), 'utf8'), [name, name].join(','))
+  }
+
+  assert.equal(process.env.ISOX_TEST_PROJECT, undefined)
+})
+
+test('a cancelled waiter completes while the active environment is still in use', async t => {
+  const { root } = await fixture(t, '')
+  const { withTaskEnvironment } = require('../../../dist/core/executor/environment')
+  const context = {
+    projectRoot: root,
+    workspaceRoot: root,
+    commandName: 'build'
+  }
+  const active = Promise.withResolvers()
+  const release = Promise.withResolvers()
+  const first = withTaskEnvironment(context, () => {
+    active.resolve()
+
+    return release.promise
+  })
+  await active.promise
+  const controller = new AbortController()
+
+  try {
+    const waiting = withTaskEnvironment({
+      ...context,
+      signal: controller.signal
+    }, () => assert.fail('cancelled executor started'))
+    controller.abort()
+    await waiting
+  } finally {
+    release.resolve()
+    await first
+  }
+})
+
+test('nested failure waits for children before restoring the environment', async t => {
+  const { root } = await fixture(t, '')
+  const { withTaskEnvironment } = require('../../../dist/core/executor/environment')
+  const run = (commandName, execute) => withTaskEnvironment({
+    projectRoot: root,
+    workspaceRoot: root,
+    commandName
+  }, execute)
+  await writeFile(join(root, '.env.outer'), 'ISOX_TEST_NESTED=outer')
+  await writeFile(join(root, '.env.slow'), 'ISOX_TEST_NESTED=slow')
+  let child
+  await assert.rejects(run('outer', async () => {
+    const failure = run('fail', () => {
+      throw new Error('failed')
+    })
+    child = run('slow', async () => {
+      await new Promise(resolve => setImmediate(resolve))
+      assert.equal(process.env.ISOX_TEST_NESTED, 'slow')
+    })
+    await Promise.all([failure, child])
+  }), /failed/)
+  await child
+  assert.equal(process.env.ISOX_TEST_NESTED, undefined)
+})
+
+test('dotenv resolves forward references and terminates circular references', async t => {
+  const { root, workspace, logger } = await fixture(t, `module.exports = () => {
+    const assert = require('node:assert/strict')
+    assert.equal(process.env.ISOX_TEST_FORWARD, 'prefix/value')
+    assert.equal(process.env.ISOX_TEST_CYCLE, 'prefix/fallback')
+    return { success: true }
+  }`)
+  await writeFile(join(root, '.env'), [
+    'ISOX_TEST_FORWARD=prefix/${ISOX_TEST_LATER}',
+    'ISOX_TEST_LATER=value',
+    'ISOX_TEST_CYCLE=prefix/${ISOX_TEST_PAIR}',
+    'ISOX_TEST_PAIR=${ISOX_TEST_CYCLE:-fallback}'
+  ].join('\n'))
+  await runExecutor(workspace, 'demo', 'build', root, logger)
+})
+
+test('unreadable target env files fail before the executor starts', async t => {
+  const { root, workspace, logger } = await fixture(t, `module.exports = (_, ctx) => {
+    require('node:fs').writeFileSync(require('node:path').join(ctx.workspaceRoot, 'started'), '')
+    return { success: true }
+  }`)
+  await mkdir(join(root, '.env.build'))
+  await assert.rejects(runExecutor(workspace, 'demo', 'build', root, logger), { code: 'EISDIR' })
+  await assert.rejects(readFile(join(root, 'started')), { code: 'ENOENT' })
+})

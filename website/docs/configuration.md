@@ -15,6 +15,27 @@ The CLI searches upward for the nearest `isox.json`, then discovers projects and
 resolves plugins from that directory. Commands work from nested project directories
 too. `isox.json` and `project.json` use JSON; TypeScript configs may use JSONC.
 
+## Target environment files
+
+Every target inherits the shell environment. Isox fills missing variables from
+the project directory first, then the workspace root. A deployment can supply
+variables directly, even when there are no env files. For a target named
+`build` with a selected or default configuration named `production`, each
+directory is searched in this order. The first definition of a variable wins.
+
+| Priority | Files, in order |
+| --- | --- |
+| Target and configuration | `.env.build.production.local`, `.env.build.production`, `.build.production.local.env`, `.build.production.env` |
+| Configuration | `.env.production.local`, `.env.production`, `.production.local.env`, `.production.env` |
+| Target | `.env.build.local`, `.env.build`, `.build.local.env`, `.build.env` |
+| General | `.env.local`, `.local.env`, `.env` |
+
+Targets without a selected configuration skip the first two rows. Variables
+can reference each other across files, for example `API_URL=https://${API_HOST}`.
+
+For cacheable targets, declare the variables that affect the result with
+`env` or `envPrefix` inputs. Isox hashes their resolved values.
+
 ## isox.json reference
 
 All workspace fields are optional; `{}` is a valid workspace marker. The table
