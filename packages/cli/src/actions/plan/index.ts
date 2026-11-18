@@ -1,4 +1,4 @@
-import { createProjectMatrix } from '@isox-sh/core'
+import { planExecutorJobs } from '@isox-sh/core'
 
 import { jsonValue, selectionOptions, targetOptions, targetPlan, targetPlans } from '../../shared/options'
 import { loadSelection } from '../../shared/selection'
@@ -12,7 +12,7 @@ interface PlanActionOptions extends SelectionOptions, TargetOptions {
 
 export function registerPlanAction(cli: CAC): void {
   targetOptions(selectionOptions(cli.command('plan', 'Print a weighted GitHub Actions matrix as JSON')))
-    .option('--max-jobs <count>', 'Maximum number of shards for the target (default: 1)')
+    .option('--max-jobs <count>', 'Maximum CI jobs for the target (default: one unless executors reserve jobs)')
     .option('--targets-json <json>', 'Array of target settings for a multi-target plan')
     .action(async (options: PlanActionOptions) => {
       const singleTargetOptions = [
@@ -26,9 +26,9 @@ export function registerPlanAction(cli: CAC): void {
       }
 
       const targets = options.targetsJson === undefined ? [targetPlan(options)] : targetPlans(jsonValue(options.targetsJson, '--targets-json'))
-      const { workspace, projectsFor } = await loadSelection(options)
+      const { root, workspace, projectsFor } = await loadSelection(options)
 
-      const rows = await Promise.all(targets.map(async target => createProjectMatrix(workspace, await projectsFor(target), [target]).include))
+      const rows = await Promise.all(targets.map(async target => planExecutorJobs(root, workspace, await projectsFor(target), target)))
       const include = rows.flat()
       if (include.length > 256) {
         throw new Error('The plan exceeds the GitHub Actions limit of 256 matrix jobs. Reduce maxJobs or split the plan.')

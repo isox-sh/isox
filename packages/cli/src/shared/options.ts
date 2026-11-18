@@ -114,7 +114,7 @@ export function targetPlan(options: TargetOptions): TargetPlanOptions {
   return {
     target: options.target,
     tag: options.tag,
-    maxJobs: positiveInteger(Number(options.maxJobs ?? 1), 'maxJobs'),
+    maxJobs: options.maxJobs === undefined ? undefined : positiveInteger(Number(options.maxJobs), 'maxJobs'),
     parallel: positiveInteger(Number(options.parallel ?? 1), 'parallel'),
     config: configurationName(options),
     preTargets: stageOptions(options.preTargets, options.preTargetsJson, '--pre-targets'),

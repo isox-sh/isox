@@ -31,7 +31,7 @@ pnpm isox run-many --target=lint # Runs every project's lint target
 pnpm isox run-many --target=lint --fix # Automatically fixes supported lint issues
 pnpm isox run-many --target=test # Runs every project's test target
 pnpm isox test e2e # Tests the plugin workspace helper
-pnpm isox test js-e2e # Runs the TypeScript init/build end-to-end suite
+pnpm isox run-many --target=test --projects=js-e2e,rspack-e2e,playwright-e2e
 ```
 
 ## Tests
@@ -40,20 +40,23 @@ Package tests live in their owning package's `tests/` directory. Repository-wide
 action, bootstrap, packaging, and release-workflow tests live in the root
 `tests/` directory and run with `pnpm isox test workspace`. After bootstrapping,
 `pnpm isox run-many --target=test` runs every project's test target, including the
-package suites, workspace tooling tests, end-to-end suite, and website validation. Use
+package suites, workspace tooling tests, end-to-end suites, and website validation. Use
 `pnpm isox test <project>` to run one suite, such as `pnpm isox test cli`.
 Rebuild changed packages before running their tests.
 
-The Vitest end-to-end suite lives in `e2e/` and runs with `pnpm isox test js-e2e`
-after bootstrap. It uses the public [`@isox-sh/e2e`](/docs/plugin-testing)
-helper. Each test creates a workspace under `<root>/tmp/isox-e2e-*`, links the locally built
-CLI/core/JS packages, and runs the CLI as a child process. It creates `isox.json`
-using `isox init`, initializes a JS project with `--importPath`, builds it, checks
-JavaScript and declaration outputs, executes the compiled code, and verifies a
-rebuild after editing source. Relative and absolute project paths are covered.
-The root `tmp/` directory is excluded from Git, lint, and Isox project discovery.
-Fixtures are removed after each test, including failures. These tests require no
-registry access and exercise local builds; they do not test published tarballs.
+End-to-end suites live in `e2e/<project>/`. Run one with `pnpm isox test <project>-e2e`
+after bootstrap.
+
+| Project | Coverage |
+| --- | --- |
+| `js-e2e` | Initialize JS projects with relative and absolute paths, build TypeScript, execute the output, and rebuild after a source edit. |
+| `rspack-e2e` | Bundle an aliased workspace library, restore the build from cache, and serve the app over HTTP. |
+| `playwright-e2e` | Plan fixed and automatic shards and compare the tests executed by the CI workers with a direct run. |
+
+Each suite uses the public [`@isox-sh/e2e`](/docs/plugin-testing) helper to link
+local builds into temporary workspaces under `tmp/` and run the CLI in child
+processes. Fixtures are removed after each test. The Rspack server uses an
+ephemeral loopback port. The Playwright specs run without a browser download.
 
 ## Continuous integration
 

@@ -79,6 +79,10 @@
           "type": "object",
           "description": "Options passed to the executor."
         },
+        "planner": {
+          "type": "object",
+          "description": "Executor-specific settings for CI job planning."
+        },
         "configurations": {
           "type": "object",
           "propertyNames": {
@@ -123,6 +127,10 @@
         "options": {
           "type": "object",
           "description": "Options passed to the executor."
+        },
+        "planner": {
+          "type": "object",
+          "description": "Executor-specific settings for CI job planning."
         },
         "configurations": {
           "type": "object",

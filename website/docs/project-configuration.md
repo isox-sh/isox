@@ -73,6 +73,7 @@ to targets already declared by projects; every project target needs its own
 | Field | Type | Default and behavior |
 | --- | --- | --- |
 | `executor` | string | Required on project targets. `package:executor`, such as `js:tsc` or `core:run-command`. Both parts must be non-empty and contain no whitespace or colons. |
+| `planner` | object | `{}`. Settings read by the executor’s CI planner, such as Playwright’s shard count. |
 | `options` | object | `{}`. Executor-specific base options. See the executor's reference for supported keys and defaults. |
 | `configurations` | object of option objects | `{}`. Each key names one set of executor-option overrides. Names cannot be empty or contain whitespace, colons, or commas. |
 | `defaultConfiguration` | string | No configuration selected automatically. Must name an existing configuration; an explicit CLI selection takes precedence. |

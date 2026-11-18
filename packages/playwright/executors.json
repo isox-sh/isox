@@ -1,0 +1,10 @@
+{
+  "executors": {
+    "test": {
+      "implementation": "../../dist/playwright/executors/test/test.executor.js",
+      "schema": "../../dist/playwright/executors/test/test.schema.json",
+      "description": "Run a project's Playwright suite once.",
+      "planner": "../../dist/playwright/executors/test/planner.js"
+    }
+  }
+}

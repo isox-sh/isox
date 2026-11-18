@@ -1,11 +1,11 @@
-import { dirname, resolve } from 'node:path'
+import { resolve } from 'node:path'
 
 import { withoutOutputCapture } from '../cache/output'
 import { runCachedTask } from '../cache/task'
 import { logger, LogLevels, pauseProgress } from '../logger'
-import { resolvePackageJson } from '../utils/resolve-package-json'
 import { readWorkspaceSettings } from '../workspace/settings'
 import { mergeExecutorOptions, resolveCommandOptions } from './configuration'
+import { nativeEntry, resolveExecutor } from './registry'
 import { createTaskGraph } from './task-graph'
 import { compactTaskOutput, reportTaskResult } from './task-logging'
 
@@ -16,11 +16,6 @@ import type { Executor, ExecutorContext, ExecutorOutput, ExecutorResult } from '
 
 interface NxExecutorModule {
   runNxExecutor: (options: Record<string, unknown>, context: ExecutorContext, pluginPackagePath: string) => Promise<ExecutorOutput>
-}
-
-interface ResolvedExecutorPackage {
-  pkg: string
-  pkgJsonPath: string
 }
 
 export async function runExecutor(
@@ -91,13 +86,7 @@ export async function runExecutorTask(
     throw new Error('Invalid executor format. Use package:executor.')
   }
 
-  const [packageName] = executorName.split(':')
-  const matchesNxPackage = (pkg: string): boolean => (settings.nx?.executors ?? []).some(entry =>
-    entry === pkg || (entry.startsWith('@') && !entry.includes('/') && pkg.startsWith(`${entry}/`)),
-  )
-  // Explicit Nx selection must resolve nx:* to nx, not the @isox-sh/nx adapter.
-  const { pkg, pkgJsonPath } = resolveExecutorPackage(packageName, root, !matchesNxPackage(packageName))
-  const isNxExecutor = matchesNxPackage(pkg)
+  const { pkg, pkgJsonPath, isNxExecutor } = resolveExecutor(executorName, root, settings)
   const executorFn = isNxExecutor
     ? loadNxExecutor(root, pkgJsonPath)
     : loadNativeExecutor(pkg, pkgJsonPath, executorName, taskLogger)
@@ -276,23 +265,7 @@ function loadNxExecutor(root: string, pkgJsonPath: string): Executor {
 }
 
 function loadNativeExecutor(pkg: string, pkgJsonPath: string, executorName: string, taskLogger: Logger): Executor {
-  const [, executorConfigName] = executorName.split(':')
-  const pkgJson = require(pkgJsonPath)
-  const manifest = pkgJson.executors
-
-  if (typeof manifest !== 'string') {
-    throw new Error(`Package ${pkg} does not define an executors manifest.`)
-  }
-
-  const manifestPath = resolve(dirname(pkgJsonPath), manifest)
-  const registry = require(manifestPath).executors
-  const executorDef = registry && Object.hasOwn(registry, executorConfigName) ? registry[executorConfigName] : undefined
-
-  if (!executorDef || typeof executorDef.implementation !== 'string') {
-    throw new Error(`Executor ${executorConfigName} not found in ${pkg}.`)
-  }
-
-  const implPath = resolve(dirname(manifestPath), executorDef.implementation)
+  const implPath = nativeEntry(pkg, pkgJsonPath, executorName, 'implementation')!
 
   taskLogger.debug(`Resolved ${executorName} to ${implPath}`)
   const executorModule = require(implPath)
@@ -303,36 +276,4 @@ function loadNativeExecutor(pkg: string, pkgJsonPath: string, executorName: stri
   }
 
   return executorFn
-}
-
-function resolveExecutorPackage(packageName: string, root: string, allowShorthand: boolean): ResolvedExecutorPackage {
-  const candidates = allowShorthand && !packageName.startsWith('@') && !packageName.includes('/')
-    ? [`@isox-sh/${packageName}`, packageName]
-    : [packageName]
-  let resolutionError: unknown
-
-  for (const pkg of candidates) {
-    try {
-      return {
-        pkg,
-        pkgJsonPath: resolvePackageJson(pkg, root)
-      }
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') {
-        throw error
-      }
-
-      // The CLI installs core transitively, so built-ins can use this copy.
-      if (pkg === '@isox-sh/core') {
-        return {
-          pkg,
-          pkgJsonPath: resolve(__dirname, '../package.json')
-        }
-      }
-
-      resolutionError = error
-    }
-  }
-
-  throw resolutionError
 }

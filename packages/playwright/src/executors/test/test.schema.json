@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Playwright Test",
+  "type": "object",
+  "properties": {
+    "configFile": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Playwright configuration path relative to the workspace root, or absolute. Defaults to Playwright's config discovery in the project root."
+    },
+    "shard": {
+      "type": "string",
+      "pattern": "^[1-9][0-9]*/[1-9][0-9]*$",
+      "description": "One-based Playwright shard, for example 2/3."
+    }
+  },
+  "additionalProperties": false
+}

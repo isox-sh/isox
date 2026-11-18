@@ -9,6 +9,7 @@ export interface TargetPlanOptions {
 }
 
 export interface MatrixEntry {
+  options?: Record<string, unknown>
   target: string
   projects: string[]
   config: string

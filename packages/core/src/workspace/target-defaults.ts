@@ -43,6 +43,13 @@ export function mergeTargetDefaults(base: TargetDefaults, override: TargetDefaul
     }
   }
 
+  if (base.planner !== undefined || override.planner !== undefined) {
+    result.planner = {
+      ...base.planner,
+      ...override.planner
+    }
+  }
+
   if (base.configurations !== undefined || override.configurations !== undefined) {
     const names = new Set([...Object.keys(base.configurations ?? {}), ...Object.keys(override.configurations ?? {})])
 

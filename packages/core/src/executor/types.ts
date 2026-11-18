@@ -28,3 +28,20 @@ export type Executor<Options = Record<string, unknown>> = (
   options: Options,
   context: ExecutorContext,
 ) => ExecutorOutput | Promise<ExecutorOutput>
+
+export interface ExecutorPlannerContext {
+  workspaceRoot: string
+  projectRoot: string
+  projectName: string
+  commandName: string
+  configurationName?: string
+  plannerOptions: Record<string, unknown>
+  maxJobs: number
+}
+
+/** Return one main-target option override object per job within the assigned budget. */
+export interface ExecutorPlanner<Options = Record<string, unknown>> {
+  (options: Options, context: ExecutorPlannerContext): Record<string, unknown>[] | Promise<Record<string, unknown>[]>
+  /** Reserve an exact number of jobs before automatic job allocation. */
+  requestedJobs?: (options: Options, plannerOptions: Record<string, unknown>) => number | undefined
+}

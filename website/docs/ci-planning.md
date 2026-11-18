@@ -32,8 +32,8 @@ then the earlier shard. Project names break equal-weight ties. This makes plans
 deterministic and prevents a heavy project from being grouped with several other
 heavy projects merely because their names sort together.
 
-There are at most `maxJobs` non-empty shards (default `1`), at most one shard per
-selected project, and at most 256 rows across the entire matrix. `parallel`
+An explicit `maxJobs` caps the jobs for a target. The default is one job unless
+an executor reserves a fixed shard count. The entire matrix can contain up to 256 rows. `parallel`
 (default `1`) is the concurrency **inside each worker**, separate from the number
 of GitHub jobs. Each row contains:
 
@@ -52,9 +52,24 @@ of GitHub jobs. Each row contains:
 }
 ```
 
-`index` is one-based. `weight` is the sum of project weights. The exact `projects`
+`index` is one-based. A row sums the weights of its projects. When an executor
+splits one project into several jobs, each row gets an equal share of its weight. The exact `projects`
 list is authoritative; workers never rerun affected detection or calculate their
 own slices from `index` and `count`.
+
+## Executor planners
+
+Isox reserves fixed executor shard counts first. Other projects share the
+remaining budget using weighted distribution. When each of those projects
+already has its own job and the target still has capacity,
+Isox offers the remaining jobs to installed native executors that declare a
+`planner` entrypoint. The budget is shared among eligible projects in matrix
+order. Executors without a planner keep their ordinary project rows.
+
+For example, a single [Playwright project](/docs/playwright) with `maxJobs: 3`
+can produce three rows for the same project. Each carries its own main-target
+`options`, such as `{"shard":"2/3"}`. Pass the complete matrix row to
+`actions/run-many`. Pre- and post-targets run in each job with their own options.
 
 ## Tag filters and multiple targets
 

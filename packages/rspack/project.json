@@ -1,0 +1,26 @@
+{
+  "$schema": "../core/schemas/project.schema.json",
+  "name": "rspack",
+  "targets": {
+    "build": {
+      "executor": "js:tsc",
+      "options": {
+        "tsConfig": "packages/rspack/tsconfig.build.json",
+        "assets": [
+          {
+            "input": "packages/rspack/src",
+            "glob": "executors/**/*.schema.json"
+          }
+        ],
+        "generatePackageJson": true
+      }
+    },
+    "test": {
+      "executor": "vitest:test"
+    },
+    "lint": {
+      "executor": "eslint:lint"
+    }
+  },
+  "tags": []
+}

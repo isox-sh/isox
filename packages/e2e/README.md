@@ -84,7 +84,7 @@ These tests exercise built local packages, not packed or published artifacts.
 ## Repository development
 
 Run `pnpm bootstrap`, then `pnpm isox test e2e` for this package's tests.
-The repository's init/build scenarios use this public API and run with
-`pnpm isox test js-e2e`.
+The suites in `e2e/js`, `e2e/rspack`, and `e2e/playwright` use this public API.
+Run one with `pnpm isox test <project>-e2e`, for example `pnpm isox test rspack-e2e`.
 
 MIT.

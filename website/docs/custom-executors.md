@@ -110,3 +110,34 @@ stored as successful finite tasks.
 
 See [layout and packaging](/docs/plugin-packaging) to ship your executor and
 [plugin testing](/docs/plugin-testing) to exercise it through the CLI.
+
+## Plan a project across CI jobs
+
+An executor can declare an optional `planner` beside its `implementation` in
+`executors.json`. Both paths are relative to the manifest. The native TypeScript
+package builder validates and rewrites both paths for the output package.
+
+```json
+{
+  "executors": {
+    "test": {
+      "implementation": "./test.js",
+      "planner": "./planner.js"
+    }
+  }
+}
+```
+
+Export a function of type `ExecutorPlanner` from the planner module.
+It receives the effective target options and a context with `workspaceRoot`,
+`projectRoot`, `projectName`, `commandName`, `configurationName`, `plannerOptions`, and `maxJobs`.
+Return one JSON option object per independent invocation, or a promise for the
+array. Return `[{}]` to keep the original invocation. The array must contain
+between one and `context.maxJobs` entries. Keep stdout available for the CLI's
+matrix JSON.
+
+A planner function can also expose a synchronous `requestedJobs(options, plannerOptions)` method.
+The target’s `planner` object supplies `plannerOptions` to both hooks.
+Return a positive integer to reserve an exact count, or `undefined` for automatic
+allocation. Isox passes the reserved count as `context.maxJobs` and expects
+exactly that many option objects. See [CI planning](/docs/ci-planning#executor-planners) for job allocation.
