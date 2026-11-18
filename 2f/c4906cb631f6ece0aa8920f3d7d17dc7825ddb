@@ -1,0 +1,24 @@
+packages/core/tests/executor-lifecycle.test.mjs
+  s_dfd67ca9a723b7::t_3e3c928f1fa54d 395-396,493-496,499
+packages/core/tests/task-cache.test.mjs
+  s_dfd67ca9a723b7::t_3e3c928f1fa54d 1178-1179
+packages/cli/tests/depends-on.test.mjs
+  s_dfd67ca9a723b7::t_3e3c928f1fa54d 461
+  s_dfd67ca9a723b7::t_e554daa0d8800f 468-471
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2fc4906cb631f6ece0aa8920f3d7d17dc7825ddb",
+  "prompts": {},
+  "sessions": {
+    "s_dfd67ca9a723b7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f087-6dbb-7ff2-b4c1-33ed91371627",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
