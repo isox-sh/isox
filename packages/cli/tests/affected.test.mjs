@@ -634,3 +634,39 @@ test('prerequisite input changes select consumers and execute required tasks', a
   assert.equal(result.status, 0, result.stderr)
   assert.deepEqual((await events(root)).map(({ project, target, phase }) => `${project}:${target}:${phase}`), ['lib:prepare:start', 'lib:prepare:end', 'app:build:start', 'app:build:end'])
 })
+
+test('an optional executor planner can split jobs without loading the worker implementation', async t => {
+  const { write, project, run } = await affectedFixture(t)
+  const target = 'custom'
+  await project('app', {
+    targets: {
+      custom: {
+        executor: '@fixture/plugin:custom',
+        defaultConfiguration: 'ci',
+        configurations: { ci: { label: 'from config' } }
+      }
+    }
+  })
+  await write('node_modules/@fixture/plugin/executors.json', {
+    executors: {
+      custom: {
+        implementation: './worker-only.cjs',
+        planner: './plan.cjs'
+      }
+    }
+  })
+  const path = 'node_modules/@fixture/plugin/plan.cjs'
+  const plan = () => run('plan', '--all', `--target=${target}`, '--max-jobs=3')
+  await write(path, 'module.exports = async (options, ctx) => [{ label: options.label }, { project: ctx.projectName }]')
+  const result = plan()
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(result.stdout).include.map(row => row.options), [
+    { label: 'from config' }, { project: 'app' }
+  ])
+  for (const value of ['[]', '[{}, {}, {}, {}]', '[null]', '[{ label: undefined }]']) {
+    await write(path, `module.exports = () => ${value}`)
+    const invalid = plan()
+    assert.equal(invalid.status, 1)
+    assert.match(invalid.stderr, /Planner for app:custom/)
+  }
+})

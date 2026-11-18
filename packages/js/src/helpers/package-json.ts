@@ -211,14 +211,26 @@ export async function generatePackageJson(
         throw new Error(`Package generation requires ${field} implementation entries.`)
       }
 
-      let implementation = resolve(dirname(source), definition.implementation)
-
-      if (!available().has(implementation) && available().has(`${implementation}.js`)) {
-        implementation += '.js'
+      const entries = ['implementation']
+      if (field === 'executors' && definition.planner !== undefined) {
+        entries.push('planner')
       }
 
-      validateTarget(implementation)
-      definition.implementation = `./${slash(relative(dirname(target), implementation))}`
+      for (const key of entries) {
+        const path = definition[key]
+        if (typeof path !== 'string' || !path.trim()) {
+          throw new Error(`Invalid ${field} ${key} entry.`)
+        }
+
+        let entry = resolve(dirname(source), path)
+
+        if (!available().has(entry) && available().has(`${entry}.js`)) {
+          entry += '.js'
+        }
+
+        validateTarget(entry)
+        definition[key] = `./${slash(relative(dirname(target), entry))}`
+      }
 
       if (typeof definition.schema === 'string') {
         const schemaPath = resolve(dirname(source), definition.schema)

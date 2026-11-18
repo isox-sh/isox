@@ -12,6 +12,14 @@ export function workerArgs(plan) {
 
   const args = ['run-many', `--target=${plan.target}`, '--projects-json', JSON.stringify(plan.projects)]
 
+  if (plan.options !== undefined) {
+    if (!plan.options || typeof plan.options !== 'object' || Array.isArray(plan.options)) {
+      throw new Error('Plan options must be an object.')
+    }
+
+    args.push(`--options=${JSON.stringify(plan.options)}`)
+  }
+
   if (plan.config !== undefined && typeof plan.config !== 'string') {
     throw new Error('Plan config must be a string.')
   }

@@ -42,6 +42,7 @@ export interface TargetDefaults {
   dependsOn?: (string | TargetDependency)[]
   [key: string]: unknown
   options?: Record<string, unknown>
+  planner?: Record<string, unknown>
   configurations?: Record<string, Record<string, unknown>>
   defaultConfiguration?: string
   /** Opt in only for deterministic, side-effect-free tasks. */
