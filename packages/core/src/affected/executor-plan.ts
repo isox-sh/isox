@@ -1,5 +1,4 @@
 import { resolve } from 'node:path'
-import { isDeepStrictEqual } from 'node:util'
 
 import { resolveCommandOptions } from '../executor/configuration'
 import { loadExecutorPlanner } from '../executor/registry'
@@ -10,6 +9,27 @@ import { positiveInteger } from './targets'
 
 import type { WorkspaceGraph } from '../workspace/parser'
 import type { MatrixEntry, TargetPlanOptions } from './types'
+
+/** Check the JSON boundary without treating a dictionary's prototype as job data. */
+function matchesJson(value: unknown, parsed: unknown): boolean {
+  if (Object.is(value, parsed)) {
+    return true
+  }
+
+  if (!value || typeof value !== 'object' || !parsed || typeof parsed !== 'object') {
+    return false
+  }
+
+  const prototype = Object.getPrototypeOf(value)
+  if (prototype !== null && prototype !== Object.getPrototypeOf(parsed)) {
+    return false
+  }
+
+  const keys = Reflect.ownKeys(value).filter(key => Object.prototype.propertyIsEnumerable.call(value, key))
+
+  return keys.length === Object.keys(parsed).length && keys.every(key =>
+    Object.hasOwn(parsed, key) && matchesJson(Reflect.get(value, key), Reflect.get(parsed, key)))
+}
 
 /** Reserve fixed executor jobs, then distribute the remaining budget across projects. */
 export async function planExecutorJobs(root: string, workspace: WorkspaceGraph, projects: string[], target: TargetPlanOptions): Promise<MatrixEntry[]> {
@@ -85,13 +105,14 @@ export async function planExecutorJobs(root: string, workspace: WorkspaceGraph, 
       }
 
       // The plan crosses a JSON boundary before the worker receives its options.
-      if (!isDeepStrictEqual(overrides, JSON.parse(JSON.stringify(overrides)))) {
+      const serialized: Record<string, unknown> = JSON.parse(JSON.stringify(overrides))
+      if (!matchesJson(overrides, serialized)) {
         throw new Error(`Planner for ${projectName}:${target.target} must return JSON-compatible options.`)
       }
 
       jobs.push({
         ...row,
-        ...(Object.keys(overrides).length ? { options: overrides } : {}),
+        ...(Object.keys(serialized).length ? { options: serialized } : {}),
         weight: row.weight / parts.length,
       })
     }

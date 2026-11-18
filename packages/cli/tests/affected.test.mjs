@@ -657,16 +657,26 @@ test('an optional executor planner can split jobs without loading the worker imp
   })
   const path = 'node_modules/@fixture/plugin/plan.cjs'
   const plan = () => run('plan', '--all', `--target=${target}`, '--max-jobs=3')
-  await write(path, 'module.exports = async (options, ctx) => [{ label: options.label }, { project: ctx.projectName }]')
+  await write(path, "module.exports = async (options, ctx) => [{ label: options.label }, { projects: Object.groupBy([ctx.projectName], () => 'ci') }]")
   const result = plan()
   assert.equal(result.status, 0, result.stderr)
   assert.deepEqual(JSON.parse(result.stdout).include.map(row => row.options), [
-    { label: 'from config' }, { project: 'app' }
+    { label: 'from config' }, { projects: { ci: ['app'] } }
   ])
-  for (const value of ['[]', '[{}, {}, {}, {}]', '[null]', '[{ label: undefined }]']) {
+  for (const value of ['[]', '[{}, {}, {}, {}]', '[null]', '[{ label: undefined }]', '[{ [Symbol()]: true }]', '[{ values: [NaN] }]']) {
     await write(path, `module.exports = () => ${value}`)
     const invalid = plan()
     assert.equal(invalid.status, 1)
     assert.match(invalid.stderr, /Planner for app:custom/)
   }
+})
+
+test('plans a worker-only executor when only the underlying tool is installed locally', async t => {
+  const { write, project, run } = await affectedFixture(t)
+  await write('node_modules/vitest/package.json', { name: 'vitest' })
+  await project('app', { targets: { test: { executor: 'vitest:test' } } })
+
+  const result = run('plan', '--all', '--target=test')
+  assert.equal(result.status, 0, result.stderr)
+  assert.deepEqual(JSON.parse(result.stdout).include.map(row => row.projects), [['app']])
 })

@@ -34,6 +34,11 @@ export function nativeEntry(pkg: string, pkgJsonPath: string, executorName: stri
   const pkgJson = pluginRequire(pkgJsonPath)
   const manifest = pkgJson.executors
 
+  // A planning host may have the underlying tool installed without its Isox plugin.
+  if (field === 'planner' && manifest === undefined) {
+    return undefined
+  }
+
   if (typeof manifest !== 'string') {
     throw new Error(`Package ${pkg} does not define an executors manifest.`)
   }

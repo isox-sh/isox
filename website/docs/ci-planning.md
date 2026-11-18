@@ -52,7 +52,8 @@ of GitHub jobs. Each row contains:
 }
 ```
 
-`index` is one-based. `weight` is the sum of project weights. The exact `projects`
+`index` is one-based. A row sums the weights of its projects. When an executor
+splits one project into several jobs, each row gets an equal share of its weight. The exact `projects`
 list is authoritative; workers never rerun affected detection or calculate their
 own slices from `index` and `count`.
 
