@@ -1,0 +1,19 @@
+pnpm-lock.yaml
+  s_6fe3d7f9825a76::t_f6eb88d37ef454 644-695,2100-2123,2839-2846
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "25b0eb7d7a819daf2d92e93567666ec850a00343",
+  "prompts": {},
+  "sessions": {
+    "s_6fe3d7f9825a76": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f03d-e15e-7121-b17e-3c28df014756",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
