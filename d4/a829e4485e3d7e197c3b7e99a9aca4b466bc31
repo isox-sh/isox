@@ -1,0 +1,88 @@
+packages/playwright/src/executors/test/test.executor.ts
+  s_3c95bc85ba24bd::t_772feb85fc3904 9-15
+  s_3c95bc85ba24bd::t_05eb9d95f6f97f 1-8,16-20
+packages/playwright/project.json
+  s_3c95bc85ba24bd::t_9109c7c51dce35 1-26
+packages/playwright/package.json
+  s_3c95bc85ba24bd::t_9109c7c51dce35 1-37
+packages/playwright/src/executors/test/count-reporter.ts
+  s_3c95bc85ba24bd::t_772feb85fc3904 1-13
+tsconfig.base.json
+  s_3c95bc85ba24bd::t_9109c7c51dce35 25-26
+packages/playwright/src/executors/test/planner.ts
+  s_3c95bc85ba24bd::t_06ef0db14cdac3 10-29
+  s_3c95bc85ba24bd::t_772feb85fc3904 1-8,31-60,64-71,78-85
+  s_3c95bc85ba24bd::t_9a1a236ef2ad48 62-63,72-77
+  s_3c95bc85ba24bd::t_09d315f66b7408 9
+  s_3c95bc85ba24bd::t_07ac15f62c616e 30
+  s_3c95bc85ba24bd::t_739e5f90bf73a8 61
+packages/playwright/src/executors/test/test.schema.json
+  s_3c95bc85ba24bd::t_9109c7c51dce35 1-2,4-19
+  s_3c95bc85ba24bd::t_21a921e30d6c08 3
+packages/playwright/tsconfig.build.json
+  s_3c95bc85ba24bd::t_9109c7c51dce35 1-10
+website/snippets/plugin-registry-data.mdx
+  s_3c95bc85ba24bd::t_21a921e30d6c08 35-41
+  s_3c95bc85ba24bd::t_e19fc4e5370441 34
+website/docs/ci-planning.md
+  s_3c95bc85ba24bd::t_21a921e30d6c08 68-71
+  s_3c95bc85ba24bd::t_8cf0d07707c784 72
+packages/playwright/README.md
+  s_3c95bc85ba24bd::t_86c124bbaf1716 3-4,7,10-32
+  s_3c95bc85ba24bd::t_21a921e30d6c08 1-2,5-6,8-9
+packages/playwright/vitest.config.mjs
+  s_3c95bc85ba24bd::t_9109c7c51dce35 1-6
+packages/playwright/executors.json
+  s_3c95bc85ba24bd::t_9109c7c51dce35 1-10
+packages/playwright/src/generators/add.ts
+  s_3c95bc85ba24bd::t_923c46a97b0e60 1-2,4-5,21-32
+  s_3c95bc85ba24bd::t_853284d93cafb2 44-47
+  s_3c95bc85ba24bd::t_9109c7c51dce35 3,6-20,33-43,48-52
+website/docs/playwright.md
+  s_3c95bc85ba24bd::t_9a1a236ef2ad48 23-50
+  s_3c95bc85ba24bd::t_21a921e30d6c08 1-5,8-11,13-22,51-55
+  s_3c95bc85ba24bd::t_923c46a97b0e60 6-7,12
+packages/playwright/src/executors/test/options.ts
+  s_3c95bc85ba24bd::t_772feb85fc3904 1-21,26,31-32
+  s_3c95bc85ba24bd::t_a5adbc7dedbf4e 22-25,27-30
+website/docs.json
+  s_3c95bc85ba24bd::t_21a921e30d6c08 52
+website/approved-community-plugins.json
+  s_3c95bc85ba24bd::t_21a921e30d6c08 35-41
+  s_3c95bc85ba24bd::t_1456e3f525b2a9 34
+packages/playwright/generators.json
+  s_3c95bc85ba24bd::t_9109c7c51dce35 1-8
+package.json
+  s_3c95bc85ba24bd::t_9109c7c51dce35 29
+packages/playwright/tests/sharding.test.mjs
+  s_3c95bc85ba24bd::t_923c46a97b0e60 61-76,78-79
+  s_3c95bc85ba24bd::t_0b0cd302b158b8 232-235
+  s_3c95bc85ba24bd::t_5da545c1e005a5 1-60,80-122,127-136,242
+  s_3c95bc85ba24bd::t_853284d93cafb2 123-126,137-179,207-221,223-231,236-241
+  s_3c95bc85ba24bd::t_e0b131ff4e4921 77
+  s_3c95bc85ba24bd::t_9a1a236ef2ad48 222
+  s_3c95bc85ba24bd::t_afcf780d77ef7e 181-198,200-206
+  s_3c95bc85ba24bd::t_06ef0db14cdac3 180,199
+pnpm-lock.yaml
+  s_3c95bc85ba24bd::t_a855c435510ef2 187-189,293-299,473-477,1344-1353,1689-1692,2396-2401
+scripts/bootstrap.cjs
+  s_3c95bc85ba24bd::t_e8c14340048baa 9
+tests/packages.test.mjs
+  s_3c95bc85ba24bd::t_1ef09c8056ec87 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d4a829e4485e3d7e197c3b7e99a9aca4b466bc31",
+  "prompts": {},
+  "sessions": {
+    "s_3c95bc85ba24bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ef0c-e455-74e0-84c7-0f425dd51c06",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
