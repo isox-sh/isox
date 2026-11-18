@@ -49,6 +49,7 @@
               "docs/rspack",
               "docs/typescript-packages",
               "docs/eslint",
+              "docs/playwright",
               "docs/vitest"
             ]
           },

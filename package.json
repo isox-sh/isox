@@ -26,6 +26,7 @@
     "@isox-sh/e2e": "workspace:*",
     "@isox-sh/js": "workspace:*",
     "@isox-sh/nx": "workspace:*",
+    "@isox-sh/playwright": "workspace:*",
     "@isox-sh/rspack": "workspace:*",
     "@isox-sh/vitest": "workspace:*",
     "@stylistic/eslint-plugin": "^5.10.0",

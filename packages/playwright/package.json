@@ -1,0 +1,37 @@
+{
+  "name": "@isox-sh/playwright",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Native Playwright test executor and shard planner for Isox.",
+  "executors": "./executors.json",
+  "files": [
+    "dist",
+    "executors.json",
+    "generators.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git",
+    "directory": "packages/playwright"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/playwright",
+    "linkDirectory": true
+  },
+  "engines": {
+    "node": "^24.0.0 || >=26.0.0"
+  },
+  "generators": "./generators.json",
+  "peerDependencies": {
+    "@playwright/test": "^1.65.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
+  }
+}

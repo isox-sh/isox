@@ -32,6 +32,14 @@
     "official": true
   },
   {
+    "name": "@isox-sh/playwright",
+    "description": "Run Playwright tests and split suites across CI jobs with playwright:test.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/playwright",
+    "docs": "/docs/playwright",
+    "category": "Test",
+    "official": true
+  },
+  {
     "name": "@isox-sh/vitest",
     "description": "Run project test suites with vitest:test and generate Vitest configuration.",
     "url": "https://github.com/isox-sh/isox/tree/main/packages/vitest",

@@ -65,6 +65,11 @@ Isox offers the remaining jobs to installed native executors that declare a
 `planner` entrypoint. The budget is shared among eligible projects in matrix
 order. Executors without a planner keep their ordinary project rows.
 
+For example, a single [Playwright project](/docs/playwright) with `maxJobs: 3`
+can produce three rows for the same project. Each carries its own main-target
+`options`, such as `{"shard":"2/3"}`. Pass the complete matrix row to
+`actions/run-many`. Pre- and post-targets run in each job with their own options.
+
 ## Tag filters and multiple targets
 
 Filters support a literal tag (`backend`), equality (`type=frontend`), and
