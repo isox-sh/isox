@@ -1,0 +1,23 @@
+packages/rspack/README.md
+  s_3c95bc85ba24bd::t_0639718b02d7a9 4,7,10-11,21-22
+website/docs/rspack.md
+  s_3c95bc85ba24bd::t_0639718b02d7a9 39-47
+packages/playwright/README.md
+  s_3c95bc85ba24bd::t_0639718b02d7a9 4-5,8,11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e1069e431810a952b09f3ac9fd73fab1a9bc116c",
+  "prompts": {},
+  "sessions": {
+    "s_3c95bc85ba24bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ef0c-e455-74e0-84c7-0f425dd51c06",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
