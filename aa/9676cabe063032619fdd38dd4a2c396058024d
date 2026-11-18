@@ -1,0 +1,55 @@
+website/docs/prompts/migrate-nx-to-isox.md
+  s_dfd67ca9a723b7::t_5c2d51e16469f3 170-173
+  s_dfd67ca9a723b7::t_500583c57d62d6 169
+packages/core/src/executor/environment.ts
+  s_dfd67ca9a723b7::t_ee2c6a225f378a 3,7-10,44,75,77,142
+  s_dfd67ca9a723b7::t_357235fcee670f 2,4-6,17-23,25-30,32-33,35-41,45-52,54,57-59,61,64,69-70,72-74,81-102,115-116,118-125,127,130-131,133-139
+  s_dfd67ca9a723b7::t_6a95ce61c64117 12-16,42-43,76
+  s_dfd67ca9a723b7::t_ed20170391ccb9 24,31,34,53,60,62,65-68,71,103-108,128,140
+  s_dfd67ca9a723b7::t_53ca703555724c 1,11,55-56,63,78-80,109-114,117,126,129,132,141
+packages/core/tests/task-cache.test.mjs
+  s_dfd67ca9a723b7::t_598e622c796086 1142-1144,1146-1155
+  s_dfd67ca9a723b7::t_20da22daefe364 1145
+packages/core/tests/executor-lifecycle.test.mjs
+  s_dfd67ca9a723b7::t_d0074c58b44f3a 383,387-390,394-395
+  s_dfd67ca9a723b7::t_6a95ce61c64117 412
+  s_dfd67ca9a723b7::t_ed20170391ccb9 405,413,416-494
+  s_dfd67ca9a723b7::t_9cc862c3d62a10 380-382,384-386,391-393,396-404,406-411,414-415
+website/docs/custom-executors.md
+  s_dfd67ca9a723b7::t_ed20170391ccb9 80-81
+  s_dfd67ca9a723b7::t_d0074c58b44f3a 85
+  s_dfd67ca9a723b7::t_29b628a3596379 79,82-84
+packages/cli/tests/depends-on.test.mjs
+  s_dfd67ca9a723b7::t_598e622c796086 400-442
+  s_dfd67ca9a723b7::t_19ad89cb6ebf34 443-461,464-469
+  s_dfd67ca9a723b7::t_9e46420cc3e82e 462-463
+packages/core/src/executor/runner.ts
+  s_dfd67ca9a723b7::t_6a95ce61c64117 108-116,118-119
+  s_dfd67ca9a723b7::t_2842a4e6d41f9b 8,107
+packages/core/package.json
+  s_dfd67ca9a723b7::t_18406ec319fedc 15
+  s_dfd67ca9a723b7::t_24cbb6add9c978 16
+website/docs/configuration.md
+  s_dfd67ca9a723b7::t_598e622c796086 18-20,23-38
+  s_dfd67ca9a723b7::t_d0074c58b44f3a 21-22
+pnpm-lock.yaml
+  s_dfd67ca9a723b7::t_fc7586ecf95b02 257-262,1272-1279,2578-2583
+website/docs/shell-commands.mdx
+  s_dfd67ca9a723b7::t_91f2fdb299c86e 115-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aa9676cabe063032619fdd38dd4a2c396058024d",
+  "prompts": {},
+  "sessions": {
+    "s_dfd67ca9a723b7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f087-6dbb-7ff2-b4c1-33ed91371627",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
