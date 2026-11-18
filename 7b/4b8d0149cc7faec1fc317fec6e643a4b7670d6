@@ -1,0 +1,28 @@
+website/docs/ci-planning.md
+  s_3c95bc85ba24bd::t_e3139a5824dbae 55-56
+packages/core/src/executor/registry.ts
+  s_3c95bc85ba24bd::t_e3139a5824dbae 37-41
+packages/core/src/affected/executor-plan.ts
+  s_3c95bc85ba24bd::t_e3139a5824dbae 115
+  s_3c95bc85ba24bd::t_e933f9e4ddfb10 13-33,108-109
+packages/cli/tests/affected.test.mjs
+  s_3c95bc85ba24bd::t_e3139a5824dbae 660,664,673-681
+  s_3c95bc85ba24bd::t_39f1cc8aaf7b6b 666
+  s_3c95bc85ba24bd::t_2dd1553322f91e 682
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b4b8d0149cc7faec1fc317fec6e643a4b7670d6",
+  "prompts": {},
+  "sessions": {
+    "s_3c95bc85ba24bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ef0c-e455-74e0-84c7-0f425dd51c06",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
