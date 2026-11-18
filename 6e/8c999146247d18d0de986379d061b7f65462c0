@@ -1,0 +1,51 @@
+packages/rspack/tests/plugin.test.mjs
+  s_6fe3d7f9825a76::t_15f25f65e118d7 11,21,49,53-61,71,73-78
+  s_6fe3d7f9825a76::t_ce5be4f1422d67 72,79-80,89
+packages/core/schemas/project.schema.json
+  s_6fe3d7f9825a76::t_929108b198d7b4 256-267
+website/docs/cache-inputs.md
+  s_6fe3d7f9825a76::t_366abecb441ee9 12,31-33
+packages/core/src/workspace/configuration.ts
+  s_6fe3d7f9825a76::t_450379e48b4854 21-24
+  s_6fe3d7f9825a76::t_f41bcd3fe6407d 25
+website/docs/next.md
+  s_6fe3d7f9825a76::t_210c7953dce85e 68-71
+  s_6fe3d7f9825a76::t_6c6b7a9a89e819 17-18,50-57,59-67
+  s_6fe3d7f9825a76::t_3013b492cf0070 58,72-77
+packages/rspack/src/generators/init.ts
+  s_6fe3d7f9825a76::t_ff55af464d6b0a 4,48,73-77
+website/docs/rspack.md
+  s_6fe3d7f9825a76::t_950e5b2e1a992c 21,60-64
+packages/next/tests/plugin.test.mjs
+  s_6fe3d7f9825a76::t_3c34a4500181fb 11,21,77,85-90,92-95,107-123,125-127,168
+  s_6fe3d7f9825a76::t_0d57f7900dfffa 155,157,159-161,163-164,166-167
+  s_6fe3d7f9825a76::t_3798157a48b49c 7,91,124
+  s_6fe3d7f9825a76::t_775edd5d8d799b 149-154,156,158,162,165
+  s_6fe3d7f9825a76::t_e90ee9f0bf6fcc 169
+website/docs/task-caching.md
+  s_6fe3d7f9825a76::t_5650a669724cb5 10-12,21
+  s_6fe3d7f9825a76::t_d8a463869bd551 14-15,20
+packages/next/src/generators/init.ts
+  s_6fe3d7f9825a76::t_357c582fd1619f 75
+  s_6fe3d7f9825a76::t_637f8b2bba94de 4,44,72-74,76-77
+packages/core/src/cache/hash.ts
+  s_6fe3d7f9825a76::t_dd6aeefd559342 140-156,161
+packages/rspack/README.md
+  s_6fe3d7f9825a76::t_53409082328026 21-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e8c999146247d18d0de986379d061b7f65462c0",
+  "prompts": {},
+  "sessions": {
+    "s_6fe3d7f9825a76": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f03d-e15e-7121-b17e-3c28df014756",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
