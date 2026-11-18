@@ -1,0 +1,12 @@
+{
+  "$schema": "../../packages/core/schemas/project.schema.json",
+  "name": "rspack-e2e",
+  "plan": { "weight": 2 },
+  "dependencies": ["js", "rspack", "vitest"],
+  "targets": {
+    "test": {
+      "executor": "vitest:test"
+    }
+  },
+  "tags": []
+}

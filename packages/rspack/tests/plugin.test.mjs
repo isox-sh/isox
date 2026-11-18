@@ -38,8 +38,8 @@ async function fixture(t) {
   }
 }
 
-test('initializes a project with a working JavaScript entry and build and serve targets', async t => {
-  const { root, project, projectFile, run } = await fixture(t)
+test('initializes build and serve targets and declares the Rspack dependencies', async t => {
+  const { root, projectFile, run } = await fixture(t)
   const initialized = run('init', '@isox-sh/rspack', 'apps/web')
 
   assert.equal(initialized.status, 0, initialized.stderr)
@@ -61,18 +61,6 @@ test('initializes a project with a working JavaScript entry and build and serve 
     '@rspack/cli': plugin.dependencies['@rspack/cli'],
     '@rspack/dev-server': plugin.dependencies['@rspack/dev-server']
   })
-  const built = run('build', 'web')
-
-  assert.equal(built.status, 0, built.stderr)
-  await rm(join(project, 'dist'), { recursive: true })
-  const restored = run('build', 'web')
-
-  assert.equal(restored.status, 0, restored.stderr)
-  assert.match(restored.stdout, /Cache hit/)
-  const bundle = spawnSync(process.execPath, [join(project, 'dist/main.js')], { encoding: 'utf8' })
-
-  assert.equal(bundle.status, 0, bundle.stderr)
-  assert.equal(bundle.stdout.trim(), 'web')
 })
 
 test('two apps share one workspace dependency manifest', async t => {
@@ -122,27 +110,4 @@ test('forwards workspace-relative config overrides and Rspack failures', async t
 
   assert.equal(failedServe.status, 1)
   assert.match(failedServe.stderr, /missing.mjs/)
-})
-
-test('bundles a TypeScript library added later by its workspace alias and rebuilds when it changes', async t => {
-  const { root, project, run } = await fixture(t)
-  await symlink(join(dist, 'js'), join(root, 'node_modules/@isox-sh/js'), 'junction')
-  const app = run('init', '@isox-sh/rspack', 'apps/web')
-  assert.equal(app.status, 0, app.stderr)
-  const lib = run('init', '@isox-sh/js', 'libs/shared', '--import-path=@demo/shared', '--linter=none')
-  assert.equal(lib.status, 0, lib.stderr)
-
-  await writeFile(join(project, 'src/index.js'), "import { greet } from '@demo/shared'\nconsole.log(greet('web'))")
-  const libRoot = join(root, 'libs/shared/src')
-  await writeFile(join(libRoot, 'index.ts'), "export { greet } from './greet.js'")
-  for (const greeting of ['Hello', 'Welcome']) {
-    await writeFile(join(libRoot, 'greet.ts'), `export const greet = (name: string): string => '${greeting} ' + name`)
-    const built = run('build', 'web')
-
-    assert.equal(built.status, 0, built.stderr + built.stdout)
-    const bundle = spawnSync(process.execPath, [join(project, 'dist/main.js')], { encoding: 'utf8' })
-
-    assert.equal(bundle.status, 0, bundle.stderr)
-    assert.equal(bundle.stdout.trim(), `${greeting} web`)
-  }
 })
