@@ -1,0 +1,19 @@
+packages/core/tests/executor-lifecycle.test.mjs
+  s_dfd67ca9a723b7::t_516a199e440cd5 383,390-392
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e48ef4672beb9ce98c425a639a3eb5a1a21cdeb4",
+  "prompts": {},
+  "sessions": {
+    "s_dfd67ca9a723b7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f087-6dbb-7ff2-b4c1-33ed91371627",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
