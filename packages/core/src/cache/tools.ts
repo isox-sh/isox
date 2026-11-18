@@ -73,15 +73,17 @@ export async function installedVersions(manifests: string[], options: InstalledV
 
     offset += batch.length
 
-    try {
-      await Promise.all(batch.map(inspect))
-    } catch (error) {
-      // A parallel build can replace a linked package after its manifest was resolved.
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return undefined
+    const results = await Promise.allSettled(batch.map(inspect))
+    const failures = results.filter(result => result.status === 'rejected')
+    for (const { reason } of failures) {
+      if (reason?.code !== 'ENOENT') {
+        throw reason
       }
+    }
 
-      throw error
+    // A parallel build can replace a linked package after its manifest was resolved.
+    if (failures.length) {
+      return undefined
     }
   }
 

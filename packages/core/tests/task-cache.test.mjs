@@ -545,6 +545,28 @@ test('a linked package disappearing during hashing bypasses the cache for that r
   assert.equal((await f.entries()).length, 1)
 })
 
+test('a missing manifest cannot hide a parse error in the same batch', async t => {
+  const f = await fixture(t)
+  const { installedVersions } = require('../../../dist/core/cache/tools')
+  await f.write('missing/package.json', {})
+  await f.write('invalid/package.json', '{')
+  const missing = await realpath(join(f.root, 'missing/package.json'))
+  const invalid = await realpath(join(f.root, 'invalid/package.json'))
+  const spy = vi.spyOn(require('node:fs/promises'), 'readFile').mockImplementation(async (path, ...args) => {
+    if (path === missing) {
+      throw Object.assign(new Error('manifest disappeared'), { code: 'ENOENT' })
+    }
+
+    return readFile(path, ...args)
+  })
+
+  try {
+    await assert.rejects(installedVersions([missing, invalid]), SyntaxError)
+  } finally {
+    spy.mockRestore()
+  }
+})
+
 test('installed tool version and runtime changes invalidate keys independently of the lockfile', async t => {
   const f = await fixture(t)
 
