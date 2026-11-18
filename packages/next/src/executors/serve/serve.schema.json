@@ -33,5 +33,16 @@
       "description": "Port to bind to. Use 0 for an available port."
     }
   },
+  "if": {
+    "properties": {
+      "mode": { "const": "production" }
+    },
+    "required": ["mode"]
+  },
+  "then": {
+    "properties": {
+      "bundler": false
+    }
+  },
   "additionalProperties": false
 }

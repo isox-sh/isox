@@ -135,6 +135,7 @@ test('reports invalid options and missing framework dependencies', async t => {
   for (const [args, error] of [
     [['serve', 'web', '--port=65536'], /port must be an integer/],
     [['serve', 'web', '--mode=invalid'], /serve mode must be/],
+    [['serve', 'web', '--configuration=production', '--bundler=webpack'], /Select the production bundler on the Next.js build target/],
     [['build', 'web', '--bundler=invalid'], /bundler must be/],
     [['serve', 'web'], /Next\.js is missing/],
   ]) {
