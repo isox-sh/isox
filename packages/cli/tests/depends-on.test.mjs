@@ -458,12 +458,16 @@ test('a programmatic target called by a CLI executor gets its own file variables
       const { runExecutor } = require(${JSON.stringify(require.resolve('../../../dist/core'))})
       await runExecutor(ctx.workspace, 'app', 'inner', ctx.workspaceRoot)
       assert.equal(process.env.ISOX_TEST_SHARED, 'outer')
+      assert.equal(process.env.ISOX_TEST_OUTER, 'outer')
     } else {
       assert.equal(process.env.ISOX_TEST_OUTER, undefined)
       assert.equal(process.env.ISOX_TEST_SHARED, 'inner')
     }
     return { success: true }
   }`)
-  const result = f.run(['run', 'app:outer'])
+  const result = f.run(['run', 'app:outer'], {
+    ISOX_TEST_OUTER: undefined,
+    ISOX_TEST_SHARED: undefined
+  })
   assert.equal(result.status, 0, result.stderr + result.stdout)
 })

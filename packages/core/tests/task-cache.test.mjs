@@ -1175,6 +1175,8 @@ for (const [exclusion, excluded] of [
 }
 
 test('declared environment inputs hash the workspace dotenv value seen by the executor', async t => {
+  vi.stubEnv('ISOX_TEST_CACHE_VALUE', undefined)
+  t.onTestFinished(() => vi.unstubAllEnvs())
   const f = await fixture(t, `module.exports = (_, ctx) => {
     require('node:fs').appendFileSync(require('node:path').join(ctx.workspaceRoot, 'runs'), process.env.ISOX_TEST_CACHE_VALUE + '\\n')
     return { success: true }

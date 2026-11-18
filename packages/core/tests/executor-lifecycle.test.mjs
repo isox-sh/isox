@@ -392,6 +392,8 @@ test('overlapping core API calls scope process.env to each task and its children
       return { success: ctx.projectName !== 'broken' }
     }`)
   vi.stubEnv('ISOX_TEST_HOST_ONLY', 'deployed')
+  vi.stubEnv('ISOX_TEST_PROJECT', undefined)
+  vi.stubEnv('ISOX_TEST_ABSENT', undefined)
   t.onTestFinished(() => vi.unstubAllEnvs())
   const names = ['first', 'broken']
   for (const name of names) {
@@ -488,7 +490,11 @@ test('dotenv resolves forward references and terminates circular references', as
 })
 
 test('unreadable target env files fail before the executor starts', async t => {
-  const { root, workspace, logger } = await fixture(t, 'module.exports = () => ({ success: true })')
+  const { root, workspace, logger } = await fixture(t, `module.exports = (_, ctx) => {
+    require('node:fs').writeFileSync(require('node:path').join(ctx.workspaceRoot, 'started'), '')
+    return { success: true }
+  }`)
   await mkdir(join(root, '.env.build'))
   await assert.rejects(runExecutor(workspace, 'demo', 'build', root, logger), { code: 'EISDIR' })
+  await assert.rejects(readFile(join(root, 'started')), { code: 'ENOENT' })
 })
