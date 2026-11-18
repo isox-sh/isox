@@ -1,0 +1,21 @@
+packages/next/src/executors/serve/serve.schema.json
+  s_6fe3d7f9825a76::t_0c8f19b1fed38f 36-46
+packages/next/tests/plugin.test.mjs
+  s_6fe3d7f9825a76::t_98e3c9cf2faaae 138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5f02ad0d913b6e0a1275d8dfe661b0e7b719a90",
+  "prompts": {},
+  "sessions": {
+    "s_6fe3d7f9825a76": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f03d-e15e-7121-b17e-3c28df014756",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
