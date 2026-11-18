@@ -1,0 +1,25 @@
+e2e/rspack/project.json
+  s_3c95bc85ba24bd::t_21db172b883931 1-12
+e2e/rspack/tests/app.test.mjs
+  s_3c95bc85ba24bd::t_21db172b883931 1-67
+e2e/rspack/vitest.config.mjs
+  s_3c95bc85ba24bd::t_21db172b883931 1-6
+packages/rspack/tests/plugin.test.mjs
+  s_3c95bc85ba24bd::t_065fbce1893369 41-42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bb6a146b1929b26ea9233d287b75c25e619557ce",
+  "prompts": {},
+  "sessions": {
+    "s_3c95bc85ba24bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ef0c-e455-74e0-84c7-0f425dd51c06",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
