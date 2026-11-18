@@ -1,0 +1,40 @@
+packages/playwright/src/executors/test/planner.ts
+  s_3c95bc85ba24bd::t_b1aca123c2d502 1-2,31-33,35,38,40-51,53,55-57,59,61-68,73-77,86,91,95,107-117,119-121,126-127
+  s_3c95bc85ba24bd::t_3df511d007c421 118,122-125
+  s_3c95bc85ba24bd::t_39f1cc8aaf7b6b 54,69,79
+  s_3c95bc85ba24bd::t_62a1e0a38f7dcb 128
+website/docs/contributing.mdx
+  s_3c95bc85ba24bd::t_c99a52b6dee1b7 34,43,47-59
+website/docs/playwright.md
+  s_3c95bc85ba24bd::t_c99a52b6dee1b7 42,46-47
+website/docs/plugin-testing.md
+  s_3c95bc85ba24bd::t_c99a52b6dee1b7 99-100
+packages/e2e/README.md
+  s_3c95bc85ba24bd::t_c99a52b6dee1b7 87-88
+e2e/playwright/tests/sharding.test.mjs
+  s_3c95bc85ba24bd::t_b4bee07f8d03ef 9
+  s_3c95bc85ba24bd::t_9cc754bc7dffa1 1-8,10-76,80-86,98-102,106-150
+  s_3c95bc85ba24bd::t_39f1cc8aaf7b6b 77-79,87-97,103-105
+packages/playwright/src/executors/test/count-reporter.ts
+  s_3c95bc85ba24bd::t_b1aca123c2d502 5-10
+e2e/playwright/project.json
+  s_3c95bc85ba24bd::t_21db172b883931 1-12
+e2e/playwright/vitest.config.mjs
+  s_3c95bc85ba24bd::t_21db172b883931 1-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d666b4a55a2b6f1aba90082a265ce586cf0de96c",
+  "prompts": {},
+  "sessions": {
+    "s_3c95bc85ba24bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ef0c-e455-74e0-84c7-0f425dd51c06",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
