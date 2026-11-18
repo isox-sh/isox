@@ -9,7 +9,7 @@ Declare everything a task reads. Start with the default project files, add share
 ## Inputs and the key
 
 `inputs` is an array of file patterns, named input references, and
-`{ "env": "NAME" }` declarations. Omit it to use the `default` named input, which
+`{ "env": "NAME" }` or `{ "envPrefix": "PREFIX_" }` declarations. Omit it to use the `default` named input, which
 includes all project files unless overridden. An explicit array **replaces** that
 default; `[]` declares no project file or environment inputs. Shared workspace
 metadata and dependency inputs still participate.
@@ -28,8 +28,9 @@ metadata and dependency inputs still participate.
 - File paths, contents and permission bits participate. Timestamps and inode
   identities do not. Missing literals or empty matches are valid: creating a
   matching file changes the key. Empty input directories alone do not affect it.
-- Only declared environment variables participate. An unset variable differs
-  from an empty value. Declare every variable that affects the task's result.
+- Declare a variable by name with `env`, or use `envPrefix` to include the names
+  and values of all currently set variables whose names start with the given
+  prefix. An unset variable differs from an empty value.
 
 ### Dependency inputs
 

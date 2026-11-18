@@ -24,6 +24,14 @@
     "official": true
   },
   {
+    "name": "@isox-sh/next",
+    "description": "Create Next.js applications, build them with next:build, and serve them with next:serve.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/next",
+    "docs": "/docs/next",
+    "category": "Build",
+    "official": true
+  },
+  {
     "name": "@isox-sh/eslint",
     "description": "Lint projects with eslint:lint and apply ESLint fixes through your project targets.",
     "url": "https://github.com/isox-sh/isox/tree/main/packages/eslint",

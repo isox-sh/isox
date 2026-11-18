@@ -8,7 +8,7 @@ import { test } from 'vitest'
 
 const dist = resolve(import.meta.dirname, '../../../dist')
 
-async function fixture(t) {
+async function fixture(t, settings = {}) {
   const root = await mkdtemp(join(tmpdir(), 'isox rspack '))
   const project = join(root, 'apps/web')
   const projectFile = join(project, 'project.json')
@@ -18,7 +18,7 @@ async function fixture(t) {
   }))
   await mkdir(join(root, 'node_modules/@isox-sh'), { recursive: true })
   await symlink(join(dist, 'rspack'), join(root, 'node_modules/@isox-sh/rspack'), 'junction')
-  await writeFile(join(root, 'isox.json'), '{}')
+  await writeFile(join(root, 'isox.json'), JSON.stringify(settings))
 
   const run = (...args) => spawnSync(process.execPath, [join(dist, 'cli/index.js'), ...args], {
     cwd: root,
@@ -46,14 +46,19 @@ test('initializes build and serve targets and declares the Rspack dependencies',
   assert.deepEqual(JSON.parse(await readFile(projectFile, 'utf8')), {
     name: 'web',
     targets: {
-      build: {
-        executor: 'rspack:build',
-        cache: true,
-        outputs: ['{projectRoot}/dist']
-      },
+      build: { executor: 'rspack:build' },
       serve: { executor: 'rspack:serve' }
     }
   })
+  const settings = JSON.parse(await readFile(join(root, 'isox.json'), 'utf8'))
+
+  assert.deepEqual(settings.targetDefaults, {
+    'rspack:build': {
+      cache: true,
+      outputs: ['{projectRoot}/dist']
+    }
+  })
+
   const plugin = JSON.parse(await readFile(join(dist, 'rspack/package.json'), 'utf8'))
   assert.deepEqual(JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).devDependencies, {
     '@isox-sh/rspack': plugin.version,
@@ -63,8 +68,16 @@ test('initializes build and serve targets and declares the Rspack dependencies',
   })
 })
 
-test('two apps share one workspace dependency manifest', async t => {
-  const { root, run } = await fixture(t)
+test('two apps share workspace dependencies and preserve explicit cache defaults', async t => {
+  const settings = {
+    targetDefaults: {
+      '@isox-sh/rspack:build': {
+        cache: false,
+        outputs: []
+      }
+    }
+  }
+  const { root, run } = await fixture(t, settings)
   const manifest = join(root, 'package.json')
   const web = run('init', '@isox-sh/rspack', 'apps/web')
   assert.equal(web.status, 0, web.stderr)
@@ -73,6 +86,7 @@ test('two apps share one workspace dependency manifest', async t => {
   assert.equal(admin.status, 0, admin.stderr)
 
   assert.equal(await readFile(manifest, 'utf8'), afterFirstApp)
+  assert.deepEqual(JSON.parse(await readFile(join(root, 'isox.json'), 'utf8')), settings)
   for (const app of ['web', 'admin']) {
     await assert.rejects(readFile(join(root, 'apps', app, 'package.json')), { code: 'ENOENT' })
   }

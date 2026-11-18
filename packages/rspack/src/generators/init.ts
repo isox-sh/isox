@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, join, relative, sep } from 'node:path'
 
-import { addDepsToPackageJson, writeJson } from '@isox-sh/core'
+import { addDepsToPackageJson, addTargetDefaults, writeJson } from '@isox-sh/core'
 
 import type { ProjectInitializer } from '@isox-sh/core'
 
@@ -45,11 +45,7 @@ export default {
     await writeJson('project.json', {
       name: projectName,
       targets: {
-        build: {
-          executor: 'rspack:build',
-          cache: true,
-          outputs: ['{projectRoot}/dist']
-        },
+        build: { executor: 'rspack:build' },
         serve: { executor: 'rspack:serve' }
       }
     }, context, { overwrite: false })
@@ -74,6 +70,11 @@ export default {
     })
     throw error
   }
+
+  await addTargetDefaults('rspack:build', {
+    cache: true,
+    outputs: ['{projectRoot}/dist']
+  }, context)
 }
 
 export default init

@@ -18,11 +18,7 @@ directory for the project.
 
 ```json
 {
-  "build": {
-    "executor": "rspack:build",
-    "cache": true,
-    "outputs": ["{projectRoot}/dist"]
-  },
+  "build": { "executor": "rspack:build" },
   "serve": { "executor": "rspack:serve" }
 }
 ```
@@ -36,9 +32,15 @@ loaders, plugins, output paths, and dev server settings in the project's
 ### Import workspace libraries
 
 The generated Rspack config reads the workspace root's `tsconfig.base.json`
-when it exists. A library created with
-`isox init @isox-sh/js libs/shared --import-path=@demo/shared` can be imported
-from the app using `@demo/shared`. Both build and serve use these path mappings.
+when it exists. To create a library without linting, install the JS plugin at
+the pnpm workspace root and initialize the library with its import alias.
+
+```sh
+pnpm add -Dw @isox-sh/js
+pnpm exec isox init @isox-sh/js libs/shared --import-path=@demo/shared --linter=none
+```
+
+Import the library from the app using `@demo/shared`. Both build and serve use these path mappings.
 The built-in SWC loader transpiles the library's TypeScript source, including
 relative `.js` imports that refer to `.ts` files. The library can keep its own
 `tsconfig.build.json` for standalone compilation and type checking.
@@ -55,7 +57,9 @@ For example, `isox build web --config-file=configs/web.mjs` runs a build using
 a shared config. The package includes the Rspack CLI and development server.
 The fully scoped executor names are `@isox-sh/rspack:build` and `@isox-sh/rspack:serve`.
 
-The generated build target caches the project’s `dist` directory. If you change
-Rspack’s `output.path`, update the target’s `outputs` to match. Include any
-shared configuration or other external build inputs in the target's `inputs`.
+The initializer registers `cache: true` and `outputs: ["{projectRoot}/dist"]`
+under `targetDefaults["rspack:build"]` in `isox.json`. Targets using
+`rspack:build` inherit these settings. If you change Rspack’s `output.path`,
+set the build target’s `outputs` to match. Include any shared configuration or
+other external build inputs in the target's `inputs`.
 See [task caching](/docs/task-caching).

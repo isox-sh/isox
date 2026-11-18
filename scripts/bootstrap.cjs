@@ -6,7 +6,7 @@ const { linkDependency, recordSeedOwnership } = require('./bootstrap-files.cjs')
 
 const root = resolve(__dirname, '..')
 const seededFiles = new Map()
-const packageNames = ['core', 'js', 'cli', 'eslint', 'vitest', 'rspack', 'playwright', 'semver', 'nx', 'e2e']
+const packageNames = ['core', 'js', 'cli', 'eslint', 'vitest', 'rspack', 'next', 'playwright', 'semver', 'nx', 'e2e']
 const compilerPackage = require.resolve('@typescript/native/package.json')
 const compiler = require(compilerPackage)
 const executable = resolve(dirname(compilerPackage), compiler.bin.tsc)

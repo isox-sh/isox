@@ -137,13 +137,28 @@ async function fileInputs(root: string, projectRoot: string, inputs: TaskInput[]
     }
   }
 
-  const environment = inputs.filter((input): input is Exclude<TaskInput, string> => typeof input !== 'string')
-    .map(input => [input.env, process.env[input.env] ?? null]).sort(([a], [b]) => a! < b! ? -1 : a! > b! ? 1 : 0)
+  const environment = new Map<string, string | null>()
+
+  for (const input of inputs) {
+    if (typeof input === 'string') {
+      continue
+    }
+
+    if ('env' in input) {
+      environment.set(input.env, process.env[input.env] ?? null)
+    } else {
+      for (const [name, value] of Object.entries(process.env)) {
+        if (value !== undefined && name.startsWith(input.envPrefix)) {
+          environment.set(name, value)
+        }
+      }
+    }
+  }
 
   return {
     patterns,
     files: [...files.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0),
-    environment
+    environment: [...environment.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)
   }
 }
 

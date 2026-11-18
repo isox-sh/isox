@@ -1,0 +1,31 @@
+{
+  "name": "@isox-sh/next",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Next.js application initializer and build and serve executors for Isox.",
+  "executors": "./executors.json",
+  "files": [
+    "dist",
+    "executors.json",
+    "generators.json"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/isox-sh/isox.git",
+    "directory": "packages/next"
+  },
+  "homepage": "https://isox.sh",
+  "bugs": {
+    "url": "https://github.com/isox-sh/isox/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "directory": "../../dist/next",
+    "linkDirectory": true
+  },
+  "engines": {
+    "node": "^24.0.0 || >=26.0.0"
+  },
+  "generators": "./generators.json"
+}

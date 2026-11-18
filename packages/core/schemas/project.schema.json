@@ -253,6 +253,18 @@
               }
             },
             "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": ["envPrefix"],
+            "properties": {
+              "envPrefix": {
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$",
+                "description": "Match all environment variable names that start with this prefix."
+              }
+            },
+            "additionalProperties": false
           }
         ]
       },

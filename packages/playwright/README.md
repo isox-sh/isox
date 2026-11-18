@@ -1,14 +1,15 @@
 # @isox-sh/playwright
 
 Native Playwright Test executor and CI shard planner for Isox. Requires Node.js
-24 or 26+.
+24 or 26+. From the root of an initialized Isox workspace, install the CLI,
+plugin, and test runner.
 
 ```sh
-npm install --save-dev @isox-sh/playwright @playwright/test
+npm install --save-dev @isox-sh/cli @isox-sh/playwright @playwright/test
 ```
 
-Add a `playwright:test` target to an existing project named `web`, then run its
-suite or plan the CI jobs. Install the browsers your suite uses on each worker.
+For an existing project named `web`, add an `e2e` target that uses the
+`playwright:test` executor. Install the browsers your suite uses on each worker.
 
 ```sh
 npx isox add @isox-sh/playwright web

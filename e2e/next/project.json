@@ -1,0 +1,12 @@
+{
+  "$schema": "../../packages/core/schemas/project.schema.json",
+  "name": "next-e2e",
+  "plan": { "weight": 2 },
+  "dependencies": ["e2e", "next", "vitest"],
+  "targets": {
+    "test": {
+      "executor": "vitest:test"
+    }
+  },
+  "tags": []
+}

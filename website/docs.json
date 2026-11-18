@@ -47,6 +47,7 @@
               "docs/typescript",
               "docs/typescript-builds",
               "docs/rspack",
+              "docs/next",
               "docs/typescript-packages",
               "docs/eslint",
               "docs/playwright",

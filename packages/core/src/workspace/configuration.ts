@@ -18,7 +18,11 @@ export interface EnvironmentInput {
   env: string
 }
 
-export type TaskInput = string | EnvironmentInput
+interface EnvironmentPrefixInput {
+  envPrefix: string
+}
+
+export type TaskInput = string | EnvironmentInput | EnvironmentPrefixInput
 
 interface TargetDependencyOptions {
   target: string

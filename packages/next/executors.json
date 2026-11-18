@@ -1,0 +1,14 @@
+{
+  "executors": {
+    "build": {
+      "implementation": "../../dist/next/executors/bundle/build.executor.js",
+      "schema": "../../dist/next/executors/bundle/build.schema.json",
+      "description": "Create an optimized Next.js production build."
+    },
+    "serve": {
+      "implementation": "../../dist/next/executors/serve/serve.executor.js",
+      "schema": "../../dist/next/executors/serve/serve.schema.json",
+      "description": "Serve a Next.js application in development or production mode."
+    }
+  }
+}
