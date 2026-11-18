@@ -36,9 +36,15 @@ loaders, plugins, output paths, and dev server settings in the project's
 ### Import workspace libraries
 
 The generated Rspack config reads the workspace root's `tsconfig.base.json`
-when it exists. A library created with
-`isox init @isox-sh/js libs/shared --import-path=@demo/shared` can be imported
-from the app using `@demo/shared`. Both build and serve use these path mappings.
+when it exists. To create a library without linting, install the JS plugin at
+the pnpm workspace root and initialize the library with its import alias.
+
+```sh
+pnpm add -Dw @isox-sh/js
+pnpm exec isox init @isox-sh/js libs/shared --import-path=@demo/shared --linter=none
+```
+
+Import the library from the app using `@demo/shared`. Both build and serve use these path mappings.
 The built-in SWC loader transpiles the library's TypeScript source, including
 relative `.js` imports that refer to `.ts` files. The library can keep its own
 `tsconfig.build.json` for standalone compilation and type checking.
