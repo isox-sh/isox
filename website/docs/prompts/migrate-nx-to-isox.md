@@ -159,10 +159,9 @@ migration; verify it and record the work needed to replace it.
 ### Native shell commands
 
 Use `@isox-sh/core:run-command` to invoke the repository's underlying tools or
-scripts. Its options are:
-
-- `command`: one nonempty shell command string.
-- `cwd`: optional working directory, relative to the workspace root or absolute.
+scripts. Use `command` for a single command or `commands` for a list. Set
+`parallel` to `false` when the commands must run in order. Use `cwd` to set their
+working directory. See the [shell command options](/docs/shell-commands#options).
 
 The default directory is the workspace root. Environment variables and standard
 streams are inherited. Nonzero exits and signal termination fail the command.
