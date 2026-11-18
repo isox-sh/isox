@@ -1,8 +1,8 @@
 {
-  "$schema": "../packages/core/schemas/project.schema.json",
+  "$schema": "../../packages/core/schemas/project.schema.json",
   "name": "js-e2e",
   "plan": { "weight": 2 },
-  "dependencies": ["js", "vitest"],
+  "dependencies": ["eslint", "js", "vitest"],
   "targets": {
     "test": {
       "executor": "vitest:test"
