@@ -46,6 +46,7 @@
             "pages": [
               "docs/typescript",
               "docs/typescript-builds",
+              "docs/rspack",
               "docs/typescript-packages",
               "docs/eslint",
               "docs/vitest"

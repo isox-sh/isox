@@ -1,0 +1,14 @@
+{
+  "executors": {
+    "build": {
+      "implementation": "../../dist/rspack/executors/bundle/build.executor.js",
+      "schema": "../../dist/rspack/executors/bundle/build.schema.json",
+      "description": "Bundle a project with Rspack."
+    },
+    "serve": {
+      "implementation": "../../dist/rspack/executors/serve/serve.executor.js",
+      "schema": "../../dist/rspack/executors/serve/serve.schema.json",
+      "description": "Start the Rspack development server."
+    }
+  }
+}

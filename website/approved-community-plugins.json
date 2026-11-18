@@ -16,6 +16,14 @@
     "official": true
   },
   {
+    "name": "@isox-sh/rspack",
+    "description": "Bundle projects with rspack:build and run a local development server with rspack:serve.",
+    "url": "https://github.com/isox-sh/isox/tree/main/packages/rspack",
+    "docs": "/docs/rspack",
+    "category": "Build",
+    "official": true
+  },
+  {
     "name": "@isox-sh/eslint",
     "description": "Lint projects with eslint:lint and apply ESLint fixes through your project targets.",
     "url": "https://github.com/isox-sh/isox/tree/main/packages/eslint",

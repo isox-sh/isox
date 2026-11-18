@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Rspack build",
+  "type": "object",
+  "properties": {
+    "configFile": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S",
+      "description": "Rspack configuration path relative to the workspace root, or absolute. Defaults to Rspack's config discovery in the project root."
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "development",
+        "production",
+        "none"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

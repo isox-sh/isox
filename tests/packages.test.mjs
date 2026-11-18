@@ -17,7 +17,7 @@ test('the JS package infers the native compiler alias from the workspace root', 
 test('published packages retain internal dependencies removed from source manifests', () => {
   const core = require('../dist/core/package.json')
 
-  for (const name of ['cli', 'js', 'eslint', 'vitest', 'nx', 'e2e']) {
+  for (const name of ['cli', 'js', 'eslint', 'vitest', 'rspack', 'nx', 'e2e']) {
     const source = require(`../packages/${name}/package.json`)
     const generated = require(`../dist/${name}/package.json`)
 
