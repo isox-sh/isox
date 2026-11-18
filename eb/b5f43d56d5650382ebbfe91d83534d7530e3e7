@@ -1,0 +1,21 @@
+website/docs/prompts/migrate-nx-to-isox.md
+  s_dfd67ca9a723b7::t_3e3c928f1fa54d 162-164
+website/docs/custom-executors.md
+  s_dfd67ca9a723b7::t_3e3c928f1fa54d 83-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ebb5f43d56d5650382ebbfe91d83534d7530e3e7",
+  "prompts": {},
+  "sessions": {
+    "s_dfd67ca9a723b7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f087-6dbb-7ff2-b4c1-33ed91371627",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
