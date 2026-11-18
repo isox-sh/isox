@@ -1,0 +1,22 @@
+packages/cli/tests/task-display.test.mjs
+  s_dfd67ca9a723b7::t_e554daa0d8800f 324
+  s_dfd67ca9a723b7::t_cf6a2eafd837f7 301-302,321,331,336
+packages/cli/src/shared/task-display.ts
+  s_dfd67ca9a723b7::t_3e3c928f1fa54d 204-208,247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dc1d49b10492bee39e7852acb0ad514e5e64042e",
+  "prompts": {},
+  "sessions": {
+    "s_dfd67ca9a723b7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f087-6dbb-7ff2-b4c1-33ed91371627",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
