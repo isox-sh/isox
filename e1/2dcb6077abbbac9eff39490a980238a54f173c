@@ -1,0 +1,91 @@
+packages/rspack/src/executors/serve/serve.executor.ts
+  s_3c95bc85ba24bd::t_112f6975739418 4
+  s_3c95bc85ba24bd::t_16c62e02158073 1-3,5-22
+packages/rspack/project.json
+  s_3c95bc85ba24bd::t_f9d3947928ee64 1-26
+packages/rspack/src/executors/run.ts
+  s_3c95bc85ba24bd::t_112f6975739418 1-37
+  s_3c95bc85ba24bd::t_33c7b4773bf7f9 38-44
+website/snippets/plugin-registry-data.mdx
+  s_3c95bc85ba24bd::t_6f9b9ed2521189 19-25
+  s_3c95bc85ba24bd::t_fa7896e5de6dd9 18
+packages/rspack/README.md
+  s_3c95bc85ba24bd::t_86c124bbaf1716 3-4,6-10,13-16,18-30,32
+  s_3c95bc85ba24bd::t_6f9b9ed2521189 1-2,5,11-12,17,31
+packages/rspack/tests/plugin.test.mjs
+  s_3c95bc85ba24bd::t_16d21e9035a829 126-148
+  s_3c95bc85ba24bd::t_112f6975739418 1-24,29-40,44,46-49,53-55,63-66,73,77,95,99-100,103-105,111-125
+  s_3c95bc85ba24bd::t_e0b131ff4e4921 78-92
+  s_3c95bc85ba24bd::t_923c46a97b0e60 42,56-62
+  s_3c95bc85ba24bd::t_238001b3888af1 25-28
+  s_3c95bc85ba24bd::t_34824018ef1330 41
+  s_3c95bc85ba24bd::t_623c46e9716fc8 43
+  s_3c95bc85ba24bd::t_dff05e60c552f1 45
+  s_3c95bc85ba24bd::t_522947f278f9c0 50-52
+  s_3c95bc85ba24bd::t_5ca50dcf2f92ba 67-72
+  s_3c95bc85ba24bd::t_62bbc311950377 74-76
+  s_3c95bc85ba24bd::t_448339a5282f29 93-94
+  s_3c95bc85ba24bd::t_7adf88207ae56b 96-98
+  s_3c95bc85ba24bd::t_d98dbce7939d98 101-102
+  s_3c95bc85ba24bd::t_0e634b8a91afa1 106-110
+packages/rspack/executors.json
+  s_3c95bc85ba24bd::t_270c8c981b97d5 4-5
+  s_3c95bc85ba24bd::t_f9d3947928ee64 1-3,6-14
+packages/rspack/generators.json
+  s_3c95bc85ba24bd::t_f9d3947928ee64 1-2,6-8
+  s_3c95bc85ba24bd::t_093c37caf4d87d 3-5
+scripts/bootstrap.cjs
+  s_3c95bc85ba24bd::t_9109c7c51dce35 9
+  s_3c95bc85ba24bd::t_f9d3947928ee64 143
+packages/rspack/package.json
+  s_3c95bc85ba24bd::t_f9d3947928ee64 1-36
+tests/packages.test.mjs
+  s_3c95bc85ba24bd::t_21a921e30d6c08 20
+tsconfig.base.json
+  s_3c95bc85ba24bd::t_f9d3947928ee64 25-26
+packages/rspack/src/generators/init.ts
+  s_3c95bc85ba24bd::t_923c46a97b0e60 1,4,54,56-69
+  s_3c95bc85ba24bd::t_bc66a9a410ad54 2,11-44,77
+  s_3c95bc85ba24bd::t_93a21a110eecec 71-74
+  s_3c95bc85ba24bd::t_4ccea5e015c523 3,5-10,45-53,55,70,75-76,78-79
+website/docs/rspack.md
+  s_3c95bc85ba24bd::t_6f9b9ed2521189 1-5,7-8,11-14,18-21,25-32,35,48-57,60-61
+  s_3c95bc85ba24bd::t_44f5c9a810cb38 36-47
+  s_3c95bc85ba24bd::t_923c46a97b0e60 10,33-34
+  s_3c95bc85ba24bd::t_6eae5f8dbf6614 6,9,15-17,22-24,58-59
+packages/rspack/vitest.config.mjs
+  s_3c95bc85ba24bd::t_f9d3947928ee64 1-6
+website/docs.json
+  s_3c95bc85ba24bd::t_6f9b9ed2521189 49
+website/approved-community-plugins.json
+  s_3c95bc85ba24bd::t_6f9b9ed2521189 19-25
+  s_3c95bc85ba24bd::t_2dcc13f48f0f6b 18
+packages/rspack/src/executors/serve/serve.schema.json
+  s_3c95bc85ba24bd::t_f9d3947928ee64 1-27
+packages/rspack/src/executors/bundle/build.executor.ts
+  s_3c95bc85ba24bd::t_270c8c981b97d5 1-8
+package.json
+  s_3c95bc85ba24bd::t_f9d3947928ee64 29
+packages/rspack/tsconfig.build.json
+  s_3c95bc85ba24bd::t_f9d3947928ee64 1-10
+packages/rspack/src/executors/bundle/build.schema.json
+  s_3c95bc85ba24bd::t_ad1ec3fbbe66ba 1-22
+pnpm-lock.yaml
+  s_3c95bc85ba24bd::t_b3d75a7677f1a7 187-189,290-302,351-359,441-447,562-682,693-695,1406-1408,1558-1573,1643-1649,1711-1792,1805-1809,2441-2443
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e12dcb6077abbbac9eff39490a980238a54f173c",
+  "prompts": {},
+  "sessions": {
+    "s_3c95bc85ba24bd": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ef0c-e455-74e0-84c7-0f425dd51c06",
+        "model": "gpt-6.2-astra"
+      },
+      "human_author": "Tycho Bokdam <tycho@palmtreecoding.com>"
+    }
+  }
+}
