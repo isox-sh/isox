@@ -1,3 +1,5 @@
+import { mkdtemp, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { positiveInteger, runProcess } from '@isox-sh/core'
@@ -26,51 +28,71 @@ function requestedJobs(options: PlaywrightOptions, plannerOptions: Record<string
   return positiveInteger(shards, 'Playwright planner.shards')
 }
 
-async function plan(options: PlaywrightOptions, context: ExecutorPlannerContext) {
-  if (options.shard !== undefined) {
-    return [{}]
-  }
+function shards(total: number) {
+  return Array.from({ length: total }, (_, i) => ({ shard: `${i + 1}/${total}` }))
+}
 
-  const fixed = requestedJobs(options, context.plannerOptions)
-  const shards = (total: number) => Array.from({ length: total }, (_, i) => ({ shard: `${i + 1}/${total}` }))
-  if (fixed !== undefined) {
-    return shards(fixed)
-  }
-
+async function automaticShards(options: PlaywrightOptions, context: ExecutorPlannerContext, reportDir: string) {
   const args = [
     ...testArgs(options, context.workspaceRoot, context.projectRoot),
-    '--list', '--pass-with-no-tests', '--reporter', join(__dirname, 'count-reporter.js')
+    '--list', '--pass-with-no-tests', '--add-reporter', join(__dirname, 'count-reporter.js')
   ]
-  async function countTests(shard?: string) {
+  // Configured reporters may filter tests. Isolate their standard report files during discovery.
+  const env = {
+    ...process.env,
+    PLAYWRIGHT_HTML_OPEN: 'never',
+    PLAYWRIGHT_HTML_OUTPUT_DIR: join(reportDir, 'html'),
+    PLAYWRIGHT_BLOB_OUTPUT_FILE: join(reportDir, 'blob.zip'),
+    PLAYWRIGHT_JUNIT_OUTPUT_FILE: join(reportDir, 'junit.xml'),
+    PLAYWRIGHT_JSON_OUTPUT_FILE: join(reportDir, 'report.json'),
+    PLAYWRIGHT_PERFETTO_OUTPUT_FILE: join(reportDir, 'perfetto.json'),
+  }
+
+  async function countTests(shard?: string): Promise<number | undefined> {
     let count: number | undefined
-    const result = await runProcess(process.execPath, shard ? [...args, `--shard=${shard}`] : args, {
+    let keepProject = false
+    let diagnostic = ''
+    // List mode includes unfocused tests. A focused suite must run with Playwright's own selection.
+    const flags = shard ? [...args, '--forbid-only', `--shard=${shard}`] : args
+    const result = await runProcess(process.execPath, flags, {
       cwd: context.projectRoot,
+      env,
       onMessage(message) {
-        if (typeof message === 'number') {
-          count = message
+        if (message && typeof message === 'object' && 'count' in message && typeof message.count === 'number'
+          && 'hasGlobalSetup' in message && 'hasShard' in message) {
+          count = message.count
+          keepProject = Boolean(message.hasGlobalSetup || (!shard && message.hasShard))
         }
       },
-      onOutput: chunk => process.stderr.write(chunk),
+      onOutput(chunk, stream) {
+        if (!shard && stream === 'stderr') {
+          diagnostic = (diagnostic + chunk).slice(-16_384)
+        }
+      },
     })
+    // List mode skips global setup, including setup that generates test inputs.
+    if (keepProject || (shard && !result.success)) {
+      return undefined
+    }
+
     if (!result.success || count === undefined) {
-      throw new Error(`Playwright test discovery failed for ${context.projectName}.`)
+      throw new Error(`Playwright test discovery failed for ${context.projectName}.\n${diagnostic.trim()}`.trimEnd())
     }
 
     return count
   }
 
   const testCount = await countTests()
-  const total = Math.min(context.maxJobs, testCount)
+  const total = Math.min(context.maxJobs, testCount ?? 0)
   if (total < 2) {
     return [{}]
   }
 
-  // Playwright may keep many tests together (serial suites, hooks or one large file).
-  // Keep the original denominator so removing empty jobs cannot redistribute tests.
+  // Keep Playwright's denominator when serial suites or large files leave gaps.
   const populated = []
   for (const part of shards(total)) {
     const count = await countTests(part.shard)
-    if (count === testCount) {
+    if (count === undefined || count === testCount) {
       return [{}]
     }
 
@@ -80,6 +102,28 @@ async function plan(options: PlaywrightOptions, context: ExecutorPlannerContext)
   }
 
   return populated.length > 1 ? populated : [{}]
+}
+
+async function plan(options: PlaywrightOptions, context: ExecutorPlannerContext) {
+  if (options.shard !== undefined) {
+    return [{}]
+  }
+
+  const fixed = requestedJobs(options, context.plannerOptions)
+  if (fixed !== undefined) {
+    return shards(fixed)
+  }
+
+  const reportDir = await mkdtemp(join(tmpdir(), 'isox-playwright-'))
+
+  try {
+    return await automaticShards(options, context, reportDir)
+  } finally {
+    await rm(reportDir, {
+      recursive: true,
+      force: true
+    })
+  }
 }
 
 export default Object.assign(plan, { requestedJobs })

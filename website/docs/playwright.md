@@ -39,10 +39,12 @@ Set `planner.shards` on the project's `e2e` target. You can also set it under
   If you set it explicitly, it must accommodate all reservations plus at least
   one job for any remaining projects.
 - **`"auto"`** is the default. With spare capacity from `--max-jobs`, the planner
-  runs Playwright in `--list` mode with the target's config. It checks shard
+  runs Playwright in `--list` mode with the target's config and reporters. It checks shard
   assignments and schedules those containing tests that are not statically
   skipped. A suite that cannot be split gets one ordinary run. An empty suite
   also gets one ordinary run so Playwright can report the missing tests.
+  Auto keeps a single job when the Playwright config selects a shard or uses
+  global setup, or when focused tests make list-mode assignments unreliable.
 
 Pass the complete matrix row to the Isox run-many action. To reproduce one job
 locally, run `isox e2e web --shard=2/3`. An explicit `shard` selects that

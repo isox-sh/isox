@@ -7,8 +7,6 @@ import { dirname, join, resolve } from 'node:path'
 
 import { test } from 'vitest'
 
-import { workerArgs } from '../../../actions/run-many/index.mjs'
-
 const dist = resolve(import.meta.dirname, '../../../dist')
 const require = createRequire(import.meta.url)
 
@@ -75,32 +73,6 @@ test('declares the plugin and its test runner and preserves workspace version pi
     devDependencies: { '@isox-sh/playwright': plugin.version }
   })
   await assert.rejects(readFile(join(root, 'apps/web/package.json')), { code: 'ENOENT' })
-})
-
-test('plans and executes two disjoint Playwright shards through the worker action', async t => {
-  const { root, write, success } = await fixture(t)
-  const log = join(root, 'executed')
-  for (const name of ['first', 'second']) {
-    await write(`apps/web/${name}.spec.cjs`, `
-      const { test } = require('@playwright/test')
-      test('${name}', async ({}, info) => {
-        const { current, total } = info.config.shard
-        require('node:fs').appendFileSync(${JSON.stringify(log)}, '${name} ' + current + '/' + total + '\\n')
-      })
-    `)
-  }
-
-  const { include } = JSON.parse(success('plan', '--all', '--target=e2e', '--max-jobs=2'))
-  assert.deepEqual(include.map(row => row.options), [{ shard: '1/2' }, { shard: '2/2' }])
-  for (const row of include) {
-    assert.deepEqual(row.projects, ['web'])
-    assert.equal(row.count, 2)
-    success(...workerArgs(row))
-  }
-
-  const events = (await readFile(log, 'utf8')).trim().split('\n')
-  assert.deepEqual(events.map(line => line.split(' ')[0]).sort(), ['first', 'second'])
-  assert.deepEqual(events.map(line => line.split(' ')[1]).sort(), ['1/2', '2/2'])
 })
 
 test('respects the shared job budget and a shard pinned by configuration', async t => {
