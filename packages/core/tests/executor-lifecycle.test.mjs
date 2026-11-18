@@ -380,15 +380,16 @@ for (const exitCode of [0, 1]) {
 
 test('overlapping core API calls scope process.env to each task and its children', async t => {
   const { root, workspace, logger } = await fixture(t, `module.exports = async (_, ctx) => {
+      await new Promise(resolve => setImmediate(resolve))
       const assert = require('node:assert/strict')
       assert.equal(process.env.ISOX_TEST_PROJECT, ctx.projectName)
       assert.equal(process.env.ISOX_TEST_HOST_ONLY, 'deployed')
       assert.equal(process.env.ISOX_TEST_ABSENT, undefined)
       const { writeFileSync } = require('node:fs')
       const { join } = require('node:path')
-      const { execFileSync } = require('node:child_process')
-      const child = execFileSync(process.execPath, ['-p', 'process.env.ISOX_TEST_PROJECT'], { encoding: 'utf8' })
-      writeFileSync(join(ctx.projectRoot, 'result'), [process.env.ISOX_TEST_PROJECT, child.trim()].join(','))
+      const execFile = require('node:util').promisify(require('node:child_process').execFile)
+      const { stdout } = await execFile(process.execPath, ['-p', 'process.env.ISOX_TEST_PROJECT'])
+      writeFileSync(join(ctx.projectRoot, 'result'), [process.env.ISOX_TEST_PROJECT, stdout.trim()].join(','))
       return { success: ctx.projectName !== 'broken' }
     }`)
   vi.stubEnv('ISOX_TEST_HOST_ONLY', 'deployed')
